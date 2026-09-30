@@ -257,7 +257,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 13;
+const APP_VERSION = 15;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -594,7 +594,7 @@ function peelEdges(fg, Fs, bgC, fgC, W, H){
     }
   }
 }
-function fillHulls(fg, d, W, H){
+function fillHulls(fg, d, W, H, clip){
   const parts = d.split(/(?=M)/).map(x => x.trim()).filter(Boolean);
   if(parts.length < 1) return;
   const maps = parts.map(part => {
@@ -628,8 +628,9 @@ function fillHulls(fg, d, W, H){
     const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
     ox.beginPath(); hull.forEach(([x, y], i) => i ? ox.lineTo(x + .5, y + .5) : ox.moveTo(x + .5, y + .5)); ox.closePath(); ox.fill();
   });
-  const a = ox.getImageData(0, 0, W, H).data;
-  for(let p = 0; p < W * H; p++) if(a[p*4+3] > 127) fg[p] = 1;
+  // l'enveloppe ne déborde pas du contour (sinon un objet collé derrière l'agrandirait)
+  const a = ox.getImageData(0, 0, W, H).data, lim = clip * W;
+  for(let p = 0; p < W * H; p++) if(a[p*4+3] > 127 && (!clip || maps.some(mm => mm[p] <= lim))) fg[p] = 1;
 }
 function cutout(img, guideCat, wantMask){
   const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
@@ -655,10 +656,18 @@ function cutout(img, guideCat, wantMask){
     const dOut = distMap(inside, W, H), dIn = distMap(outside, W, H);
     // Le contour n'est qu'un ordre d'idée : il sert à apprendre les couleurs
     // et à écarter ce qui est vraiment loin, pas à tracer la découpe.
-    const band = 0.07 * W, far = 0.18 * W, core = 0.05 * W, M = 18;
+    const band = 0.07 * W, far = (guide.far || 0.18) * W, core = 0.05 * W, M = 18;
+    // Vue de face au ras du sol : derrière les chaussures il y a toute la pièce (lit, mur, objets).
+    // Le « fond » utile est le sol : on l'apprend seulement sous le haut du contour,
+    // et tout ce qui dépasse nettement au-dessus du contour est retiré d'office.
+    let guideTop = H; for(let p = 0; p < N; p++) if(inside[p]){ guideTop = (p / W) | 0; break; }
+    let guideBot = 0; for(let p = N - 1; p >= 0; p--) if(inside[p]){ guideBot = (p / W) | 0; break; }
+    const cutBotP = guide.bottomCut ? Math.min(H, Math.round(guideBot + guide.bottomCut * W)) * W : N;
+    const guideTopP = guideTop * W;
+    const cutTopP = guide.topCut ? Math.max(0, Math.round(guideTop - guide.topCut * W)) * W : -1;
     const bgIdx = [], coreIdx = [];
     for(let p = 0; p < N; p++){
-      if(!inside[p] && dOut[p] > band && dOut[p] < 0.3 * W) bgIdx.push(p);
+      if(!inside[p] && dOut[p] > band && dOut[p] < 0.3 * W && (!guide.bgBelow || p >= guideTopP)) bgIdx.push(p);
       else if(inside[p] && dIn[p] > core) coreIdx.push(p);
     }
     // Le fond est appris juste autour du vêtement. Un groupe de couleur très minoritaire
@@ -684,6 +693,7 @@ function cutout(img, guideCat, wantMask){
     const lab = new Uint8Array(N);
     for(let p = 0; p < N; p++){
       if(!inside[p] && dOut[p] > far){ lab[p] = 2; continue; }   // vraiment loin : fond
+      if(p < cutTopP || p >= cutBotP){ lab[p] = 2; continue; }   // au-dessus : la pièce derrière ; en dessous : l'ombre au sol
       const dB = nearest(F, p, bgC), dF = nearest(F, p, fgC), ct = dB - dF;
       // « nettement plus proche » = écart absolu OU rapport (utile pour les ombres, où tout se rapproche)
       const likeBg = ct < -M || dB < dF * 0.6, likeFg = ct > M || dF < dB * 0.6;
@@ -767,7 +777,7 @@ function cutout(img, guideCat, wantMask){
   }
   // Chaussures : vues de dessus, chacune a une forme pleine. Les lacets blancs ou l'intérieur
   // clair peuvent ressembler au sol ; on remplit donc l'enveloppe de chaque chaussure.
-  if(inside && guide.hull) fillHulls(fg, guide.d, W, H);
+  if(inside && guide.hull) fillHulls(fg, guide.d, W, H, guide.hullClip || 0);
   if(wantMask) return {fg, W, H};
   let count = 0; for(let p = 0; p < N; p++) count += fg[p];
   const frac = count / N;
@@ -857,6 +867,78 @@ function analyzeCut(cv){
   }
   return {legs, parts};
 }
+/* ---------- Détourage intelligent (IA) ----------
+   Un réseau de neurones spécialisé repère l'objet principal de la photo.
+   Il tourne entièrement dans le téléphone : le modèle (~40 Mo) est téléchargé
+   une seule fois puis gardé en cache. Le contour sert ensuite à écarter ce qui
+   n'est pas la pièce (objets autour, affaires posées derrière des chaussures…).
+   Si l'IA n'est pas disponible (hors ligne au premier usage…), on revient à la méthode simple. */
+const IA = {lib:null, loading:null};
+const iaPath = () => window.IA_PUBLIC_PATH || 'https://staticimgly.com/@imgly/background-removal-data/1.4.5/dist/';
+function loadIA(){
+  if(IA.lib) return Promise.resolve(IA.lib);
+  if(!IA.loading){
+    IA.loading = new Promise((res, rej) => {
+      const sc = document.createElement('script'); sc.src = './detourage-ia.js';
+      sc.onload = () => window.DetourageIA ? res(IA.lib = window.DetourageIA) : rej(new Error('module IA absent'));
+      sc.onerror = () => rej(new Error('detourage-ia.js introuvable'));
+      document.head.appendChild(sc);
+    }).catch(e => { IA.loading = null; throw e; });
+  }
+  return IA.loading;
+}
+function guideMask(guide, W, H){
+  const gc = document.createElement('canvas'); gc.width = W; gc.height = H;
+  const gx = gc.getContext('2d'); gx.scale(W / 300, H / 400); gx.fill(new Path2D(guide.d));
+  const ga = gx.getImageData(0, 0, W, H).data, m = new Uint8Array(W * H);
+  for(let p = 0; p < W * H; p++) m[p] = ga[p*4+3] > 127 ? 1 : 0;
+  return m;
+}
+async function aiCut(img, guideCat, onProgress){
+  const lib = await loadIA();
+  const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
+  const src = drawScaled(img, 1024);
+  const blob = await new Promise(r => src.toBlob(r, 'image/jpeg', 0.92));
+  const out = await lib.removeBackground(blob, {
+    publicPath: iaPath(), model: 'small', output: {format: 'image/png'},
+    progress: (key, cur, tot) => { if(onProgress && tot) onProgress(cur / tot); }
+  });
+  const mimg = await loadImage(out);
+  const mc = document.createElement('canvas'); mc.width = W; mc.height = H;
+  const mx = mc.getContext('2d', {willReadFrequently:true}); mx.drawImage(mimg, 0, 0, W, H);
+  const ad = mx.getImageData(0, 0, W, H).data;
+  const alpha = new Uint8Array(N), fg = new Uint8Array(N);
+  for(let p = 0; p < N; p++){ alpha[p] = ad[p*4+3]; fg[p] = alpha[p] > 127 ? 1 : 0; }
+  const guide = guideCat && GUIDES[guideCat];
+  const {lab, info} = components(fg, 1, W, H);
+  if(!info.length) return null;
+  const keep = new Uint8Array(info.length);
+  if(guide && Math.abs(W / H - 0.75) < 0.03){
+    // Contour connu : on garde ce qui touche le contour, rien de très éloigné,
+    // et pour les chaussures rien au-dessus ni en dessous des chaussures.
+    const inside = guideMask(guide, W, H), dOut = distMap(inside, W, H), far = (guide.far || 0.18) * W;
+    let top = H, bot = 0;
+    for(let p = 0; p < N; p++) if(inside[p]){ const y = (p / W) | 0; if(y < top) top = y; if(y > bot) bot = y; }
+    const cutTop = guide.topCut ? (top - guide.topCut * W) : -1, cutBot = guide.bottomCut ? (bot + guide.bottomCut * W) : H;
+    for(let p = 0; p < N; p++){
+      const y = (p / W) | 0;
+      if((!inside[p] && dOut[p] > far) || y < cutTop || y > cutBot){ fg[p] = 0; continue; }
+      if(lab[p] >= 0 && inside[p]) keep[lab[p]] = 1;
+    }
+  } else {
+    // Photo de l'album : on garde les objets principaux (les plus grands)
+    const big = Math.max(...info.map(it => it.size));
+    info.forEach((it, n) => keep[n] = it.size >= big * 0.15 ? 1 : 0);
+  }
+  for(let p = 0; p < N; p++) if(fg[p] && !keep[lab[p]]) fg[p] = 0;
+  let count = 0; for(let p = 0; p < N; p++) count += fg[p];
+  if(count < N * 0.005) return null;
+  // Bords doux de l'IA conservés, mais seulement autour de ce qu'on garde
+  const near = blurBox(Float32Array.from(fg), W, H, 2);
+  for(let p = 0; p < N; p++) if(!(near[p] > 0.01)) alpha[p] = 0; else if(!fg[p]) alpha[p] = Math.min(alpha[p], 127);
+  return finalizeCut(c, fg, false, alpha);
+}
+
 /* Les pièces détourées avant cette version n'ont pas ces repères : on les calcule une fois. */
 async function upgradeCuts(){
   for(const p of [...S.pieces.values()]){
@@ -869,10 +951,11 @@ async function upgradeCuts(){
     }catch(e){}
   }
 }
-function finalizeCut(c, fgIn, shrink){
+function finalizeCut(c, fgIn, shrink, softAlpha){
   const W = c.width, H = c.height, N = W * H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
   const id = ctx.getImageData(0, 0, W, H), d = id.data;
+  if(softAlpha) return packCut(c, id, softAlpha);
   // Lissage du contour : on floute le masque puis on le recoupe à mi-hauteur.
   // Les crans et petites bosses plus petits que le flou disparaissent,
   // la forme générale du vêtement reste. Le seuil un peu au-dessus de 0,5
@@ -885,10 +968,15 @@ function finalizeCut(c, fgIn, shrink){
   for(let p = 0; p < N; p++) fg[p] = m[p] > cut ? 1 : 0;
   // Bord doux (anticrénelage) : transition sur ~2 pixels
   const soft = blurBox(Float32Array.from(fg), W, H, 1);
+  const alpha = new Uint8Array(N);
+  for(let p = 0; p < N; p++) alpha[p] = Math.round(255 * Math.min(1, Math.max(0, (soft[p] - 0.15) / 0.7)));
+  return packCut(c, id, alpha);
+}
+function packCut(c, id, alpha){
+  const W = c.width, H = c.height, d = id.data;
   let x0 = W, x1 = -1, y0 = H, y1 = -1;
   for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
-    const p = y * W + x;
-    const a = Math.round(255 * Math.min(1, Math.max(0, (soft[p] - 0.15) / 0.7)));
+    const p = y * W + x, a = alpha[p] < 12 ? 0 : alpha[p];
     d[p*4+3] = a;
     if(a > 0){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
   }
@@ -1293,8 +1381,8 @@ const GUIDES = {
   veste:   {d:'M110 60 L55 80 L28 145 L12 310 L50 316 L70 178 L70 345 L230 345 L230 178 L250 316 L288 310 L272 145 L245 80 L190 60 L150 150 Z', extra:'M150 150 L150 345', tip:'Veste fermée, à plat'},
   manteau: {d:'M110 40 L55 60 L28 125 L12 300 L50 306 L70 160 L70 385 L230 385 L230 160 L250 306 L288 300 L272 125 L245 60 L190 40 L150 130 Z', extra:'M150 130 L150 385', tip:'Manteau fermé, à plat'},
   pantalon:{d:'M95 18 L205 18 L232 385 L166 385 L150 118 L134 385 L68 385 Z', tip:'Pantalon à plat, taille en haut'},
-  // Vue de face plongeante : pointes vers l'objectif, téléphone tenu debout à hauteur de la taille
-  chaussures:{hull:true, view:'face', d:'M106 202 Q122 190 138 202 L143 236 Q146 264 122 266 Q98 264 101 236 Z M162 202 Q178 190 194 202 L199 236 Q202 264 178 266 Q154 264 157 236 Z', tip:'Pointes vers toi, un doigt d\'écart entre les deux ; debout, téléphone à hauteur de la taille, incliné vers elles'},
+  // Vue de face, téléphone posé au ras du sol devant les chaussures
+  chaussures:{view:'face', far:0.04, hull:true, hullClip:0.015, bgBelow:true, topCut:0.015, bottomCut:0.012, d:'M110 184 Q123 176 136 184 L145 230 Q149 252 147 263 Q145 268 139 268 L107 268 Q101 268 99 263 Q97 252 101 230 Z M164 184 Q177 176 190 184 L199 230 Q203 252 201 263 Q199 268 193 268 L161 268 Q155 268 153 263 Q151 252 155 230 Z', tip:'Pointes vers toi, un doigt d\'écart ; téléphone posé au sol devant elles, sur un fond dégagé (idéalement un mur uni derrière)'},
   // Ancien contour (vue de dessus), gardé pour redétourer les photos prises avant
   chaussures_dessus:{hull:true, view:'dessus', d:'M102 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z M158 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z', tip:'La paire côte à côte, vue de dessus, pointes en bas'},
   accessoire:{d:'M100 150 h100 a16 16 0 0 1 16 16 v68 a16 16 0 0 1 -16 16 h-100 a16 16 0 0 1 -16 -16 v-68 a16 16 0 0 1 16 -16 Z', tip:"L'accessoire au centre"},
@@ -1412,7 +1500,18 @@ function pieceSheet(existing){
     };
     const setBusy = b => { busy = b; save.disabled = b; };
     const runCut = async (img) => {
-      const cut = cutout(img, guideKey(p.photo));
+      let cut = null;
+      const label = t => { const b = drop.querySelector('.busy'); if(b) b.textContent = t; };
+      try{
+        if(!IA.lib && !S.settings.iaReady) toast('Premier détourage intelligent : téléchargement du modèle (~40 Mo), une seule fois.');
+        label('Détourage intelligent…');
+        cut = await aiCut(img, guideKey(p.photo), f => label(f < 0.999 ? `Préparation de l'IA… ${Math.round(f * 100)} %` : 'Détourage intelligent…'));
+        if(cut && !S.settings.iaReady) store.saveSettings({iaReady:true});
+      }catch(err){
+        console.warn('IA indisponible', err);
+        toast('Détourage intelligent indisponible pour l\'instant : méthode simple utilisée.');
+      }
+      if(!cut){ label('Détourage…'); cut = cutout(img, guideKey(p.photo)); }
       if(cut){ p.photo.cut = cut; toast('Pièce détourée.'); }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
@@ -1422,6 +1521,7 @@ function pieceSheet(existing){
         const old = p.photo;
         p.photo = await processPhoto(img);
         if(guideCat){ p.photo.guide = guideCat; if(guideCat === 'chaussures') p.photo.shoeView = 'face'; }
+        paint('Détourage…');
         if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
         if(form.detour.checked) await runCut(img);
       }catch(e){ toast('Photo illisible, réessaie.'); }
@@ -1442,6 +1542,7 @@ function pieceSheet(existing){
         const old = p.photo;
         p.photo = await processPhoto(img);
         if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
+        paint('Détourage…');
         if(form.detour.checked) await runCut(img);
       }catch(e){ toast('Photo illisible, essaie une autre image.'); }
       setBusy(false); paint(); input.value = '';

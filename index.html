@@ -258,7 +258,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 17;
+const APP_VERSION = 18;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -278,7 +278,10 @@ const OPEN_FRONT = new Set(['chemise','gilet','veste','manteau']);
 /* Ordre d'empilement des hauts, du plus proche du corps au plus extérieur */
 const TOP_RANK = {tshirt:0, haut:0, robe:0, chemise:1, pull:2, sweat:2, gilet:3, veste:4, manteau:4};
 /* Écart entre les deux pans quand la pièce est portée ouverte (fraction de sa largeur) */
-const OPEN_GAP = {chemise:0.2, gilet:0.2, veste:0.22, manteau:0.24};
+const OPEN_GAP = {chemise:0.2, gilet:0.14, veste:0.16, manteau:0.18};
+/* Chemise : ouverte en V sous le col (boutonnée en haut, pans qui pivotent).
+   Gilet, veste, manteau : ouverts sur toute la hauteur, col compris (fermeture éclair ou boutons). */
+const OPEN_STYLE = {chemise:'pivot', gilet:'full', veste:'full', manteau:'full'};
 const BANDS = [
   {id:'froid', label:'Froid', hint:'< 10°', words:'le froid'},
   {id:'frais', label:'Frais', hint:'10–17°', words:'un temps frais'},
@@ -1133,15 +1136,23 @@ function silhouette(pcs, openMode){
     const c = p.photo.cut; torsoW = Math.max(torsoW, c.w);
     const z = 10 + rankOf(p) * 10 + i, axis = axisOf(p), x0 = -axis * c.w;
     const mask = outer && p !== outer ? outerRect : null;
-    if(mode === 'open' && opens(p)){
+    if(mode === 'open' && opens(p) && OPEN_STYLE[p.category] === 'full'){
+      // Ouverte de haut en bas : chaque pan garde son bord extérieur (épaule, manche) en place
+      // et se resserre vers l'extérieur, ce qui dégage le milieu sur toute la hauteur,
+      // col compris, comme un gilet ou une veste dézippé. La silhouette ne s'élargit pas.
+      const gap = OPEN_GAP[p.category] || 0.16;
+      const kl = Math.max(0.5, 1 - gap / (2 * axis)), kr = Math.max(0.5, 1 - gap / (2 * (1 - axis)));
+      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - axis) * 100).toFixed(1)}% 0 0)`, tf:`scaleX(${kl.toFixed(4)})`, origin:'0% 50%'});
+      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(axis * 100).toFixed(1)}%)`, tf:`scaleX(${kr.toFixed(4)})`, origin:'100% 50%'});
+    } else if(mode === 'open' && opens(p)){
       // Photo prise fermée : on la coupe au milieu (un peu à droite pour garder la patte
       // de boutonnage entière à gauche) et chaque pan pivote autour du col.
       // Le col reste en place, l'ouverture s'élargit vers le bas en V, comme portée ouverte.
       const cutAt = Math.min(0.9, axis + 0.02);
       const deg = Math.atan(((OPEN_GAP[p.category] || 0.15) * c.w / 2) / (c.h * 0.85)) * 180 / Math.PI;
       const origin = `${(cutAt * 100).toFixed(1)}% 12%`;
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - cutAt) * 100).toFixed(1)}% 0 0)`, rot:deg.toFixed(2), origin});
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(cutAt * 100).toFixed(1)}%)`, rot:(-deg).toFixed(2), origin});
+      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - cutAt) * 100).toFixed(1)}% 0 0)`, tf:`rotate(${deg.toFixed(2)}deg)`, origin});
+      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(cutAt * 100).toFixed(1)}%)`, tf:`rotate(${(-deg).toFixed(2)}deg)`, origin});
     } else {
       items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask});
     }
@@ -1186,7 +1197,7 @@ function silhouette(pcs, openMode){
       const pt = it.part;
       return `<div class="part" style="${pos}"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${(-pt.x/pt.w*100).toFixed(2)}%;top:${(-pt.y/pt.h*100).toFixed(2)}%;width:${(100/pt.w).toFixed(2)}%;height:${(100/pt.h).toFixed(2)}%"></div>`;
     }
-    const rot = it.rot ? `transform:rotate(${it.rot}deg);transform-origin:${it.origin};` : '';
+    const rot = it.tf ? `transform:${it.tf};transform-origin:${it.origin};` : '';
     if(it.mask){
       // Haut du dessous : découpé à la silhouette de la pièce extérieure (masque)
       const m = it.mask, mp = `left:${((m.x-minX)/TW*100).toFixed(2)}%;top:${(m.y/TH*100).toFixed(2)}%;width:${(m.w/TW*100).toFixed(2)}%;height:${(m.h/TH*100).toFixed(2)}%;`;

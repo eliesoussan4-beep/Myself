@@ -197,6 +197,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .cam-shot:active{background:#fff}
 .cam-shot:disabled{opacity:.4}
 .cam-err{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;font-size:15px}
+.version{text-align:center;font-size:12px;color:var(--muted);margin:28px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -227,6 +228,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
+const APP_VERSION = 5;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -589,7 +591,7 @@ function render(){
   const sw = `<div class="switcher"><div class="seg" role="tablist">${tabs.map(([id,l]) =>
     `<button type="button" data-section="${id}" aria-current="${S.section===id}">${l}${id==='linge'&&dirtyCount?`<span class="count">${dirtyCount}</span>`:''}</button>`).join('')}</div></div>`;
   const body = {demain:renderDemain, tenues:renderTenues, pieces:renderPieces, linge:renderLinge}[S.section]();
-  app.innerHTML = sw + body;
+  app.innerHTML = sw + body + `<p class="version">Version ${APP_VERSION}</p>`;
 }
 
 function lookGrid(pcs){
@@ -894,7 +896,7 @@ function pieceSheet(existing){
     const setBusy = b => { busy = b; save.disabled = b; };
     const runCut = async (img) => {
       const cut = cutout(img);
-      if(cut){ p.photo.cut = cut; }
+      if(cut){ p.photo.cut = cut; toast('Pièce détourée.'); }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
     const useImage = async img => {
@@ -928,7 +930,20 @@ function pieceSheet(existing){
     };
     form.querySelector('#camIn').addEventListener('change', e => onFile(e.target));
     form.querySelector('#albIn').addEventListener('change', e => onFile(e.target));
-    form.detour.addEventListener('change', () => store.saveSettings({detour: form.detour.checked}));
+    form.detour.addEventListener('change', async () => {
+      store.saveSettings({detour: form.detour.checked});
+      if(!p.photo) return;
+      if(!form.detour.checked){ delete p.photo.cut; paint(); return; }
+      if(p.photo.cut) return;
+      setBusy(true); paint('Détourage…');
+      try{
+        const img = new Image(); img.crossOrigin = 'anonymous';
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = photoSrc(p); });
+        await runCut(img);
+        if(!p.photo.cut) form.detour.checked = false;
+      }catch(err){ toast('Impossible de relire la photo.'); }
+      setBusy(false); paint();
+    });
     tools.addEventListener('click', async e => {
       const b = e.target.closest('[data-cut]'); if(!b) return;
       if(b.dataset.cut === 'remove'){ delete p.photo.cut; paint(); return; }
@@ -1041,7 +1056,9 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 // Application installable + fonctionne hors connexion
 if('serviceWorker' in navigator && location.protocol === 'https:'){
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).then(r => r.update()).catch(()=>{}));
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if(!reloaded){ reloaded = true; location.reload(); } });
 }
 </script>
 </body>

@@ -198,6 +198,24 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .cam-shot:disabled{opacity:.4}
 .cam-err{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;font-size:15px}
 .version{text-align:center;font-size:12px;color:var(--muted);margin:28px 0 0}
+#retouch{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;border-radius:0;background:#0d1117;color:#fff}
+#retouch::backdrop{background:#000}
+.rt{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.rt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px}
+.rt-top strong{font-family:var(--display);font-size:18px}
+.rt-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:0 8px}
+.rt-box{position:relative;background:conic-gradient(#2a3140 25%,#1c2230 0 50%,#2a3140 0 75%,#1c2230 0) 0 0/18px 18px}
+.rt-box canvas{position:absolute;inset:0;width:100%;height:100%}
+.rt-mask{opacity:.6;touch-action:none;cursor:crosshair}
+.rt-tools{padding:12px 12px 8px;display:flex;flex-direction:column;gap:10px}
+.rt-tools .seg{background:rgba(255,255,255,.08);border-color:transparent}
+.rt-tools .seg button{color:rgba(255,255,255,.7)}
+.rt-tools .seg button[aria-current="true"]{background:#fff;color:#111}
+.rt-row{display:flex;gap:6px;flex-wrap:wrap}
+.rt-row .chip-btn{background:rgba(255,255,255,.12);border-color:transparent;color:#fff}
+.rt-row .chip-btn[aria-pressed="true"]{background:#fff;color:#111}
+.rt-hint{margin:0;font-size:13px;color:rgba(255,255,255,.7)}
+.cut-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -224,11 +242,12 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <dialog id="sheet"></dialog>
 <dialog id="cam" aria-label="Appareil photo"></dialog>
+<dialog id="retouch" aria-label="Retoucher le détourage"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 7;
+const APP_VERSION = 10;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -489,6 +508,7 @@ function kmeans(F, idx, k){
       const A = acc[best]; A[0] += F[p*3]; A[1] += F[p*3+1]; A[2] += F[p*3+2]; A[3]++;
     }
     C = C.map((c, n) => acc[n][3] ? [acc[n][0]/acc[n][3], acc[n][1]/acc[n][3], acc[n][2]/acc[n][3]] : c);
+    C.forEach((c, n) => c.share = acc[n][3] / smp.length);
   }
   return C;
 }
@@ -518,11 +538,11 @@ function components(mask, val, W, H){
 }
 /* Croissance de régions : chaque pixel indécis prend l'étiquette du voisin
    qui lui ressemble le plus, en commençant par les plus ressemblants. */
-function growRegions(lab, d, W, H, penalty){
+function growRegions(lab, F, W, H, penalty){
   const N = W * H, buckets = Array.from({length:256}, () => []);
   const cost = (q, from, l) => {
-    const i = q * 4, j = from * 4;
-    const c = Math.abs(d[i]-d[j]) + Math.abs(d[i+1]-d[j+1]) + Math.abs(d[i+2]-d[j+2]) + penalty(q, l);
+    const i = q * 3, j = from * 3;
+    const c = (Math.abs(F[i]-F[j]) + Math.abs(F[i+1]-F[j+1]) + Math.abs(F[i+2]-F[j+2])) * 1.5 + penalty(q, l);
     return Math.min(255, c | 0);
   };
   const pushAround = (p, floor) => {
@@ -543,15 +563,17 @@ function growRegions(lab, d, W, H, penalty){
   }
   for(let p = 0; p < N; p++) if(!lab[p]) lab[p] = 2;
 }
-function cutout(img, guideCat){
+function cutout(img, guideCat, wantMask){
   const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
   const id = ctx.getImageData(0, 0, W, H), d = id.data;
-  // Couleur en luminosité + teinte ; la luminosité compte un peu moins (les ombres la font varier)
+  // Couleur décrite surtout par sa teinte, rapportée à la luminosité : une ombre
+  // assombrit un t-shirt blanc sans le rendre orangé comme le parquet.
+  // La luminosité compte peu (sinon chaque ombre passe pour du fond).
   const F = new Float32Array(N * 3);
   for(let p = 0; p < N; p++){
-    const r = d[p*4], g = d[p*4+1], b = d[p*4+2];
-    F[p*3] = (r + g + b) / 3 * 0.8; F[p*3+1] = (r - g) * 0.9; F[p*3+2] = ((r + g) / 2 - b) * 0.9;
+    const r = d[p*4], g = d[p*4+1], b = d[p*4+2], L = (r + g + b) / 3, k = 100 / Math.max(L, 35);
+    F[p*3] = L * 0.3; F[p*3+1] = (r - g) * k; F[p*3+2] = ((r + g) / 2 - b) * k;
   }
   const fg = new Uint8Array(N);
   const guide = guideCat && GUIDES[guideCat];
@@ -568,33 +590,71 @@ function cutout(img, guideCat){
     const band = 0.07 * W, far = 0.18 * W, core = 0.05 * W, M = 18;
     const bgIdx = [], coreIdx = [];
     for(let p = 0; p < N; p++){
-      if(!inside[p] && dOut[p] > band) bgIdx.push(p);
+      if(!inside[p] && dOut[p] > band && dOut[p] < 0.3 * W) bgIdx.push(p);
       else if(inside[p] && dIn[p] > core) coreIdx.push(p);
     }
-    const bgC = kmeans(F, bgIdx, 4);
+    // Le fond est appris juste autour du vêtement. Un groupe de couleur très minoritaire
+    // (un papier blanc, un linge posé à côté…) n'est pas « le fond » : on l'ignore,
+    // sinon un t-shirt blanc serait pris pour ce papier blanc.
+    let bgC = kmeans(F, bgIdx, 6);
+    const mainBg = bgC.filter(c => c.share >= 0.07);
+    if(mainBg.length) bgC = mainBg;
     // Variation normale du fond (grain, lumière) : sert de seuil pour ne pas
     // prendre du fond visible dans le contour pour une couleur du vêtement
     const bgStep = Math.max(1, Math.floor(bgIdx.length / 2000));
     const bgSpread = []; for(let n = 0; n < bgIdx.length; n += bgStep) bgSpread.push(nearest(F, bgIdx[n], bgC));
     bgSpread.sort((x, y) => x - y);
-    const thr = Math.max(14, (bgSpread[Math.floor(bgSpread.length * 0.95)] || 0) * 1.5 + 6);
+    const thr = Math.min(40, Math.max(12, (bgSpread[Math.floor(bgSpread.length * 0.75)] || 0) * 1.3 + 4));
     let fgIdx = coreIdx.filter(p => nearest(F, p, bgC) > thr);
     if(fgIdx.length < coreIdx.length * 0.1) fgIdx = coreIdx;
-    const fgC = kmeans(F, fgIdx, 4);
+    let fgC = kmeans(F, fgIdx, 4);
+    // Une « couleur du vêtement » quasi identique à une couleur du fond vient du fond visible dans le contour : on l'écarte
+    const pure = fgC.filter(c => Math.min(...bgC.map(b => Math.hypot(c[0]-b[0], c[1]-b[1], c[2]-b[2]))) > 10);
+    if(pure.length) fgC = pure;
     if(!bgC.length || !fgC.length) return null;
     // Graines sûres : 1 = vêtement, 2 = fond, 0 = à décider
     const lab = new Uint8Array(N);
     for(let p = 0; p < N; p++){
       if(!inside[p] && dOut[p] > far){ lab[p] = 2; continue; }   // vraiment loin : fond
-      const ct = nearest(F, p, bgC) - nearest(F, p, fgC);
-      if(inside[p] && dIn[p] > core){ lab[p] = ct > 0 ? 1 : ct < -M ? 2 : 0; continue; }
-      if(ct > M) lab[p] = 1; else if(ct < -M) lab[p] = 2;
+      const dB = nearest(F, p, bgC), dF = nearest(F, p, fgC), ct = dB - dF;
+      // « nettement plus proche » = écart absolu OU rapport (utile pour les ombres, où tout se rapproche)
+      const likeBg = ct < -M || dB < dF * 0.6, likeFg = ct > M || dF < dB * 0.6;
+      if(inside[p] && dIn[p] > core){ lab[p] = likeBg ? 2 : ct > 0 ? 1 : 0; continue; }
+      if(likeFg) lab[p] = 1; else if(likeBg) lab[p] = 2;
     }
     // Les zones incertaines se remplissent depuis les graines en suivant les vrais bords
     // de la photo (là où la couleur change le plus). Le contour ne pèse qu'un tout petit peu.
     const penalty = (q, l) => l === 2 ? (inside[q] ? 6 : 0) : (inside[q] ? 0 : Math.min(10, dOut[q] / band * 5));
-    growRegions(lab, d, W, H, penalty);
+    growRegions(lab, F, W, H, penalty);
     for(let p = 0; p < N; p++) fg[p] = lab[p] === 1 ? 1 : 0;
+    // Épluchage : en partant du fond, on retire couche par couche les pixels du bord
+    // qui ressemblent plus au fond qu'au vêtement (ex. parquet dans l'ombre collé au t-shirt).
+    // On s'arrête dès qu'on tombe sur du tissu, et jamais plus loin que ~8 % de la largeur.
+    {
+      // couleurs moyennées sur un petit voisinage : gomme le bruit de compression de la photo
+      const Fs = new Float32Array(N * 3);
+      for(let ch = 0; ch < 3; ch++){
+        const one = new Float32Array(N); for(let p = 0; p < N; p++) one[p] = F[p*3+ch];
+        const bl = blurBox(one, W, H, 2); for(let p = 0; p < N; p++) Fs[p*3+ch] = bl[p];
+      }
+      const maxDepth = Math.round(0.08 * W), depth = new Int16Array(N).fill(-1), q = new Int32Array(N);
+      let h = 0, t = 0;
+      for(let p = 0; p < N; p++){
+        if(!fg[p]) continue;
+        const x = p % W;
+        if((x > 0 && !fg[p-1]) || (x < W-1 && !fg[p+1]) || (p >= W && !fg[p-W]) || (p < N-W && !fg[p+W])){ depth[p] = 0; q[t++] = p; }
+      }
+      while(h < t){
+        const p = q[h++];
+        if(!(nearest(Fs, p, bgC) < nearest(Fs, p, fgC) * 1.15)) continue;   // c'est du tissu : on s'arrête là
+        fg[p] = 0;
+        if(depth[p] >= maxDepth) continue;
+        const x = p % W;
+        for(const n of [x > 0 ? p-1 : -1, x < W-1 ? p+1 : -1, p >= W ? p-W : -1, p < N-W ? p+W : -1]){
+          if(n >= 0 && fg[n] && depth[n] < 0){ depth[n] = depth[p] + 1; q[t++] = n; }
+        }
+      }
+    }
   } else {
     // Sans contour : le fond = couleur des bords, propagé depuis les bords
     const R = [], G = [], B = [];
@@ -655,32 +715,69 @@ function cutout(img, guideCat){
     const fill = info.map(it => !it.border && it.size < N * 0.04);
     for(let p = 0; p < N; p++) if(lab[p] >= 0 && fill[lab[p]]) fg[p] = 1;
   }
+  if(wantMask) return {fg, W, H};
   let count = 0; for(let p = 0; p < N; p++) count += fg[p];
   const frac = count / N;
   if(frac < 0.02 || frac > 0.93) return null;
-  // Bords adoucis + recadrage
+  return finalizeCut(c, fg, true);
+}
+/* Applique le masque à la photo : bords adoucis, léger rognage du liseré, recadrage.
+   x, y, W, H sont gardés pour pouvoir retoucher plus tard. */
+function blurBox(src, W, H, r){
+  // flou « boîte » séparable (horizontal puis vertical), r = rayon en pixels
+  const tmp = new Float32Array(W * H), out = new Float32Array(W * H), n = 2 * r + 1;
+  for(let y = 0; y < H; y++){
+    let acc = 0; const row = y * W;
+    for(let x = -r; x <= r; x++) acc += src[row + Math.min(W - 1, Math.max(0, x))];
+    for(let x = 0; x < W; x++){
+      tmp[row + x] = acc / n;
+      acc += src[row + Math.min(W - 1, x + r + 1)] - src[row + Math.max(0, x - r)];
+    }
+  }
+  for(let x = 0; x < W; x++){
+    let acc = 0;
+    for(let y = -r; y <= r; y++) acc += tmp[Math.min(H - 1, Math.max(0, y)) * W + x];
+    for(let y = 0; y < H; y++){
+      out[y * W + x] = acc / n;
+      acc += tmp[Math.min(H - 1, y + r + 1) * W + x] - tmp[Math.max(0, y - r) * W + x];
+    }
+  }
+  return out;
+}
+function finalizeCut(c, fgIn, shrink){
+  const W = c.width, H = c.height, N = W * H;
+  const ctx = c.getContext('2d', {willReadFrequently:true});
+  const id = ctx.getImageData(0, 0, W, H), d = id.data;
+  // Lissage du contour : on floute le masque puis on le recoupe à mi-hauteur.
+  // Les crans et petites bosses plus petits que le flou disparaissent,
+  // la forme générale du vêtement reste. Le seuil un peu au-dessus de 0,5
+  // rogne légèrement le bord pour ne pas garder de liseré de sol.
+  const R = Math.max(2, Math.round(W / 150));
+  let m = new Float32Array(N);
+  for(let p = 0; p < N; p++) m[p] = fgIn[p];
+  m = blurBox(blurBox(m, W, H, R), W, H, R);
+  const fg = new Uint8Array(N), cut = shrink ? 0.58 : 0.5;
+  for(let p = 0; p < N; p++) fg[p] = m[p] > cut ? 1 : 0;
+  // Bord doux (anticrénelage) : transition sur ~2 pixels
+  const soft = blurBox(Float32Array.from(fg), W, H, 1);
   let x0 = W, x1 = -1, y0 = H, y1 = -1;
   for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
     const p = y * W + x;
-    let sum = 0, n = 0;
-    for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++){
-      const xx = x + dx, yy = y + dy; if(xx < 0 || yy < 0 || xx >= W || yy >= H) continue;
-      sum += fg[yy * W + xx]; n++;
-    }
-    const a = fg[p] ? Math.round(255 * sum / n) : Math.round(120 * sum / n);
-    d[p*4+3] = a < 20 ? 0 : a;
-    if(fg[p]){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+    const a = Math.round(255 * Math.min(1, Math.max(0, (soft[p] - 0.15) / 0.7)));
+    d[p*4+3] = a;
+    if(a > 0){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
   }
   if(x1 - x0 < 10 || y1 - y0 < 10) return null;
   x0 = Math.max(0, x0 - 1); y0 = Math.max(0, y0 - 1); x1 = Math.min(W - 1, x1 + 1); y1 = Math.min(H - 1, y1 + 1);
-  ctx.putImageData(id, 0, 0);
+  const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H;
+  tmp.getContext('2d').putImageData(id, 0, 0);
   const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
   const out = document.createElement('canvas'); out.width = cw; out.height = ch;
-  out.getContext('2d').drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+  out.getContext('2d').drawImage(tmp, x0, y0, cw, ch, 0, 0, cw, ch);
   let url = out.toDataURL('image/webp', 0.86);
   if(!url.startsWith('data:image/webp')) url = out.toDataURL('image/png');
   const M = Math.max(W, H);
-  return {dataUrl:url, w:cw / M, h:ch / M};
+  return {dataUrl:url, w:cw / M, h:ch / M, x:x0, y:y0, W, H};
 }
 
 /* ---------- Météo (Paris) ---------- */
@@ -938,6 +1035,89 @@ function openSheet(html, onSubmit, onMount){
 }
 sheet.addEventListener('click', e => { if(e.target === sheet) sheet.close(); });
 
+/* ---------- Retouche du détourage (gomme / restaurer) ---------- */
+const rt = $('#retouch');
+function loadSrc(src){
+  return new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
+}
+async function maskFromCut(photo, img, W, H){
+  const cut = photo.cut;
+  if(cut && cut.x !== undefined){
+    const k = W / cut.W, m = document.createElement('canvas'); m.width = W; m.height = H;
+    const ci = await loadSrc(cut.dataUrl);
+    const mx = m.getContext('2d', {willReadFrequently:true});
+    mx.drawImage(ci, cut.x * k, cut.y * k, ci.width * k, ci.height * k);
+    const a = mx.getImageData(0, 0, W, H).data, fg = new Uint8Array(W * H);
+    for(let p = 0; p < W * H; p++) fg[p] = a[p*4+3] > 60 ? 1 : 0;
+    return fg;
+  }
+  const r = cutout(img, photo.guide, true);
+  return r ? r.fg : new Uint8Array(W * H).fill(1);
+}
+async function openRetouch(photo, onDone){
+  const img = await loadSrc(photoSrc({photo}));
+  const base = drawScaled(img, 720), W = base.width, H = base.height;
+  const fg = await maskFromCut(photo, img, W, H);
+  const ratio = W / H;
+  rt.innerHTML = `<div class="rt">
+    <div class="rt-top">
+      <button type="button" class="cam-x" data-rt="cancel" aria-label="Fermer sans enregistrer">✕</button>
+      <strong>Retoucher</strong>
+      <button type="button" class="btn primary" data-rt="ok">Valider</button>
+    </div>
+    <div class="rt-stage"><div class="rt-box" style="width:min(calc(100vw - 16px), calc((100dvh - 260px) * ${ratio.toFixed(4)}));aspect-ratio:${W}/${H}">
+      <canvas class="rt-photo" width="${W}" height="${H}"></canvas><canvas class="rt-mask" width="${W}" height="${H}"></canvas>
+    </div></div>
+    <div class="rt-tools">
+      <div class="seg"><button type="button" data-mode="erase" aria-current="true">Gommer</button><button type="button" data-mode="keep" aria-current="false">Restaurer</button></div>
+      <div class="rt-row">
+        <button type="button" class="chip-btn" data-size="7" aria-pressed="false">Fin</button>
+        <button type="button" class="chip-btn" data-size="16" aria-pressed="true">Moyen</button>
+        <button type="button" class="chip-btn" data-size="34" aria-pressed="false">Large</button>
+        <button type="button" class="chip-btn" data-rt="undo">Annuler le trait</button>
+      </div>
+      <p class="rt-hint">Passe le doigt sur ce qui doit disparaître : ça devient rouge. « Restaurer » fait revenir une zone coupée par erreur.</p>
+    </div></div>`;
+  rt.showModal();
+  rt.querySelector('.rt-photo').getContext('2d').drawImage(base, 0, 0);
+  const mc = rt.querySelector('.rt-mask'), mx = mc.getContext('2d', {willReadFrequently:true});
+  const init = mx.createImageData(W, H);
+  for(let p = 0; p < W * H; p++) if(!fg[p]){ init.data[p*4] = 225; init.data[p*4+1] = 45; init.data[p*4+2] = 45; init.data[p*4+3] = 255; }
+  mx.putImageData(init, 0, 0);
+  let mode = 'erase', size = 16, last = null;
+  const undo = [];
+  const pos = e => { const r = mc.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  const dab = (a, b) => {
+    mx.globalCompositeOperation = mode === 'erase' ? 'source-over' : 'destination-out';
+    mx.strokeStyle = mx.fillStyle = 'rgb(225,45,45)'; mx.lineWidth = size; mx.lineCap = 'round';
+    mx.beginPath(); mx.moveTo(a[0], a[1]); mx.lineTo(b[0], b[1]); mx.stroke();
+  };
+  mc.addEventListener('pointerdown', e => {
+    e.preventDefault(); mc.setPointerCapture(e.pointerId);
+    undo.push(mx.getImageData(0, 0, W, H)); if(undo.length > 8) undo.shift();
+    last = pos(e); dab(last, last);
+  });
+  mc.addEventListener('pointermove', e => { if(!last) return; const p2 = pos(e); dab(last, p2); last = p2; });
+  const end = () => { last = null; };
+  mc.addEventListener('pointerup', end); mc.addEventListener('pointercancel', end);
+  rt.onclick = e => {
+    const m = e.target.closest('[data-mode]');
+    if(m){ mode = m.dataset.mode; rt.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-current', b === m)); return; }
+    const z = e.target.closest('[data-size]');
+    if(z){ size = +z.dataset.size; rt.querySelectorAll('[data-size]').forEach(b => b.setAttribute('aria-pressed', b === z)); return; }
+    const a = e.target.closest('[data-rt]'); if(!a) return;
+    if(a.dataset.rt === 'undo'){ const u = undo.pop(); if(u){ mx.globalCompositeOperation = 'source-over'; mx.putImageData(u, 0, 0); } return; }
+    if(a.dataset.rt === 'cancel'){ rt.close(); return; }
+    if(a.dataset.rt === 'ok'){
+      const al = mx.getImageData(0, 0, W, H).data, out = new Uint8Array(W * H);
+      for(let p = 0; p < W * H; p++) out[p] = al[p*4+3] < 128 ? 1 : 0;
+      const cut = finalizeCut(base, out, false);
+      rt.close();
+      if(cut){ onDone(cut); toast('Retouche enregistrée.'); } else toast('Il ne reste presque rien : retouche annulée.');
+    }
+  };
+}
+
 /* ---------- Appareil photo intégré avec contour en surimpression ----------
    Cadre 3:4 (300 x 400 unités). Tous les contours sont dessinés à la même échelle
    (environ 0,29 cm par unité) : si tu remplis le contour, les proportions entre
@@ -1057,7 +1237,7 @@ function pieceSheet(existing){
       drop.innerHTML = cut ? `<img src="${esc(cut)}" alt="Pièce détourée">` : orig ? `<img src="${esc(orig)}" alt="Photo de la pièce">` : `<div class="noimg">${ICON.camera}<span>Photographie la pièce toujours au même endroit, sur un fond uni</span></div>`;
       if(busyText) drop.insertAdjacentHTML('beforeend', `<span class="busy">${busyText}</span>`);
       tools.innerHTML = !orig ? '' : cut
-        ? '<button type="button" class="linkish" data-cut="remove">Annuler le détourage</button>'
+        ? '<button type="button" class="btn" data-cut="retouch">Retoucher le détourage</button> <button type="button" class="linkish" data-cut="remove">Annuler le détourage</button>'
         : '<button type="button" class="linkish" data-cut="run">Détourer cette photo</button>';
     };
     const setBusy = b => { busy = b; save.disabled = b; };
@@ -1114,6 +1294,11 @@ function pieceSheet(existing){
     });
     tools.addEventListener('click', async e => {
       const b = e.target.closest('[data-cut]'); if(!b) return;
+      if(b.dataset.cut === 'retouch'){
+        try{ await openRetouch(p.photo, cut => { p.photo.cut = cut; paint(); }); }
+        catch(err){ toast('Impossible d\'ouvrir la retouche.'); }
+        return;
+      }
       if(b.dataset.cut === 'remove'){ delete p.photo.cut; paint(); return; }
       setBusy(true); paint('Détourage…');
       try{

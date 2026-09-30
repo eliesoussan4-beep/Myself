@@ -179,6 +179,24 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .sil{position:relative;margin:0 auto}
 .sil img{position:absolute;max-width:none;object-fit:fill}
 .sil-wrap .strip{margin-top:12px}
+#cam{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;border-radius:0;background:#000;color:#fff}
+#cam::backdrop{background:#000}
+.cam{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.cam-top{display:flex;align-items:center;gap:8px;padding:10px 10px 8px}
+.cam-x{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:18px}
+.cam-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.cam-cats::-webkit-scrollbar{display:none}
+.cam-cats .chip-btn{background:rgba(255,255,255,.12);border-color:transparent;color:#fff;white-space:nowrap}
+.cam-cats .chip-btn[aria-pressed="true"]{background:#fff;color:#111;border-color:#fff}
+.cam-box{position:relative;width:min(100vw, calc((100dvh - 230px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * .75));aspect-ratio:3/4;margin:0 auto;background:#111;overflow:hidden}
+.cam-box video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-guide,.cam-guide svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cam-tip{text-align:center;font-size:14px;margin:10px 16px 0;color:rgba(255,255,255,.85)}
+.cam-bottom{flex:1;display:flex;align-items:center;justify-content:center;min-height:96px}
+.cam-shot{width:74px;height:74px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,.25);padding:0}
+.cam-shot:active{background:#fff}
+.cam-shot:disabled{opacity:.4}
+.cam-err{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;font-size:15px}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -204,6 +222,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 </nav>
 
 <dialog id="sheet"></dialog>
+<dialog id="cam" aria-label="Appareil photo"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -409,14 +428,15 @@ function loadImage(file){
   });
 }
 function drawScaled(img, max){
-  const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const r = Math.min(1, max / Math.max(iw, ih));
   const c = document.createElement('canvas');
-  c.width = Math.round(img.naturalWidth * r); c.height = Math.round(img.naturalHeight * r);
+  c.width = Math.round(iw * r); c.height = Math.round(ih * r);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   return c;
 }
 async function processPhoto(fileOrImg){
-  const img = fileOrImg instanceof HTMLImageElement ? fileOrImg : await loadImage(fileOrImg);
+  const img = fileOrImg instanceof Blob ? await loadImage(fileOrImg) : fileOrImg;
   if(store.assets){
     try{
       const c = drawScaled(img, 1000);
@@ -749,6 +769,82 @@ function openSheet(html, onSubmit, onMount){
 }
 sheet.addEventListener('click', e => { if(e.target === sheet) sheet.close(); });
 
+/* ---------- Appareil photo intégré avec contour en surimpression ----------
+   Cadre 3:4 (300 x 400 unités). Tous les contours sont dessinés à la même échelle
+   (environ 0,29 cm par unité) : si tu remplis le contour, les proportions entre
+   pièces sont justes dans la tenue assemblée. */
+const LONG_TOP = 'M115 70 L60 90 L35 150 L20 300 L55 305 L75 170 L75 330 L225 330 L225 170 L245 305 L280 300 L265 150 L240 90 L185 70 Q150 96 115 70 Z';
+const GUIDES = {
+  tshirt:  {d:'M115 75 L60 95 L25 150 L65 170 L75 152 L75 325 L225 325 L225 152 L235 170 L275 150 L240 95 L185 75 Q150 100 115 75 Z', tip:'T-shirt à plat, manches écartées'},
+  chemise: {d:LONG_TOP, extra:'M122 72 L150 102 L178 72 M150 102 L150 330', tip:'Chemise boutonnée, manches le long du corps'},
+  pull:    {d:LONG_TOP, tip:'Pull à plat, manches le long du corps'},
+  sweat:   {d:LONG_TOP, tip:'Sweat à plat, capuche repliée derrière'},
+  gilet:   {d:LONG_TOP, extra:'M122 72 L150 175 L178 72 M150 175 L150 330', tip:'Gilet fermé, à plat'},
+  veste:   {d:'M110 60 L55 80 L28 145 L12 310 L50 316 L70 178 L70 345 L230 345 L230 178 L250 316 L288 310 L272 145 L245 80 L190 60 L150 150 Z', extra:'M150 150 L150 345', tip:'Veste fermée, à plat'},
+  manteau: {d:'M110 40 L55 60 L28 125 L12 300 L50 306 L70 160 L70 385 L230 385 L230 160 L250 306 L288 300 L272 125 L245 60 L190 40 L150 130 Z', extra:'M150 130 L150 385', tip:'Manteau fermé, à plat'},
+  pantalon:{d:'M95 18 L205 18 L232 385 L166 385 L150 118 L134 385 L68 385 Z', tip:'Pantalon à plat, taille en haut'},
+  chaussures:{d:'M102 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z M158 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z', tip:'La paire côte à côte, vue de dessus, pointes en bas'},
+  accessoire:{d:'M100 150 h100 a16 16 0 0 1 16 16 v68 a16 16 0 0 1 -16 16 h-100 a16 16 0 0 1 -16 -16 v-68 a16 16 0 0 1 16 -16 Z', tip:"L'accessoire au centre"},
+};
+const cam = $('#cam');
+let camStream = null;
+function stopCamera(){ if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } }
+cam.addEventListener('close', stopCamera);
+function guideSvg(cat){
+  const g = GUIDES[cat] || GUIDES.tshirt;
+  const paths = `<path d="${g.d}"/>${g.extra ? `<path d="${g.extra}"/>` : ''}`;
+  return `<svg viewBox="0 0 300 400" preserveAspectRatio="none" aria-hidden="true">
+    <g fill="none" stroke="rgba(0,0,0,.55)" stroke-width="5" stroke-linejoin="round">${paths}</g>
+    <g fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="7 5" stroke-linejoin="round">${paths}</g>
+    <g stroke="#fff" stroke-width="3" fill="none"><path d="M6 30V6h24M270 6h24v24M294 370v24h-24M30 394H6v-24"/></g></svg>`;
+}
+async function openCamera(cat, onShot, onFallback){
+  let current = GUIDES[cat] ? cat : 'tshirt';
+  cam.innerHTML = `<div class="cam">
+    <div class="cam-top">
+      <button type="button" class="cam-x" data-cam="close" aria-label="Fermer">✕</button>
+      <div class="cam-cats">${CATS.map(c => `<button type="button" class="chip-btn" data-cam-cat="${c.id}" aria-pressed="${c.id===current}">${c.label}</button>`).join('')}</div>
+    </div>
+    <div class="cam-box"><video playsinline muted autoplay></video><div class="cam-guide">${guideSvg(current)}</div></div>
+    <p class="cam-tip" id="camTip">${esc(GUIDES[current].tip)}. Remplis le contour.</p>
+    <div class="cam-bottom"><button type="button" class="cam-shot" data-cam="shot" aria-label="Prendre la photo" disabled></button></div>
+  </div>`;
+  cam.showModal();
+  const video = cam.querySelector('video'), shot = cam.querySelector('.cam-shot');
+  cam.querySelector('.cam-cats [aria-pressed="true"]')?.scrollIntoView({inline:'center', block:'nearest'});
+  cam.onclick = e => {
+    const c = e.target.closest('[data-cam-cat]');
+    if(c){
+      current = c.dataset.camCat;
+      cam.querySelectorAll('[data-cam-cat]').forEach(b => b.setAttribute('aria-pressed', b === c));
+      cam.querySelector('.cam-guide').innerHTML = guideSvg(current);
+      cam.querySelector('#camTip').textContent = GUIDES[current].tip + '. Remplis le contour.';
+      return;
+    }
+    const a = e.target.closest('[data-cam]'); if(!a) return;
+    if(a.dataset.cam === 'close') cam.close();
+    if(a.dataset.cam === 'native'){ cam.close(); onFallback(); }
+    if(a.dataset.cam === 'shot'){
+      const vw = video.videoWidth, vh = video.videoHeight; if(!vw) return;
+      let sx = 0, sy = 0, sw = vw, sh = vh;
+      if(vw / vh > 0.75){ sw = vh * 0.75; sx = (vw - sw) / 2; } else { sh = vw / 0.75; sy = (vh - sh) / 2; }
+      const c = document.createElement('canvas'); c.width = 900; c.height = 1200;
+      c.getContext('2d').drawImage(video, sx, sy, sw, sh, 0, 0, 900, 1200);
+      cam.close();
+      onShot(c, current);
+    }
+  };
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({audio:false, video:{facingMode:{ideal:'environment'}, width:{ideal:1920}, height:{ideal:1440}}});
+    if(!cam.open){ stopCamera(); return; }
+    video.srcObject = camStream;
+    await video.play().catch(()=>{});
+    shot.disabled = false;
+  }catch(err){
+    cam.querySelector('.cam-box').innerHTML = `<div class="cam-err"><p>L'app n'a pas accès à la caméra. Autorise-la dans les réglages de Chrome (cadenas ou ⋮, Paramètres du site, Caméra), ou utilise l'appareil photo du téléphone, sans contour.</p><button type="button" class="btn primary" data-cam="native">Ouvrir l'appareil photo du téléphone</button></div>`;
+  }
+}
+
 function pieceSheet(existing){
   const p = existing ? {...existing, photo: existing.photo ? {...existing.photo} : null} : {id:uid('p'), name:'', category:'', dirty:false, photo:null, createdAt:Date.now()};
   if(p.category === 'bas') p.category = 'pantalon';
@@ -759,7 +855,8 @@ function pieceSheet(existing){
       <h2>${existing?'Modifier la pièce':'Nouvelle pièce'}</h2>
       <div class="photo-drop" id="drop"></div>
       <div class="photo-btns">
-        <label class="btn primary">Prendre une photo<input type="file" accept="image/*" capture="environment" class="sr" id="camIn"></label>
+        <button type="button" class="btn primary" id="camBtn">Prendre une photo</button>
+        <input type="file" accept="image/*" capture="environment" class="sr" id="camIn" tabindex="-1" aria-hidden="true">
         <label class="btn">Choisir dans l'album<input type="file" accept="image/*" class="sr" id="albIn"></label>
       </div>
       <label class="toggle">Détourer automatiquement<input type="checkbox" name="detour" ${detourDefault?'checked':''}></label>
@@ -800,6 +897,23 @@ function pieceSheet(existing){
       if(cut){ p.photo.cut = cut; }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
+    const useImage = async img => {
+      setBusy(true); paint('Traitement…');
+      try{
+        const old = p.photo;
+        p.photo = await processPhoto(img);
+        if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
+        if(form.detour.checked) await runCut(img);
+      }catch(e){ toast('Photo illisible, réessaie.'); }
+      setBusy(false); paint();
+    };
+    form.querySelector('#camBtn').addEventListener('click', () => {
+      const checked = form.querySelector('input[name=cat]:checked');
+      openCamera(checked ? checked.value : 'tshirt', (canvas, cat) => {
+        const r = form.querySelector(`input[name=cat][value="${cat}"]`); if(r) r.checked = true;
+        useImage(canvas);
+      }, () => form.querySelector('#camIn').click());
+    });
     const onFile = async input => {
       const f = input.files && input.files[0]; if(!f) return;
       setBusy(true); paint('Traitement…');

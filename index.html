@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mon quotidien</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#E8EBEF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11151C" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E8EBEF; --surface:#FFFFFF; --sunk:#F2F4F7; --ink:#18202E; --muted:#636C7D; --line:#D3D8E0;
+  --denim:#2F4C78; --denim-soft:#DCE4F0; --on-denim:#FFFFFF; --sun:#E9A92C; --rain:#4F82C9; --warn:#A8432C;
+  --display:"Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --nav-h:64px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11151C; --surface:#1B212B; --sunk:#232A36; --ink:#E7EBF1; --muted:#98A1B1; --line:#2E3645;
+    --denim:#8FB0E3; --denim-soft:#26344B; --on-denim:#0F1622; --sun:#F2BD4E; --rain:#7EA8E6; --warn:#E3826B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11151C; --surface:#1B212B; --sunk:#232A36; --ink:#E7EBF1; --muted:#98A1B1; --line:#2E3645;
+  --denim:#8FB0E3; --denim-soft:#26344B; --on-denim:#0F1622; --sun:#F2BD4E; --rain:#7EA8E6; --warn:#E3826B;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;min-height:100%;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--denim);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+main{max-width:640px;margin:0 auto;padding:0 16px calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 28px)}
+
+/* Section switcher */
+.switcher{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 0 10px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.seg{display:flex;gap:4px;background:var(--sunk);border:1px solid var(--line);border-radius:14px;padding:4px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 4px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted);position:relative}
+.seg button[aria-current="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.seg .count{font-size:11px;background:var(--warn);color:#fff;border-radius:99px;padding:0 6px;margin-left:4px;vertical-align:1px}
+
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:14px 0 16px}
+.page-head h1{font-size:28px;font-weight:700}
+.muted{color:var(--muted)}
+
+/* Tomorrow hero */
+.tomorrow{margin:18px 0 6px}
+.tomorrow .day{font-family:var(--display);font-weight:800;font-size:clamp(44px,13vw,72px);line-height:.92;letter-spacing:-.03em}
+.tomorrow .date{color:var(--muted);font-size:15px;margin-top:6px;text-transform:none}
+
+.weather{margin:18px 0 20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px}
+.weather-top{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.weather-now{display:flex;align-items:center;gap:10px;font-weight:600}
+.weather-now svg{flex:none}
+.linkish{border:0;background:none;color:var(--denim);font-weight:600;padding:4px 0;font-size:14px}
+.band-row{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+
+.chip{position:relative;display:inline-flex}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chip span,.chip-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sunk);border-radius:99px;padding:7px 13px;font-size:14px;font-weight:500;line-height:1.2}
+.chip input:checked + span,.chip-btn[aria-pressed="true"]{background:var(--denim);color:var(--on-denim);border-color:var(--denim)}
+.chip input:focus-visible + span{outline:2px solid var(--denim);outline-offset:2px}
+.chip small{opacity:.75;font-size:12px}
+
+/* Look */
+.look-card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;margin-top:8px}
+.look-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+.look-head h2{font-size:24px;font-weight:700}
+.why{color:var(--muted);font-size:14px;margin:0 0 14px}
+.look{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:170px;gap:8px}
+.look.n1{grid-template-columns:1fr;grid-auto-rows:320px}
+.look.n3 .tile:first-child{grid-row:span 2}
+.look.odd .tile:last-child{grid-column:span 2}
+.look.n3 .tile:last-child{grid-column:auto}
+.tile{background:var(--sunk);border-radius:14px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.tile img{width:100%;height:100%;object-fit:contain}
+.tile .cap{position:absolute;left:8px;bottom:8px;right:8px;font-size:12px;font-weight:600;background:color-mix(in srgb,var(--surface) 88%,transparent);padding:3px 8px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:fit-content;max-width:calc(100% - 16px)}
+.noimg{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:13px;padding:10px;text-align:center}
+.look-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:11px 16px;font-weight:600;font-size:15px}
+.btn.primary{background:var(--denim);color:var(--on-denim);border-color:var(--denim)}
+.btn.grow{flex:1}
+.btn.danger{color:var(--warn)}
+.btn:disabled{opacity:.5;cursor:default}
+.planned{display:inline-flex;align-items:center;gap:6px;background:var(--denim-soft);color:var(--denim);font-weight:600;font-size:13px;border-radius:99px;padding:4px 10px}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:18px;padding:26px 20px;text-align:center}
+.empty h3{font-size:19px;margin-bottom:6px}
+.empty p{margin:0 0 16px;color:var(--muted)}
+
+/* Grids */
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.pieces{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.piece{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:6px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.piece .ph{aspect-ratio:3/4;background:var(--sunk);border-radius:11px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.piece .ph img{width:100%;height:100%;object-fit:contain}
+.piece .nm{font-weight:600;font-size:14px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.piece .ct{font-size:12px;color:var(--muted);padding:0 4px 2px;margin-top:-6px}
+.badge{position:absolute;top:6px;left:6px;background:var(--warn);color:#fff;font-size:11px;font-weight:600;border-radius:99px;padding:2px 8px}
+.piece.is-dirty .ph img{opacity:.45}
+
+.outfits{display:flex;flex-direction:column;gap:10px}
+.outfit{border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:12px;text-align:left;width:100%}
+.outfit .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.outfit h3{font-size:18px;font-weight:700}
+.outfit .meta{font-size:13px;color:var(--muted);margin-top:2px}
+.strip{display:flex;gap:6px;margin-top:10px;overflow:hidden}
+.strip .th{width:56px;height:70px;border-radius:9px;background:var(--sunk);flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.strip .th img{width:100%;height:100%;object-fit:contain}
+.strip .th.dirty img{opacity:.35}
+.warnline{color:var(--warn);font-size:13px;font-weight:600;margin-top:8px}
+
+.group-title{font-family:var(--display);font-size:19px;font-weight:700;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.hint{font-size:14px;color:var(--muted);margin:-4px 0 12px}
+
+/* Bottom nav */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar ul{list-style:none;margin:0 auto;padding:0;display:flex;max-width:640px;height:var(--nav-h)}
+.tabbar li{flex:1}
+.tabbar button{width:100%;height:100%;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
+.tabbar button[aria-current="page"]{color:var(--denim)}
+.tabbar button:disabled{opacity:.45;cursor:default}
+
+/* Sheet */
+dialog{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(560px,100%);max-height:92vh;max-height:92dvh;border-radius:22px 22px 0 0;margin:auto auto 0;overflow:hidden}
+@media (min-width:600px){dialog{border-radius:22px;margin:auto}}
+dialog::backdrop{background:rgba(10,14,22,.5)}
+.sheet{display:flex;flex-direction:column;max-height:inherit}
+.sheet-scroll{overflow-y:auto;padding:20px 18px 8px}
+.sheet h2{font-size:22px;font-weight:700;margin-bottom:14px}
+.sheet-actions{display:flex;gap:8px;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.field{display:block;margin-bottom:16px}
+.field > span,.legend{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.field input[type=text]{width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:11px 12px}
+fieldset{border:0;margin:0 0 16px;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.photo-drop{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:var(--sunk);border:1px dashed var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden;cursor:pointer;position:relative}
+.photo-drop img{width:100%;height:100%;object-fit:contain}
+.photo-drop .busy{position:absolute;inset:auto 10px 10px auto;background:var(--surface);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:600}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--sunk);border-radius:12px;margin-bottom:16px;font-weight:600;font-size:15px}
+.toggle input{width:22px;height:22px;accent-color:var(--denim)}
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.pick{position:relative;display:block;cursor:pointer}
+.pick input{position:absolute;opacity:0}
+.pick .box{display:block;border:2px solid transparent;border-radius:12px;background:var(--sunk);overflow:hidden}
+.pick .box .ph{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center}
+.pick .box img{width:100%;height:100%;object-fit:contain}
+.pick .box .l{display:block;font-size:12px;font-weight:600;padding:3px 6px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick input:checked + .box{border-color:var(--denim);background:var(--denim-soft)}
+.pick input:focus-visible + .box{outline:2px solid var(--denim);outline-offset:2px}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+.soon{padding:60px 10px;text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"><p class="loading">Ouverture de ta garde-robe…</p></main>
+
+<nav class="tabbar" aria-label="Pages">
+  <ul>
+    <li><button type="button" aria-current="page" data-tab="vetements">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/></svg>
+      Vêtements</button></li>
+    <li><button type="button" data-tab="soon2" disabled aria-label="Onglet à venir">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke-dasharray="3 3"/><path d="M12 8.5v7M8.5 12h7"/></svg>
+      Bientôt</button></li>
+    <li><button type="button" data-tab="soon3" disabled aria-label="Onglet à venir">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke-dasharray="3 3"/><path d="M12 8.5v7M8.5 12h7"/></svg>
+      Bientôt</button></li>
+  </ul>
+</nav>
+
+<dialog id="sheet"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Constantes ---------- */
+const CATS = [
+  {id:'veste', label:'Veste / manteau', order:0},
+  {id:'haut', label:'Haut', order:1},
+  {id:'robe', label:'Robe / combi', order:1},
+  {id:'bas', label:'Bas', order:2},
+  {id:'chaussures', label:'Chaussures', order:3},
+  {id:'accessoire', label:'Accessoire', order:4},
+];
+const BANDS = [
+  {id:'froid', label:'Froid', hint:'< 10°', words:'le froid'},
+  {id:'frais', label:'Frais', hint:'10–17°', words:'un temps frais'},
+  {id:'doux', label:'Doux', hint:'18–24°', words:'un temps doux'},
+  {id:'chaud', label:'Chaud', hint:'25°+', words:'la chaleur'},
+];
+const catLabel = id => (CATS.find(c=>c.id===id)||{label:'Pièce'}).label;
+const catOrder = id => (CATS.find(c=>c.id===id)||{order:9}).order;
+const bandFor = t => t<10?'froid':t<18?'frais':t<25?'doux':'chaud';
+
+const ICON = {
+  sun:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sun)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>',
+  rain:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rain)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 15.5a4.5 4.5 0 1 1 1.2-8.8A5.5 5.5 0 0 1 18.5 9a3.3 3.3 0 0 1-.5 6.5Z"/><path d="M9 18.5 8 21M13 18.5 12 21M17 18.5 16 21"/></svg>',
+  unknown:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 17a4.5 4.5 0 1 1 1.2-8.8A5.5 5.5 0 0 1 18.5 10.5 3.3 3.3 0 0 1 18 17Z"/></svg>',
+  hanger:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5a2 2 0 1 1 2-2c0 1-2 1.5-2 3L3 15.5c-.8.6-.4 1.5.5 1.5h17c.9 0 1.3-.9.5-1.5L12 9"/></svg>',
+  camera:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5h3l1.5-2h7l1.5 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+};
+
+/* ---------- Utilitaires ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayKey = () => dayKey(new Date());
+const tomorrowDate = () => { const d = new Date(); d.setDate(d.getDate()+1); return d; };
+const tomorrowKey = () => dayKey(tomorrowDate());
+function daysSince(key){
+  if(!key) return null;
+  const [y,m,d] = key.split('-').map(Number);
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((t - new Date(y,m-1,d)) / 86400000);
+}
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+function photoSrc(p){
+  if(!p || !p.photo) return '';
+  if(p.photo.assetId) return '/_blob/' + p.photo.assetId;
+  return p.photo.dataUrl || '';
+}
+function pieceVisual(p){
+  const src = photoSrc(p);
+  return src ? `<img src="${esc(src)}" alt="" loading="lazy">` : `<div class="noimg">${ICON.hanger}<span>${esc(catLabel(p.category))}</span></div>`;
+}
+
+/* ---------- État ---------- */
+const S = {
+  pieces:new Map(), outfits:new Map(), settings:{},
+  weather:null, section:'demain', filter:'all', alt:0, ready:false,
+};
+
+/* ---------- Stockage : base Claude si dispo, sinon navigateur ---------- */
+const LS_KEY = 'garde-robe-v1';
+/* Hors de claude.ai : tout est gardé dans IndexedDB (bien plus de place que localStorage pour les photos) */
+const idb = {
+  open(){
+    if(this._p) return this._p;
+    this._p = new Promise((res, rej) => {
+      const r = indexedDB.open('garde-robe', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    return this._p;
+  },
+  async get(){
+    const db = await this.open();
+    return new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get('state'); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); });
+  },
+  async set(v){
+    const db = await this.open();
+    return new Promise((res, rej) => { const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').put(v, 'state'); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+  },
+};
+const store = {
+  mode:'local', base:null, assets:null,
+  async init(){
+    let db=null, user=null, assets=null;
+    if(window.claude && typeof window.claude.use === 'function'){
+      try{ [db, user, assets] = await Promise.all([claude.use('db'), claude.use('user'), claude.use('assets')]); }catch(e){}
+    }
+    this.assets = assets;
+    if(db && user){
+      let id = null;
+      try{ id = await user.id(); }catch(e){}
+      if(id){
+        this.mode = 'db';
+        this.base = db.doc('data/users/' + id + '/wardrobe');
+        let pending = 3;
+        const done = () => { if(--pending === 0){ S.ready = true; render(); } };
+        const onErr = e => { if(e && e.code === 'revoked') toast("L'accès aux données a été retiré."); };
+        let first1=true, first2=true, first3=true;
+        this.base.collection('pieces').onSnapshot(snap => {
+          S.pieces = new Map(snap.docs.map(d => [d.id, {...d.data(), id:d.id}]));
+          if(first1){ first1=false; done(); } else render();
+        }, onErr);
+        this.base.collection('outfits').onSnapshot(snap => {
+          S.outfits = new Map(snap.docs.map(d => [d.id, {...d.data(), id:d.id}]));
+          if(first2){ first2=false; done(); } else render();
+        }, onErr);
+        this.base.collection('meta').doc('settings').onSnapshot(d => {
+          S.settings = d.exists ? {...d.data()} : {};
+          if(first3){ first3=false; done(); } else render();
+        }, onErr);
+        return;
+      }
+    }
+    this.mode = 'local';
+    let j = null;
+    try{ j = await idb.get(); }catch(e){}
+    if(!j){ try{ const raw = localStorage.getItem(LS_KEY); if(raw) j = JSON.parse(raw); }catch(e){} }
+    if(j){
+      (j.pieces||[]).forEach(p => S.pieces.set(p.id, p));
+      (j.outfits||[]).forEach(o => S.outfits.set(o.id, o));
+      S.settings = j.settings || {};
+    }
+    S.ready = true; render();
+  },
+  persistLocal(){
+    const data = {pieces:[...S.pieces.values()], outfits:[...S.outfits.values()], settings:S.settings};
+    idb.set(data).catch(() => {
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+      catch(e){ toast("Stockage plein : supprime quelques photos."); }
+    });
+  },
+  async write(fn){
+    try{ await fn(); }
+    catch(e){
+      if(e && e.code === 'quota_exceeded') toast("Espace de stockage plein.");
+      else toast("Enregistrement impossible, réessaie.");
+    }
+  },
+  savePiece(p){
+    S.pieces.set(p.id, p); render();
+    if(this.mode === 'db') return this.write(() => this.base.collection('pieces').doc(p.id).set(p));
+    this.persistLocal();
+  },
+  deletePiece(id){
+    const p = S.pieces.get(id);
+    S.pieces.delete(id);
+    for(const o of S.outfits.values()){
+      if((o.pieceIds||[]).includes(id)) this.saveOutfit({...o, pieceIds:o.pieceIds.filter(x => x !== id)});
+    }
+    render();
+    if(p && p.photo && p.photo.assetId && this.assets){ this.assets.delete(p.photo.assetId).catch(()=>{}); }
+    if(this.mode === 'db') return this.write(() => this.base.collection('pieces').doc(id).delete());
+    this.persistLocal();
+  },
+  saveOutfit(o){
+    S.outfits.set(o.id, o); render();
+    if(this.mode === 'db') return this.write(() => this.base.collection('outfits').doc(o.id).set(o));
+    this.persistLocal();
+  },
+  deleteOutfit(id){
+    S.outfits.delete(id); render();
+    if(this.mode === 'db') return this.write(() => this.base.collection('outfits').doc(id).delete());
+    this.persistLocal();
+  },
+  saveSettings(patch){
+    S.settings = {...S.settings, ...patch}; render();
+    if(this.mode === 'db') return this.write(() => this.base.collection('meta').doc('settings').set(S.settings));
+    this.persistLocal();
+  },
+};
+
+/* ---------- Photos ---------- */
+function loadImage(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { res(img); setTimeout(()=>URL.revokeObjectURL(url), 1000); };
+    img.onerror = rej; img.src = url;
+  });
+}
+function drawScaled(img, max){
+  const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.naturalWidth * r); c.height = Math.round(img.naturalHeight * r);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+async function processPhoto(file){
+  const img = await loadImage(file);
+  if(store.assets){
+    try{
+      const c = drawScaled(img, 1000);
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.84));
+      const res = await store.assets.upload(blob, {type:'image/jpeg'});
+      return {assetId: res.id};
+    }catch(e){ /* repli ci-dessous */ }
+  }
+  return {dataUrl: drawScaled(img, store.mode === 'local' ? 800 : 480).toDataURL('image/jpeg', store.mode === 'local' ? 0.8 : 0.74)};
+}
+
+/* ---------- Météo (Paris) ---------- */
+const PARIS = {lat:48.8566, lon:2.3522};
+S.weatherState = 'loading'; // loading | ok | blocked
+function tomorrowWeather(){
+  const k = tomorrowKey(), m = S.settings.manual;
+  if(m && m.date === k) return {band:m.band, rain:!!m.rain, source:'manual'};
+  if(S.weather && S.weather.date === k) return {band:bandFor(S.weather.max), rain:S.weather.rain, source:'auto', ...S.weather};
+  return null;
+}
+async function fetchWeather(){
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${PARIS.lat}&longitude=${PARIS.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=Europe%2FParis&forecast_days=2`;
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
+  try{
+    const r = await fetch(url, {signal:ctrl.signal});
+    const j = await r.json();
+    const d = j.daily;
+    const prob = d.precipitation_probability_max[1] ?? 0, mm = d.precipitation_sum[1] ?? 0;
+    S.weather = {date:tomorrowKey(), max:Math.round(d.temperature_2m_max[1]), min:Math.round(d.temperature_2m_min[1]), rainProb:prob, rainMm:Math.round(mm*10)/10, rain: prob >= 50 || mm >= 1};
+    S.weatherState = 'ok';
+  }catch(e){ S.weatherState = 'blocked'; }
+  finally{ clearTimeout(t); render(); }
+}
+async function refreshWeather(){
+  S.weatherState = 'loading'; render();
+  await fetchWeather();
+  if(S.weatherState === 'ok'){
+    if(S.settings.manual && S.settings.manual.date === tomorrowKey()) store.saveSettings({manual:null});
+    toast('Météo de Paris mise à jour.');
+  } else toast('Météo automatique bloquée sur cette page : choisis à la main.');
+}
+
+/* ---------- Suggestion ---------- */
+function rankOutfits(w){
+  const bi = w ? BANDS.findIndex(b => b.id === w.band) : -1;
+  const all = [...S.outfits.values()].map(o => {
+    const pcs = (o.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean);
+    if(!pcs.length) return null;
+    const dirty = pcs.filter(p => p.dirty);
+    let score = 0; const why = [];
+    if(w){
+      const ob = (o.bands||[]).map(b => BANDS.findIndex(x => x.id === b));
+      if(ob.includes(bi)){ score += 10; why.push(`Pensée pour ${BANDS[bi].words}`); }
+      else if(ob.some(i => Math.abs(i - bi) === 1)) score += 3;
+      else if(ob.length) score -= 4;
+      if(w.rain){ if(o.rainOk){ score += 3; why.push('ok sous la pluie'); } else score -= 5; }
+    }
+    const d = daysSince(o.lastWorn);
+    if(d === null){ score += 7; why.push('jamais portée'); }
+    else { score += Math.min(Math.max(d,0), 14) * 0.5; if(d >= 3) why.push(`pas portée depuis ${d} jours`); }
+    return {o, pcs, dirty, score, why};
+  }).filter(Boolean);
+  return {
+    ok: all.filter(x => !x.dirty.length).sort((a,b) => b.score - a.score),
+    blocked: all.filter(x => x.dirty.length),
+  };
+}
+function sentence(parts){
+  if(!parts.length) return 'Une tenue propre de ta garde-robe.';
+  const s = parts.join(', ');
+  return s.charAt(0).toUpperCase() + s.slice(1) + '.';
+}
+
+/* ---------- Rendu ---------- */
+function render(){
+  const app = $('#app');
+  if(!S.ready){ app.innerHTML = '<p class="loading">Ouverture de ta garde-robe…</p>'; return; }
+  const dirtyCount = [...S.pieces.values()].filter(p => p.dirty).length;
+  const tabs = [['demain','Demain'],['tenues','Tenues'],['pieces','Pièces'],['linge','Linge']];
+  const sw = `<div class="switcher"><div class="seg" role="tablist">${tabs.map(([id,l]) =>
+    `<button type="button" data-section="${id}" aria-current="${S.section===id}">${l}${id==='linge'&&dirtyCount?`<span class="count">${dirtyCount}</span>`:''}</button>`).join('')}</div></div>`;
+  const body = {demain:renderDemain, tenues:renderTenues, pieces:renderPieces, linge:renderLinge}[S.section]();
+  app.innerHTML = sw + body;
+}
+
+function lookGrid(pcs){
+  const sorted = [...pcs].sort((a,b) => catOrder(a.category) - catOrder(b.category));
+  const n = sorted.length;
+  const cls = n === 1 ? 'n1' : n === 3 ? 'n3' : (n % 2 ? 'odd' : '');
+  return `<div class="look ${cls}">${sorted.map(p => `<div class="tile">${pieceVisual(p)}<span class="cap">${esc(p.name)}</span></div>`).join('')}</div>`;
+}
+
+function renderDemain(){
+  const td = tomorrowDate();
+  const dateStr = td.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  const w = tomorrowWeather();
+  let wline;
+  if(w && w.source === 'auto') wline = `${w.rain?ICON.rain:ICON.sun}<span>Paris : ${w.min}° à ${w.max}°, ${w.rain?`pluie (${w.rainProb} %${w.rainMm?`, ${String(w.rainMm).replace('.',',')} mm`:''})`:`pas de pluie (${w.rainProb} %)`}</span>`;
+  else if(w) wline = `${w.rain?ICON.rain:ICON.sun}<span>${esc(BANDS.find(b=>b.id===w.band).label)}${w.rain?', avec de la pluie':', sans pluie'}${S.weather&&S.weather.date===tomorrowKey()?' (ton choix)':''}</span>`;
+  else if(S.weatherState === 'loading') wline = `${ICON.unknown}<span>Météo de Paris en cours…</span>`;
+  else wline = `${ICON.unknown}<span>Quel temps demain à Paris ?</span>`;
+  const curBand = w ? w.band : null;
+  const weather = `<section class="weather" aria-label="Météo de demain">
+    <div class="weather-top"><div class="weather-now">${wline}</div>
+      <button class="linkish" type="button" data-act="auto-weather">${w && w.source==='manual' && S.weather ? 'Revenir à la météo' : 'Actualiser'}</button></div>
+    <div class="band-row">${BANDS.map(b => `<button type="button" class="chip-btn" data-act="band" data-band="${b.id}" aria-pressed="${curBand===b.id}">${b.label} <small>${b.hint}</small></button>`).join('')}
+      <button type="button" class="chip-btn" data-act="rain" aria-pressed="${!!(w && w.rain)}">Pluie</button></div>
+  </section>`;
+
+  const head = `<div class="tomorrow"><div class="day">Demain</div><div class="date">${esc(dateStr)}</div></div>`;
+
+  if(!S.pieces.size) return head + weather + `<div class="empty"><h3>Commence par tes pièces</h3><p>Prends en photo tes vêtements un par un, puis assemble-les en tenues.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
+  if(!S.outfits.size) return head + weather + `<div class="empty"><h3>Aucune tenue pour l'instant</h3><p>Assemble tes pièces en tenues : c'est parmi elles que je choisirai.</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
+
+  const planned = S.settings.planned && S.settings.planned.date === tomorrowKey() ? S.outfits.get(S.settings.planned.outfitId) : null;
+  if(planned){
+    const pcs = (planned.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean);
+    const anyClean = pcs.some(p => !p.dirty);
+    return head + weather + `<article class="look-card">
+      <div class="look-head"><h2>${esc(planned.name)}</h2><span class="planned">Prévue</span></div>
+      <p class="why">C'est la tenue que tu as choisie pour demain.</p>
+      ${lookGrid(pcs)}
+      <div class="look-actions">
+        ${anyClean ? `<button class="btn grow" type="button" data-act="dirty-planned">Mettre au sale après</button>` : `<span class="muted" style="align-self:center;flex:1">Pièces déjà au sale</span>`}
+        <button class="btn" type="button" data-act="unplan">Changer</button>
+      </div></article>`;
+  }
+
+  const {ok, blocked} = rankOutfits(w);
+  if(!ok.length) return head + weather + `<div class="empty"><h3>Tout est au sale</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
+  const pick = ok[S.alt % ok.length];
+  return head + weather + `<article class="look-card">
+    <div class="look-head"><h2>${esc(pick.o.name)}</h2>${ok.length>1?`<span class="muted" style="font-size:13px">${(S.alt % ok.length)+1} sur ${ok.length}</span>`:''}</div>
+    <p class="why">${esc(sentence(pick.why))}</p>
+    ${lookGrid(pick.pcs)}
+    <div class="look-actions">
+      <button class="btn primary grow" type="button" data-act="plan" data-id="${esc(pick.o.id)}">Je la porte demain</button>
+      ${ok.length>1?`<button class="btn" type="button" data-act="another">Autre idée</button>`:''}
+    </div></article>
+    ${blocked.length?`<p class="hint" style="margin-top:12px">${blocked.length} tenue${blocked.length>1?'s':''} écartée${blocked.length>1?'s':''} à cause du linge sale.</p>`:''}`;
+}
+
+function renderTenues(){
+  const list = [...S.outfits.values()].sort((a,b) => (a.name||'').localeCompare(b.name||'', 'fr'));
+  const head = `<div class="page-head"><h1>Tenues</h1><button class="btn primary" type="button" data-act="new-outfit">Nouvelle tenue</button></div>`;
+  if(!list.length) return head + `<div class="empty"><h3>Aucune tenue</h3><p>${S.pieces.size?'Choisis quelques pièces qui vont bien ensemble.':"Ajoute d'abord des pièces dans l'onglet Pièces."}</p>${S.pieces.size?'<button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button>':'<button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button>'}</div>`;
+  return head + `<div class="outfits">${list.map(o => {
+    const pcs = (o.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean).sort((a,b) => catOrder(a.category) - catOrder(b.category));
+    const dirty = pcs.filter(p => p.dirty).length;
+    const bands = (o.bands||[]).map(b => (BANDS.find(x=>x.id===b)||{}).label).filter(Boolean);
+    const d = daysSince(o.lastWorn);
+    const meta = [bands.length ? bands.join(', ') : 'Tous temps', o.rainOk ? 'ok pluie' : null].filter(Boolean).join(', ');
+    return `<button class="outfit" type="button" data-act="edit-outfit" data-id="${esc(o.id)}">
+      <div class="row"><h3>${esc(o.name)}</h3><span class="muted" style="font-size:13px">${d===null?'Jamais portée':d<=0?(d<0?'Prévue demain':"Portée aujourd'hui"):`Il y a ${d} j`}</span></div>
+      <div class="meta">${esc(meta)}</div>
+      <div class="strip">${pcs.map(p => `<div class="th ${p.dirty?'dirty':''}">${photoSrc(p)?`<img src="${esc(photoSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</div>`).join('')}</div>
+      ${dirty?`<div class="warnline">${dirty} pièce${dirty>1?'s':''} au sale</div>`:''}
+    </button>`;}).join('')}</div>`;
+}
+
+function pieceCard(p, act){
+  return `<button class="piece ${p.dirty?'is-dirty':''}" type="button" data-act="${act}" data-id="${esc(p.id)}">
+    <div class="ph">${pieceVisual(p)}${p.dirty?'<span class="badge">Au sale</span>':''}</div>
+    <div class="nm">${esc(p.name)}</div><div class="ct">${esc(catLabel(p.category))}</div></button>`;
+}
+
+function renderPieces(){
+  const all = [...S.pieces.values()];
+  const head = `<div class="page-head"><h1>Pièces</h1><button class="btn primary" type="button" data-act="new-piece">Ajouter</button></div>`;
+  if(!all.length) return head + `<div class="empty"><h3>Ta penderie est vide</h3><p>Photographie une pièce sur un fond uni : c'est cette photo qui apparaîtra dans tes tenues.</p><button class="btn primary" type="button" data-act="new-piece">Prendre une photo</button></div>`;
+  const used = CATS.filter(c => all.some(p => p.category === c.id));
+  const filters = `<div class="filters"><button type="button" class="chip-btn" data-act="filter" data-cat="all" aria-pressed="${S.filter==='all'}">Tout (${all.length})</button>${used.map(c => `<button type="button" class="chip-btn" data-act="filter" data-cat="${c.id}" aria-pressed="${S.filter===c.id}">${c.label}</button>`).join('')}</div>`;
+  const shown = all.filter(p => S.filter === 'all' || p.category === S.filter)
+    .sort((a,b) => catOrder(a.category) - catOrder(b.category) || (a.name||'').localeCompare(b.name||'', 'fr'));
+  return head + filters + `<div class="pieces">${shown.map(p => pieceCard(p, 'edit-piece')).join('')}</div>`;
+}
+
+function renderLinge(){
+  const all = [...S.pieces.values()].sort((a,b) => catOrder(a.category) - catOrder(b.category));
+  const dirty = all.filter(p => p.dirty), clean = all.filter(p => !p.dirty);
+  const head = `<div class="page-head"><h1>Linge</h1>${dirty.length?'<button class="btn" type="button" data-act="all-clean">Tout est propre</button>':''}</div>`;
+  if(!all.length) return head + `<div class="empty"><h3>Rien à laver</h3><p>Ajoute des pièces pour suivre ce qui est au sale.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
+  return head + `<p class="hint">Touche une pièce pour changer son état.</p>
+    <div class="group-title">Au sale <span class="muted" style="font:500 14px var(--body)">${dirty.length}</span></div>
+    ${dirty.length ? `<div class="pieces">${dirty.map(p => pieceCard(p, 'toggle-dirty')).join('')}</div>` : '<p class="muted">Tout est propre.</p>'}
+    <div class="group-title">Propre <span class="muted" style="font:500 14px var(--body)">${clean.length}</span></div>
+    ${clean.length ? `<div class="pieces">${clean.map(p => pieceCard(p, 'toggle-dirty')).join('')}</div>` : '<p class="muted">Tout est au sale.</p>'}`;
+}
+
+/* ---------- Feuilles (formulaires) ---------- */
+const sheet = $('#sheet');
+function openSheet(html, onSubmit, onMount){
+  sheet.innerHTML = html;
+  const form = sheet.querySelector('form');
+  form.addEventListener('submit', e => { e.preventDefault(); if(onSubmit(form) !== false) sheet.close(); });
+  sheet.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => sheet.close()));
+  if(onMount) onMount(form);
+  sheet.showModal();
+}
+sheet.addEventListener('click', e => { if(e.target === sheet) sheet.close(); });
+
+function pieceSheet(existing){
+  const p = existing ? {...existing} : {id:uid('p'), name:'', category:'haut', dirty:false, photo:null, createdAt:Date.now()};
+  let busy = false;
+  const html = `<form class="sheet" novalidate>
+    <div class="sheet-scroll">
+      <h2>${existing?'Modifier la pièce':'Nouvelle pièce'}</h2>
+      <label class="photo-drop" id="drop">
+        ${photoSrc(p)?`<img src="${esc(photoSrc(p))}" alt="Photo de la pièce">`:`<div class="noimg">${ICON.camera}<span>Prendre ou choisir une photo</span></div>`}
+        <input type="file" accept="image/*" class="sr" id="photoIn" aria-label="Photo de la pièce">
+      </label>
+      <label class="field"><span>Nom</span><input type="text" name="name" value="${esc(p.name)}" placeholder="Chemise en lin bleue" autocomplete="off"></label>
+      <fieldset><legend class="legend">Catégorie</legend><div class="chips">
+        ${CATS.map(c => `<label class="chip"><input type="radio" name="cat" value="${c.id}" ${p.category===c.id?'checked':''}><span>${c.label}</span></label>`).join('')}
+      </div></fieldset>
+      <label class="toggle">Au sale<input type="checkbox" name="dirty" ${p.dirty?'checked':''}></label>
+    </div>
+    <div class="sheet-actions">
+      ${existing?'<button class="btn danger" type="button" id="del">Supprimer</button>':''}
+      <button class="btn grow" type="button" data-close>Annuler</button>
+      <button class="btn primary grow" type="submit" id="save">Enregistrer</button>
+    </div></form>`;
+  openSheet(html, form => {
+    if(busy){ toast('La photo est encore en cours de traitement.'); return false; }
+    const name = form.name.value.trim();
+    if(!name){ form.name.focus(); toast('Donne un nom à la pièce.'); return false; }
+    p.name = name; p.category = form.cat.value || 'haut'; p.dirty = form.dirty.checked;
+    store.savePiece(p); toast(existing ? 'Pièce mise à jour.' : 'Pièce ajoutée.');
+  }, form => {
+    const input = form.querySelector('#photoIn'), drop = form.querySelector('#drop');
+    input.addEventListener('change', async () => {
+      const f = input.files && input.files[0]; if(!f) return;
+      busy = true; form.querySelector('#save').disabled = true;
+      const preview = URL.createObjectURL(f);
+      drop.querySelectorAll('img,.noimg,.busy').forEach(n => n.remove());
+      drop.insertAdjacentHTML('afterbegin', `<img src="${preview}" alt="Photo de la pièce"><span class="busy">Enregistrement…</span>`);
+      try{
+        const old = p.photo;
+        p.photo = await processPhoto(f);
+        if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
+        drop.querySelector('.busy')?.remove();
+      }catch(e){ toast('Photo illisible, essaie une autre image.'); drop.querySelector('.busy')?.remove(); }
+      busy = false; form.querySelector('#save').disabled = false;
+    });
+    const del = form.querySelector('#del');
+    if(del) del.addEventListener('click', () => {
+      const n = [...S.outfits.values()].filter(o => (o.pieceIds||[]).includes(p.id)).length;
+      if(confirm(`Supprimer « ${p.name} » ?${n?` Elle sera retirée de ${n} tenue${n>1?'s':''}.`:''}`)){ store.deletePiece(p.id); sheet.close(); toast('Pièce supprimée.'); }
+    });
+  });
+}
+
+function outfitSheet(existing){
+  if(!S.pieces.size){ toast("Ajoute d'abord des pièces."); S.section='pieces'; render(); return; }
+  const o = existing ? {...existing} : {id:uid('o'), name:'', pieceIds:[], bands:[], rainOk:false, lastWorn:null, createdAt:Date.now()};
+  const pieces = [...S.pieces.values()].sort((a,b) => catOrder(a.category) - catOrder(b.category) || (a.name||'').localeCompare(b.name||'','fr'));
+  const html = `<form class="sheet" novalidate>
+    <div class="sheet-scroll">
+      <h2>${existing?'Modifier la tenue':'Nouvelle tenue'}</h2>
+      <label class="field"><span>Nom</span><input type="text" name="name" value="${esc(o.name)}" placeholder="Bureau décontracté" autocomplete="off"></label>
+      <fieldset><legend class="legend">Pièces</legend><div class="picker">
+        ${pieces.map(p => `<label class="pick"><input type="checkbox" name="pc" value="${esc(p.id)}" ${o.pieceIds.includes(p.id)?'checked':''}><span class="box"><span class="ph">${photoSrc(p)?`<img src="${esc(photoSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}
+      </div></fieldset>
+      <fieldset><legend class="legend">Pour quel temps ?</legend><div class="chips">
+        ${BANDS.map(b => `<label class="chip"><input type="checkbox" name="band" value="${b.id}" ${(o.bands||[]).includes(b.id)?'checked':''}><span>${b.label} <small>${b.hint}</small></span></label>`).join('')}
+      </div></fieldset>
+      <label class="toggle">Convient sous la pluie<input type="checkbox" name="rainOk" ${o.rainOk?'checked':''}></label>
+    </div>
+    <div class="sheet-actions">
+      ${existing?'<button class="btn danger" type="button" id="del">Supprimer</button>':''}
+      <button class="btn grow" type="button" data-close>Annuler</button>
+      <button class="btn primary grow" type="submit">Enregistrer</button>
+    </div></form>`;
+  openSheet(html, form => {
+    const name = form.name.value.trim();
+    const ids = [...form.querySelectorAll('input[name=pc]:checked')].map(i => i.value);
+    if(!name){ form.name.focus(); toast('Donne un nom à la tenue.'); return false; }
+    if(!ids.length){ toast('Choisis au moins une pièce.'); return false; }
+    o.name = name; o.pieceIds = ids;
+    o.bands = [...form.querySelectorAll('input[name=band]:checked')].map(i => i.value);
+    o.rainOk = form.rainOk.checked;
+    store.saveOutfit(o); toast(existing ? 'Tenue mise à jour.' : 'Tenue créée.');
+  }, form => {
+    const del = form.querySelector('#del');
+    if(del) del.addEventListener('click', () => {
+      if(confirm(`Supprimer la tenue « ${o.name} » ? Les pièces restent dans ta penderie.`)){ store.deleteOutfit(o.id); sheet.close(); toast('Tenue supprimée.'); }
+    });
+  });
+}
+
+/* ---------- Actions ---------- */
+document.addEventListener('click', e => {
+  const sec = e.target.closest('[data-section]');
+  if(sec){ S.section = sec.dataset.section; render(); window.scrollTo({top:0}); return; }
+  const el = e.target.closest('[data-act]'); if(!el || sheet.contains(el)) return;
+  const id = el.dataset.id;
+  switch(el.dataset.act){
+    case 'new-piece': pieceSheet(); break;
+    case 'edit-piece': pieceSheet(S.pieces.get(id)); break;
+    case 'new-outfit': outfitSheet(); break;
+    case 'edit-outfit': outfitSheet(S.outfits.get(id)); break;
+    case 'filter': S.filter = el.dataset.cat; render(); break;
+    case 'toggle-dirty': { const p = S.pieces.get(id); if(p) store.savePiece({...p, dirty:!p.dirty}); break; }
+    case 'all-clean': for(const p of S.pieces.values()) if(p.dirty) store.savePiece({...p, dirty:false}); toast('Tout est propre.'); break;
+    case 'band': {
+      const w = tomorrowWeather();
+      store.saveSettings({manual:{date:tomorrowKey(), band:el.dataset.band, rain: w ? w.rain : false}}); S.alt = 0; break;
+    }
+    case 'rain': {
+      const w = tomorrowWeather();
+      store.saveSettings({manual:{date:tomorrowKey(), band: w ? w.band : 'doux', rain: !(w && w.rain)}}); S.alt = 0; break;
+    }
+    case 'auto-weather': refreshWeather(); break;
+    case 'another': S.alt++; render(); break;
+    case 'plan': {
+      const o = S.outfits.get(id); if(!o) break;
+      store.saveOutfit({...o, prevWorn:o.lastWorn ?? null, lastWorn:tomorrowKey()});
+      store.saveSettings({planned:{date:tomorrowKey(), outfitId:id}});
+      toast('C\'est noté pour demain.'); break;
+    }
+    case 'unplan': {
+      const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId);
+      if(o && o.lastWorn === tomorrowKey()) store.saveOutfit({...o, lastWorn:o.prevWorn ?? null});
+      store.saveSettings({planned:null}); S.alt = 0; break;
+    }
+    case 'dirty-planned': {
+      const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId); if(!o) break;
+      (o.pieceIds||[]).forEach(pid => { const p = S.pieces.get(pid); if(p && !p.dirty) store.savePiece({...p, dirty:true}); });
+      toast('Pièces mises au sale.'); break;
+    }
+  }
+});
+
+render();
+store.init();
+fetchWeather();
+// Rafraîchit la météo quand on revient sur l'app
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') fetchWeather(); });
+// Demande à Chrome de ne jamais effacer tes photos et tenues
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+// Application installable + fonctionne hors connexion
+if('serviceWorker' in navigator && location.protocol === 'https:'){
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

@@ -228,7 +228,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 5;
+const APP_VERSION = 6;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -450,62 +450,190 @@ async function processPhoto(fileOrImg){
   return {dataUrl: drawScaled(img, store.mode === 'local' ? 800 : 480).toDataURL('image/jpeg', store.mode === 'local' ? 0.8 : 0.74)};
 }
 
-/* Détourage : le fond (couleur des bords de la photo) devient transparent,
-   puis l'image est recadrée au plus près du vêtement. w et h gardent la taille
-   réelle relative (en fraction du grand côté de la photo) pour l'assemblage. */
-function cutout(img){
+/* ---------- Détourage ----------
+   Photo prise dans l'app : le contour sert de guide.
+   - loin à l'extérieur du contour : forcément du fond ;
+   - bien à l'intérieur : forcément le vêtement (ombres comprises) ;
+   - entre les deux : on compare la couleur du pixel aux couleurs du fond
+     et à celles du vêtement, avec un bonus selon qu'on est dedans ou dehors.
+   Ensuite : on retire les taches isolées et on bouche les trous (ombres, reflets).
+   Photo de l'album : on part des bords de la photo, puis même nettoyage. */
+function distMap(src, W, H){
+  const N = W * H, d = new Float32Array(N), INF = 1e9, D = 1.4142;
+  for(let i = 0; i < N; i++) d[i] = src[i] ? 0 : INF;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+    const i = y * W + x; let v = d[i]; if(v === 0) continue;
+    if(x > 0) v = Math.min(v, d[i-1] + 1);
+    if(y > 0){ v = Math.min(v, d[i-W] + 1); if(x > 0) v = Math.min(v, d[i-W-1] + D); if(x < W-1) v = Math.min(v, d[i-W+1] + D); }
+    d[i] = v;
+  }
+  for(let y = H - 1; y >= 0; y--) for(let x = W - 1; x >= 0; x--){
+    const i = y * W + x; let v = d[i]; if(v === 0) continue;
+    if(x < W-1) v = Math.min(v, d[i+1] + 1);
+    if(y < H-1){ v = Math.min(v, d[i+W] + 1); if(x < W-1) v = Math.min(v, d[i+W+1] + D); if(x > 0) v = Math.min(v, d[i+W-1] + D); }
+    d[i] = v;
+  }
+  return d;
+}
+function kmeans(F, idx, k){
+  if(!idx.length) return [];
+  const step = Math.max(1, Math.floor(idx.length / 3000)), smp = [];
+  for(let n = 0; n < idx.length; n += step) smp.push(idx[n]);
+  const byL = [...smp].sort((a,b) => F[a*3] - F[b*3]);
+  let C = []; for(let c = 0; c < k; c++){ const p = byL[Math.floor((c + .5) / k * byL.length)]; C.push([F[p*3], F[p*3+1], F[p*3+2]]); }
+  for(let it = 0; it < 8; it++){
+    const acc = C.map(() => [0,0,0,0]);
+    for(const p of smp){
+      let best = 0, bd = Infinity;
+      for(let c = 0; c < C.length; c++){ const a = F[p*3]-C[c][0], b = F[p*3+1]-C[c][1], e = F[p*3+2]-C[c][2], dd = a*a+b*b+e*e; if(dd < bd){ bd = dd; best = c; } }
+      const A = acc[best]; A[0] += F[p*3]; A[1] += F[p*3+1]; A[2] += F[p*3+2]; A[3]++;
+    }
+    C = C.map((c, n) => acc[n][3] ? [acc[n][0]/acc[n][3], acc[n][1]/acc[n][3], acc[n][2]/acc[n][3]] : c);
+  }
+  return C;
+}
+function nearest(F, p, C){
+  let bd = Infinity;
+  for(const c of C){ const a = F[p*3]-c[0], b = F[p*3+1]-c[1], e = F[p*3+2]-c[2], dd = a*a+b*b+e*e; if(dd < bd) bd = dd; }
+  return Math.sqrt(bd);
+}
+/* Composantes connexes (4 voisins) des pixels où mask === val */
+function components(mask, val, W, H){
+  const N = W * H, lab = new Int32Array(N).fill(-1), q = new Int32Array(N), info = [];
+  for(let s0 = 0; s0 < N; s0++){
+    if(mask[s0] !== val || lab[s0] !== -1) continue;
+    const id = info.length, it = {size:0, border:false, px:[]};
+    let h = 0, t = 0; q[t++] = s0; lab[s0] = id;
+    while(h < t){
+      const p = q[h++], x = p % W, y = (p / W) | 0; it.size++;
+      if(x === 0 || y === 0 || x === W-1 || y === H-1) it.border = true;
+      if(x > 0 && mask[p-1] === val && lab[p-1] === -1){ lab[p-1] = id; q[t++] = p-1; }
+      if(x < W-1 && mask[p+1] === val && lab[p+1] === -1){ lab[p+1] = id; q[t++] = p+1; }
+      if(y > 0 && mask[p-W] === val && lab[p-W] === -1){ lab[p-W] = id; q[t++] = p-W; }
+      if(y < H-1 && mask[p+W] === val && lab[p+W] === -1){ lab[p+W] = id; q[t++] = p+W; }
+    }
+    info.push(it);
+  }
+  return {lab, info};
+}
+function cutout(img, guideCat){
   const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
   const id = ctx.getImageData(0, 0, W, H), d = id.data;
-  const R = [], G = [], B = [];
-  const step = Math.max(1, Math.floor((W + H) / 500));
-  const take = px => { const i = px * 4; R.push(d[i]); G.push(d[i+1]); B.push(d[i+2]); };
-  for(let x = 0; x < W; x += step){ take(x); take((H-1)*W + x); }
-  for(let y = 0; y < H; y += step){ take(y*W); take(y*W + W - 1); }
-  const med = a => { const t = [...a].sort((p,q) => p-q); return t[t.length >> 1]; };
-  const br = med(R), bgc = med(G), bb = med(B);
-  const spread = R.map((r,k) => Math.hypot(r-br, G[k]-bgc, B[k]-bb)).sort((a,b) => a-b);
-  const tol = Math.min(78, Math.max(26, spread[Math.floor(spread.length * 0.9)] * 1.4 + 14));
-  const dist = i => Math.hypot(d[i]-br, d[i+1]-bgc, d[i+2]-bb);
-  const bg = new Uint8Array(N), q = new Int32Array(N); let qt = 0, qh = 0;
-  const visit = (px, from) => {
-    if(bg[px]) return;
-    const i = px * 4, dd = dist(i);
-    let ok = dd < tol;
-    if(!ok && from >= 0 && dd < tol * 1.7){
-      const j = from * 4;
-      ok = Math.hypot(d[i]-d[j], d[i+1]-d[j+1], d[i+2]-d[j+2]) < 9;
+  // Couleur en luminosité + teinte ; la luminosité compte un peu moins (les ombres la font varier)
+  const F = new Float32Array(N * 3);
+  for(let p = 0; p < N; p++){
+    const r = d[p*4], g = d[p*4+1], b = d[p*4+2];
+    F[p*3] = (r + g + b) / 3 * 0.8; F[p*3+1] = (r - g) * 0.9; F[p*3+2] = ((r + g) / 2 - b) * 0.9;
+  }
+  const fg = new Uint8Array(N);
+  const guide = guideCat && GUIDES[guideCat];
+  let inside = null;
+  if(guide && Math.abs(W / H - 0.75) < 0.03){
+    const gc = document.createElement('canvas'); gc.width = W; gc.height = H;
+    const gx = gc.getContext('2d'); gx.scale(W / 300, H / 400); gx.fill(new Path2D(guide.d));
+    const ga = gx.getImageData(0, 0, W, H).data;
+    inside = new Uint8Array(N); const outside = new Uint8Array(N);
+    for(let p = 0; p < N; p++){ inside[p] = ga[p*4+3] > 127 ? 1 : 0; outside[p] = 1 - inside[p]; }
+    const dOut = distMap(inside, W, H), dIn = distMap(outside, W, H);
+    const band = 0.07 * W, far = 0.12 * W, core = 0.05 * W;
+    const bgIdx = [], coreIdx = [];
+    for(let p = 0; p < N; p++){
+      if(!inside[p] && dOut[p] > band) bgIdx.push(p);
+      else if(inside[p] && dIn[p] > core) coreIdx.push(p);
     }
-    if(ok){ bg[px] = 1; q[qt++] = px; }
-  };
-  for(let x = 0; x < W; x++){ visit(x, -1); visit((H-1)*W + x, -1); }
-  for(let y = 0; y < H; y++){ visit(y*W, -1); visit(y*W + W - 1, -1); }
-  while(qh < qt){
-    const px = q[qh++], x = px % W;
-    if(x > 0) visit(px - 1, px);
-    if(x < W - 1) visit(px + 1, px);
-    if(px >= W) visit(px - W, px);
-    if(px < N - W) visit(px + W, px);
+    const bgC = kmeans(F, bgIdx, 4);
+    let fgIdx = coreIdx.filter(p => nearest(F, p, bgC) > 14);
+    if(fgIdx.length < coreIdx.length * 0.15) fgIdx = coreIdx;
+    const fgC = kmeans(F, fgIdx, 4);
+    if(!bgC.length || !fgC.length) return null;
+    for(let p = 0; p < N; p++){
+      if(!inside[p] && dOut[p] > far) continue;               // trop loin du contour : fond
+      const t = inside[p] ? Math.min(dIn[p] / band, 1) : -Math.min(dOut[p] / band, 1.7);
+      // Couleur ambiguë (ombre grise sur sol gris…) : c'est la position qui tranche
+      let ct = nearest(F, p, bgC) - nearest(F, p, fgC);
+      if(Math.abs(ct) < 12) ct = 0;
+      const score = ct + 16 * t + (inside[p] ? 0.5 : -0.5);
+      if(score > 0) fg[p] = 1;
+    }
+  } else {
+    // Sans contour : le fond = couleur des bords, propagé depuis les bords
+    const R = [], G = [], B = [];
+    const stp = Math.max(1, Math.floor((W + H) / 500));
+    const take = px => { R.push(d[px*4]); G.push(d[px*4+1]); B.push(d[px*4+2]); };
+    for(let x = 0; x < W; x += stp){ take(x); take((H-1)*W + x); }
+    for(let y = 0; y < H; y += stp){ take(y*W); take(y*W + W - 1); }
+    const med = a => { const t = [...a].sort((p,q) => p-q); return t[t.length >> 1]; };
+    const br = med(R), bgc = med(G), bb = med(B);
+    const spread = R.map((r,k) => Math.hypot(r-br, G[k]-bgc, B[k]-bb)).sort((a,b) => a-b);
+    const tol = Math.min(78, Math.max(26, spread[Math.floor(spread.length * 0.9)] * 1.4 + 14));
+    const dist = i => Math.hypot(d[i]-br, d[i+1]-bgc, d[i+2]-bb);
+    const bg = new Uint8Array(N), q = new Int32Array(N); let qt = 0, qh = 0;
+    const visit = (px, from) => {
+      if(bg[px]) return;
+      const i = px * 4, dd = dist(i);
+      let ok = dd < tol;
+      if(!ok && from >= 0 && dd < tol * 1.7){ const j = from * 4; ok = Math.hypot(d[i]-d[j], d[i+1]-d[j+1], d[i+2]-d[j+2]) < 9; }
+      if(ok){ bg[px] = 1; q[qt++] = px; }
+    };
+    for(let x = 0; x < W; x++){ visit(x, -1); visit((H-1)*W + x, -1); }
+    for(let y = 0; y < H; y++){ visit(y*W, -1); visit(y*W + W - 1, -1); }
+    while(qh < qt){
+      const px = q[qh++], x = px % W;
+      if(x > 0) visit(px - 1, px); if(x < W - 1) visit(px + 1, px);
+      if(px >= W) visit(px - W, px); if(px < N - W) visit(px + W, px);
+    }
+    for(let p = 0; p < N; p++) fg[p] = bg[p] ? 0 : 1;
   }
-  let fg = 0;
-  const rows = new Uint32Array(H), cols = new Uint32Array(W);
-  for(let px = 0; px < N; px++){
-    const i = px * 4;
-    if(bg[px]){ d[i+3] = 0; continue; }
-    fg++; rows[(px / W) | 0]++; cols[px % W]++;
-    const x = px % W;
-    const edge = (x > 0 && bg[px-1]) || (x < W-1 && bg[px+1]) || (px >= W && bg[px-W]) || (px < N-W && bg[px+W]);
-    if(edge) d[i+3] = 150;
+  // Nettoyage 0 : supprime les filaments d'un pixel (ouverture 3x3)
+  {
+    const er = new Uint8Array(N);
+    for(let y = 1; y < H - 1; y++) for(let x = 1; x < W - 1; x++){
+      const p = y * W + x;
+      er[p] = fg[p] & fg[p-1] & fg[p+1] & fg[p-W] & fg[p+W] & fg[p-W-1] & fg[p-W+1] & fg[p+W-1] & fg[p+W+1];
+    }
+    for(let y = 1; y < H - 1; y++) for(let x = 1; x < W - 1; x++){
+      const p = y * W + x;
+      fg[p] = er[p] | er[p-1] | er[p+1] | er[p-W] | er[p+W] | er[p-W-1] | er[p-W+1] | er[p+W-1] | er[p+W+1];
+    }
   }
-  const frac = fg / N;
-  if(frac < 0.03 || frac > 0.93) return null;
-  const rmin = Math.max(2, W * 0.012), cmin = Math.max(2, H * 0.012);
-  let y0 = 0, y1 = H - 1, x0 = 0, x1 = W - 1;
-  while(y0 < H && rows[y0] < rmin) y0++;
-  while(y1 > y0 && rows[y1] < rmin) y1--;
-  while(x0 < W && cols[x0] < cmin) x0++;
-  while(x1 > x0 && cols[x1] < cmin) x1--;
+  // Nettoyage 1 : ne garder que le vêtement (on retire les taches isolées)
+  {
+    const {lab, info} = components(fg, 1, W, H);
+    if(!info.length) return null;
+    const biggest = Math.max(...info.map(it => it.size));
+    const keep = info.map(it => it.size >= Math.max(N * 0.002, biggest * 0.15));
+    if(inside){
+      const touches = new Uint8Array(info.length);
+      for(let p = 0; p < N; p++) if(lab[p] >= 0 && inside[p]) touches[lab[p]] = 1;
+      info.forEach((it, n) => keep[n] = touches[n] && it.size >= N * 0.002);
+    }
+    for(let p = 0; p < N; p++) if(lab[p] >= 0 && !keep[lab[p]]) fg[p] = 0;
+  }
+  // Nettoyage 2 : boucher les trous à l'intérieur du vêtement (ombres, reflets, motifs clairs)
+  {
+    const {lab, info} = components(fg, 0, W, H);
+    const fill = info.map(it => !it.border && it.size < N * 0.04);
+    for(let p = 0; p < N; p++) if(lab[p] >= 0 && fill[lab[p]]) fg[p] = 1;
+  }
+  let count = 0; for(let p = 0; p < N; p++) count += fg[p];
+  const frac = count / N;
+  if(frac < 0.02 || frac > 0.93) return null;
+  // Bords adoucis + recadrage
+  let x0 = W, x1 = -1, y0 = H, y1 = -1;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+    const p = y * W + x;
+    let sum = 0, n = 0;
+    for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++){
+      const xx = x + dx, yy = y + dy; if(xx < 0 || yy < 0 || xx >= W || yy >= H) continue;
+      sum += fg[yy * W + xx]; n++;
+    }
+    const a = fg[p] ? Math.round(255 * sum / n) : Math.round(120 * sum / n);
+    d[p*4+3] = a < 20 ? 0 : a;
+    if(fg[p]){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  }
   if(x1 - x0 < 10 || y1 - y0 < 10) return null;
+  x0 = Math.max(0, x0 - 1); y0 = Math.max(0, y0 - 1); x1 = Math.min(W - 1, x1 + 1); y1 = Math.min(H - 1, y1 + 1);
   ctx.putImageData(id, 0, 0);
   const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
   const out = document.createElement('canvas'); out.width = cw; out.height = ch;
@@ -895,15 +1023,16 @@ function pieceSheet(existing){
     };
     const setBusy = b => { busy = b; save.disabled = b; };
     const runCut = async (img) => {
-      const cut = cutout(img);
+      const cut = cutout(img, p.photo && p.photo.guide);
       if(cut){ p.photo.cut = cut; toast('Pièce détourée.'); }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
-    const useImage = async img => {
+    const useImage = async (img, guideCat) => {
       setBusy(true); paint('Traitement…');
       try{
         const old = p.photo;
         p.photo = await processPhoto(img);
+        if(guideCat) p.photo.guide = guideCat;
         if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
         if(form.detour.checked) await runCut(img);
       }catch(e){ toast('Photo illisible, réessaie.'); }
@@ -913,7 +1042,7 @@ function pieceSheet(existing){
       const checked = form.querySelector('input[name=cat]:checked');
       openCamera(checked ? checked.value : 'tshirt', (canvas, cat) => {
         const r = form.querySelector(`input[name=cat][value="${cat}"]`); if(r) r.checked = true;
-        useImage(canvas);
+        useImage(canvas, cat);
       }, () => form.querySelector('#camIn').click());
     });
     const onFile = async input => {

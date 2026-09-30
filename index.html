@@ -178,6 +178,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .sil-wrap{background:var(--sunk);border-radius:16px;padding:16px 12px}
 .sil{position:relative;margin:0 auto}
 .sil img{position:absolute;max-width:none;object-fit:fill}
+.sil .part{position:absolute;overflow:hidden}
 .sil-wrap .strip{margin-top:12px}
 #cam{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;border-radius:0;background:#000;color:#fff}
 #cam::backdrop{background:#000}
@@ -256,7 +257,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 11;
+const APP_VERSION = 13;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -796,6 +797,78 @@ function blurBox(src, W, H, r){
   }
   return out;
 }
+/* Repère la forme d'une pièce détourée pour l'assemblage :
+   - legs : position des deux jambes en bas (pantalon), en fraction de la largeur ;
+   - parts : les morceaux séparés (les deux chaussures), en fractions de l'image. */
+function analyzeCut(cv){
+  const w = cv.width, h = cv.height, a = cv.getContext('2d').getImageData(0, 0, w, h).data;
+  let legs = null;
+  const runsAt = y => {
+    const runs = []; let st = -1;
+    for(let x = 0; x <= w; x++){
+      const on = x < w && a[(y * w + x) * 4 + 3] > 128;
+      if(on && st < 0) st = x;
+      if(!on && st >= 0){ runs.push([st, x - 1]); st = -1; }
+    }
+    return runs.filter(r => r[1] - r[0] > w * 0.08);
+  };
+  for(const f of [0.9, 0.85, 0.95, 0.8]){
+    const r = runsAt(Math.floor(h * f));
+    if(r.length >= 2){
+      const two = r.sort((p, q) => (q[1]-q[0]) - (p[1]-p[0])).slice(0, 2).sort((p, q) => p[0] - q[0]);
+      legs = two.map(r => (r[0] + r[1]) / 2 / w); break;
+    }
+  }
+  const sc = Math.max(1, Math.round(Math.max(w, h) / 200)), gw = Math.ceil(w / sc), gh = Math.ceil(h / sc);
+  const m = new Uint8Array(gw * gh);
+  for(let y = 0; y < gh; y++) for(let x = 0; x < gw; x++){
+    const px = Math.min(w - 1, x * sc), py = Math.min(h - 1, y * sc);
+    m[y * gw + x] = a[(py * w + px) * 4 + 3] > 128 ? 1 : 0;
+  }
+  const {lab, info} = components(m, 1, gw, gh);
+  const box = info.map(() => [Infinity, Infinity, -1, -1]);
+  for(let p = 0; p < gw * gh; p++){
+    const l = lab[p]; if(l < 0) continue;
+    const x = p % gw, y = (p / gw) | 0, b = box[l];
+    if(x < b[0]) b[0] = x; if(y < b[1]) b[1] = y; if(x > b[2]) b[2] = x; if(y > b[3]) b[3] = y;
+  }
+  const big = info.length ? Math.max(...info.map(it => it.size)) : 0;
+  const parts = info.map((it, n) => ({it, b:box[n]})).filter(o => o.it.size >= big * 0.25)
+    .sort((p, q) => q.it.size - p.it.size).slice(0, 2)
+    .map(({b}) => ({x:b[0]*sc/w, y:b[1]*sc/h, w:Math.min(1, (b[2]-b[0]+1)*sc/w), h:Math.min(1, (b[3]-b[1]+1)*sc/h)}))
+    .sort((p, q) => p.x - q.x);
+  // Deux chaussures qui se touchent : on coupe au creux vertical le plus marqué au milieu
+  if(parts.length === 1){
+    const col = new Float32Array(w);
+    for(let x = 0; x < w; x++){ let n = 0; for(let y = 0; y < h; y++) if(a[(y * w + x) * 4 + 3] > 128) n++; col[x] = n; }
+    let cut = -1, low = Infinity;
+    for(let x = Math.floor(w * 0.35); x <= Math.ceil(w * 0.65); x++) if(col[x] < low){ low = col[x]; cut = x; }
+    const sides = [[0, cut], [cut + 1, w - 1]].map(([x0, x1]) => Math.max(...Array.from(col.slice(x0, x1 + 1))));
+    if(cut > 0 && low < 0.6 * Math.min(...sides)){
+      parts.length = 0;
+      for(const [x0, x1] of [[0, cut], [cut + 1, w - 1]]){
+        let y0 = h, y1 = -1, xa = w, xb = -1;
+        for(let y = 0; y < h; y++) for(let x = x0; x <= x1; x++) if(a[(y * w + x) * 4 + 3] > 128){
+          if(y < y0) y0 = y; if(y > y1) y1 = y; if(x < xa) xa = x; if(x > xb) xb = x;
+        }
+        if(y1 >= y0) parts.push({x:xa / w, y:y0 / h, w:(xb - xa + 1) / w, h:(y1 - y0 + 1) / h});
+      }
+    }
+  }
+  return {legs, parts};
+}
+/* Les pièces détourées avant cette version n'ont pas ces repères : on les calcule une fois. */
+async function upgradeCuts(){
+  for(const p of [...S.pieces.values()]){
+    const c = p.photo && p.photo.cut; if(!c || c.meta) continue;
+    try{
+      const img = await loadSrc(c.dataUrl);
+      const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+      cv.getContext('2d').drawImage(img, 0, 0);
+      store.savePiece({...p, photo:{...p.photo, cut:{...c, meta:analyzeCut(cv)}}});
+    }catch(e){}
+  }
+}
 function finalizeCut(c, fgIn, shrink){
   const W = c.width, H = c.height, N = W * H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
@@ -829,7 +902,7 @@ function finalizeCut(c, fgIn, shrink){
   let url = out.toDataURL('image/webp', 0.86);
   if(!url.startsWith('data:image/webp')) url = out.toDataURL('image/png');
   const M = Math.max(W, H);
-  return {dataUrl:url, w:cw / M, h:ch / M, x:x0, y:y0, W, H};
+  return {dataUrl:url, w:cw / M, h:ch / M, x:x0, y:y0, W, H, meta:analyzeCut(out)};
 }
 
 /* ---------- Météo (Paris) ---------- */
@@ -950,15 +1023,31 @@ function silhouette(pcs, jacketSide){
     items.push({p, x:-c.w/2, y:0, w:c.w, h:c.h, z:10 + rank*10 + i, open: covers ? (L(p) === 'outer' ? 34 : 24) : 0});
   });
   const innerH = torso.length ? Math.min(...torso.map(p => p.photo.cut.h)) : 0;
-  let y = torso.length ? innerH * 0.8 : 0, pantsBottom = y;
+  let y = torso.length ? innerH * 0.8 : 0, pantsBottom = y, legX = null;
   main.filter(p => L(p) === 'bottom').forEach((p, i) => {
     const c = p.photo.cut; items.push({p, x:-c.w/2, y, w:c.w, h:c.h, z:5 + i});
     pantsBottom = Math.max(pantsBottom, y + c.h);
+    if(i === 0){
+      const lg = c.meta && c.meta.legs;
+      legX = lg ? lg.map(f => -c.w/2 + f * c.w) : [-c.w * 0.22, c.w * 0.22];
+    }
   });
   const hasPants = main.some(p => L(p) === 'bottom');
-  let ys = hasPants ? pantsBottom - (pantsBottom - y) * 0.04 : (torso.length ? Math.max(...torso.map(p => p.photo.cut.h)) + 0.02 : 0);
-  main.filter(p => L(p) === 'shoes').forEach((p, i) => {
-    const c = p.photo.cut; items.push({p, x:-c.w/2, y:ys, w:c.w, h:c.h, z:1 + i}); ys += c.h * 0.6;
+  // Chaussures : chacune sous sa jambe, l'arrière glissé sous l'ourlet du pantalon
+  const topY = hasPants ? pantsBottom : (torso.length ? Math.max(...torso.map(p => p.photo.cut.h)) + 0.02 : 0);
+  main.filter(p => L(p) === 'shoes').slice(0, 1).forEach(p => {
+    const c = p.photo.cut, parts = c.meta && c.meta.parts;
+    // Vue de face : l'ourlet recouvre le haut de la chaussure (languette, col) ; vue de dessus : juste le talon
+    const tuck = p.photo.shoeView === 'face' ? 0.4 : 0.3;
+    if(parts && parts.length === 2){
+      const centers = legX || [-c.w * 0.25, c.w * 0.25];
+      parts.forEach((pt, k) => {
+        const w = pt.w * c.w, h = pt.h * c.h;
+        items.push({p, part:pt, x:centers[k] - w/2, y:topY - (hasPants ? h * tuck : 0), w, h, z:1 + k});
+      });
+    } else {
+      items.push({p, x:-c.w/2, y:topY - (hasPants ? c.h * tuck * 0.8 : 0), w:c.w, h:c.h, z:1});
+    }
   });
   let bx = torsoW / 2 + 0.03;
   beside.forEach(p => { const c = p.photo.cut; items.push({p, x:bx, y:0, w:c.w, h:c.h, z:40}); bx += c.w + 0.03; });
@@ -968,6 +1057,11 @@ function silhouette(pcs, jacketSide){
   const ratio = TW / TH;
   const imgs = items.sort((a,b) => a.z - b.z).map(it => {
     const b = it.open, clip = b ? `clip-path:polygon(0 0,100% 0,100% 100%,${50+b/2}% 100%,${50+b/2}% 17%,${50-b/2}% 17%,${50-b/2}% 100%,0 100%);` : '';
+    const pos = `left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${(it.y/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;`;
+    if(it.part){
+      const pt = it.part;
+      return `<div class="part" style="${pos}"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${(-pt.x/pt.w*100).toFixed(2)}%;top:${(-pt.y/pt.h*100).toFixed(2)}%;width:${(100/pt.w).toFixed(2)}%;height:${(100/pt.h).toFixed(2)}%"></div>`;
+    }
     return `<img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${(it.y/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;${clip}">`;
   }).join('');
   const acc = pcs.filter(p => L(p) === 'acc');
@@ -1118,7 +1212,7 @@ async function maskFromCut(photo, img, W, H){
     for(let p = 0; p < W * H; p++) fg[p] = a[p*4+3] > 60 ? 1 : 0;
     return fg;
   }
-  const r = cutout(img, photo.guide, true);
+  const r = cutout(img, guideKey(photo), true);
   return r ? r.fg : new Uint8Array(W * H).fill(1);
 }
 async function openRetouch(photo, onDone){
@@ -1199,9 +1293,18 @@ const GUIDES = {
   veste:   {d:'M110 60 L55 80 L28 145 L12 310 L50 316 L70 178 L70 345 L230 345 L230 178 L250 316 L288 310 L272 145 L245 80 L190 60 L150 150 Z', extra:'M150 150 L150 345', tip:'Veste fermée, à plat'},
   manteau: {d:'M110 40 L55 60 L28 125 L12 300 L50 306 L70 160 L70 385 L230 385 L230 160 L250 306 L288 300 L272 125 L245 60 L190 40 L150 130 Z', extra:'M150 130 L150 385', tip:'Manteau fermé, à plat'},
   pantalon:{d:'M95 18 L205 18 L232 385 L166 385 L150 118 L134 385 L68 385 Z', tip:'Pantalon à plat, taille en haut'},
-  chaussures:{hull:true, d:'M102 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z M158 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z', tip:'La paire côte à côte, vue de dessus, pointes en bas'},
+  // Vue de face plongeante : pointes vers l'objectif, téléphone tenu debout à hauteur de la taille
+  chaussures:{hull:true, view:'face', d:'M106 202 Q122 190 138 202 L143 236 Q146 264 122 266 Q98 264 101 236 Z M162 202 Q178 190 194 202 L199 236 Q202 264 178 266 Q154 264 157 236 Z', tip:'Pointes vers toi, un doigt d\'écart entre les deux ; debout, téléphone à hauteur de la taille, incliné vers elles'},
+  // Ancien contour (vue de dessus), gardé pour redétourer les photos prises avant
+  chaussures_dessus:{hull:true, view:'dessus', d:'M102 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z M158 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z', tip:'La paire côte à côte, vue de dessus, pointes en bas'},
   accessoire:{d:'M100 150 h100 a16 16 0 0 1 16 16 v68 a16 16 0 0 1 -16 16 h-100 a16 16 0 0 1 -16 -16 v-68 a16 16 0 0 1 16 -16 Z', tip:"L'accessoire au centre"},
 };
+/* Quel contour a servi pour cette photo ? (les chaussures photographiées avant la vue de face gardent l'ancien) */
+function guideKey(photo){
+  if(!photo || !photo.guide) return undefined;
+  if(photo.guide === 'chaussures' && photo.shoeView !== 'face') return 'chaussures_dessus';
+  return photo.guide;
+}
 const cam = $('#cam');
 let camStream = null;
 function stopCamera(){ if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } }
@@ -1309,7 +1412,7 @@ function pieceSheet(existing){
     };
     const setBusy = b => { busy = b; save.disabled = b; };
     const runCut = async (img) => {
-      const cut = cutout(img, p.photo && p.photo.guide);
+      const cut = cutout(img, guideKey(p.photo));
       if(cut){ p.photo.cut = cut; toast('Pièce détourée.'); }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
@@ -1318,7 +1421,7 @@ function pieceSheet(existing){
       try{
         const old = p.photo;
         p.photo = await processPhoto(img);
-        if(guideCat) p.photo.guide = guideCat;
+        if(guideCat){ p.photo.guide = guideCat; if(guideCat === 'chaussures') p.photo.shoeView = 'face'; }
         if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
         if(form.detour.checked) await runCut(img);
       }catch(e){ toast('Photo illisible, réessaie.'); }
@@ -1468,7 +1571,7 @@ document.addEventListener('click', e => {
 });
 
 render();
-store.init();
+store.init().then(() => setTimeout(upgradeCuts, 300));
 fetchWeather();
 // Rafraîchit la météo quand on revient sur l'app
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') fetchWeather(); });

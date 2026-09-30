@@ -216,6 +216,15 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .rt-row .chip-btn[aria-pressed="true"]{background:#fff;color:#111}
 .rt-hint{margin:0;font-size:13px;color:rgba(255,255,255,.7)}
 .cut-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px -16px 0;padding:0 16px 4px;scroll-padding:0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.carousel::-webkit-scrollbar{display:none}
+.carousel .slide{flex:0 0 calc(100% - 24px);scroll-snap-align:start;margin-top:0}
+.carousel .slide:only-child{flex-basis:100%}
+.best{font-size:12px;font-weight:600;color:var(--denim);background:var(--denim-soft);border-radius:99px;padding:3px 9px;white-space:nowrap}
+.dots{display:flex;justify-content:center;gap:6px;margin:12px 0 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:width .2s,background .2s}
+.dot.on{width:20px;border-radius:4px;background:var(--denim)}
+.swipe-hint{text-align:center;margin:8px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -247,7 +256,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -563,6 +572,64 @@ function growRegions(lab, F, W, H, penalty){
   }
   for(let p = 0; p < N; p++) if(!lab[p]) lab[p] = 2;
 }
+/* Remplit l'enveloppe convexe du masque autour de chaque forme du contour
+   (une par chaussure). Chaque pixel est rattaché à la forme la plus proche. */
+function peelEdges(fg, Fs, bgC, fgC, W, H){
+  const N = W * H, maxDepth = Math.round(0.08 * W), depth = new Int16Array(N).fill(-1), q = new Int32Array(N);
+  let h = 0, t = 0;
+  for(let p = 0; p < N; p++){
+    if(!fg[p]) continue;
+    const x = p % W;
+    if((x > 0 && !fg[p-1]) || (x < W-1 && !fg[p+1]) || (p >= W && !fg[p-W]) || (p < N-W && !fg[p+W])){ depth[p] = 0; q[t++] = p; }
+  }
+  while(h < t){
+    const p = q[h++];
+    if(!(nearest(Fs, p, bgC) < nearest(Fs, p, fgC) * 1.15)) continue;   // c'est du tissu : on s'arrête là
+    fg[p] = 0;
+    if(depth[p] >= maxDepth) continue;
+    const x = p % W;
+    for(const n of [x > 0 ? p-1 : -1, x < W-1 ? p+1 : -1, p >= W ? p-W : -1, p < N-W ? p+W : -1]){
+      if(n >= 0 && fg[n] && depth[n] < 0){ depth[n] = depth[p] + 1; q[t++] = n; }
+    }
+  }
+}
+function fillHulls(fg, d, W, H){
+  const parts = d.split(/(?=M)/).map(x => x.trim()).filter(Boolean);
+  if(parts.length < 1) return;
+  const maps = parts.map(part => {
+    const gc = document.createElement('canvas'); gc.width = W; gc.height = H;
+    const gx = gc.getContext('2d'); gx.scale(W / 300, H / 400); gx.fill(new Path2D(part));
+    const a = gx.getImageData(0, 0, W, H).data, m = new Uint8Array(W * H);
+    for(let p = 0; p < W * H; p++) m[p] = a[p*4+3] > 127 ? 1 : 0;
+    return distMap(m, W, H);
+  });
+  const reach = 0.1 * W;
+  const out = document.createElement('canvas'); out.width = W; out.height = H;
+  const ox = out.getContext('2d'); ox.fillStyle = '#000';
+  parts.forEach((_, k) => {
+    const pts = [];
+    for(let y = 0; y < H; y++){
+      let lo = -1, hi = -1;
+      for(let x = 0; x < W; x++){
+        const p = y * W + x;
+        if(!fg[p] || maps[k][p] > reach) continue;
+        if(maps.some((mm, j) => j !== k && mm[p] < maps[k][p])) continue;
+        if(lo < 0) lo = x; hi = x;
+      }
+      if(lo >= 0){ pts.push([lo, y]); if(hi !== lo) pts.push([hi, y]); }
+    }
+    if(pts.length < 3) return;
+    pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cross = (o, a, b) => (a[0]-o[0]) * (b[1]-o[1]) - (a[1]-o[1]) * (b[0]-o[0]);
+    const lower = [], upper = [];
+    for(const pt of pts){ while(lower.length >= 2 && cross(lower[lower.length-2], lower[lower.length-1], pt) <= 0) lower.pop(); lower.push(pt); }
+    for(let i = pts.length - 1; i >= 0; i--){ const pt = pts[i]; while(upper.length >= 2 && cross(upper[upper.length-2], upper[upper.length-1], pt) <= 0) upper.pop(); upper.push(pt); }
+    const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
+    ox.beginPath(); hull.forEach(([x, y], i) => i ? ox.lineTo(x + .5, y + .5) : ox.moveTo(x + .5, y + .5)); ox.closePath(); ox.fill();
+  });
+  const a = ox.getImageData(0, 0, W, H).data;
+  for(let p = 0; p < W * H; p++) if(a[p*4+3] > 127) fg[p] = 1;
+}
 function cutout(img, guideCat, wantMask){
   const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
@@ -577,7 +644,7 @@ function cutout(img, guideCat, wantMask){
   }
   const fg = new Uint8Array(N);
   const guide = guideCat && GUIDES[guideCat];
-  let inside = null;
+  let inside = null, peel = null;
   if(guide && Math.abs(W / H - 0.75) < 0.03){
     const gc = document.createElement('canvas'); gc.width = W; gc.height = H;
     const gx = gc.getContext('2d'); gx.scale(W / 300, H / 400); gx.fill(new Path2D(guide.d));
@@ -630,31 +697,13 @@ function cutout(img, guideCat, wantMask){
     // Épluchage : en partant du fond, on retire couche par couche les pixels du bord
     // qui ressemblent plus au fond qu'au vêtement (ex. parquet dans l'ombre collé au t-shirt).
     // On s'arrête dès qu'on tombe sur du tissu, et jamais plus loin que ~8 % de la largeur.
-    {
-      // couleurs moyennées sur un petit voisinage : gomme le bruit de compression de la photo
-      const Fs = new Float32Array(N * 3);
-      for(let ch = 0; ch < 3; ch++){
-        const one = new Float32Array(N); for(let p = 0; p < N; p++) one[p] = F[p*3+ch];
-        const bl = blurBox(one, W, H, 2); for(let p = 0; p < N; p++) Fs[p*3+ch] = bl[p];
-      }
-      const maxDepth = Math.round(0.08 * W), depth = new Int16Array(N).fill(-1), q = new Int32Array(N);
-      let h = 0, t = 0;
-      for(let p = 0; p < N; p++){
-        if(!fg[p]) continue;
-        const x = p % W;
-        if((x > 0 && !fg[p-1]) || (x < W-1 && !fg[p+1]) || (p >= W && !fg[p-W]) || (p < N-W && !fg[p+W])){ depth[p] = 0; q[t++] = p; }
-      }
-      while(h < t){
-        const p = q[h++];
-        if(!(nearest(Fs, p, bgC) < nearest(Fs, p, fgC) * 1.15)) continue;   // c'est du tissu : on s'arrête là
-        fg[p] = 0;
-        if(depth[p] >= maxDepth) continue;
-        const x = p % W;
-        for(const n of [x > 0 ? p-1 : -1, x < W-1 ? p+1 : -1, p >= W ? p-W : -1, p < N-W ? p+W : -1]){
-          if(n >= 0 && fg[n] && depth[n] < 0){ depth[n] = depth[p] + 1; q[t++] = n; }
-        }
-      }
+    const Fs = new Float32Array(N * 3);   // couleurs moyennées : gomme le bruit de compression
+    for(let ch = 0; ch < 3; ch++){
+      const one = new Float32Array(N); for(let p = 0; p < N; p++) one[p] = F[p*3+ch];
+      const bl = blurBox(one, W, H, 2); for(let p = 0; p < N; p++) Fs[p*3+ch] = bl[p];
     }
+    peel = () => peelEdges(fg, Fs, bgC, fgC, W, H);
+    peel();
   } else {
     // Sans contour : le fond = couleur des bords, propagé depuis les bords
     const R = [], G = [], B = [];
@@ -715,6 +764,9 @@ function cutout(img, guideCat, wantMask){
     const fill = info.map(it => !it.border && it.size < N * 0.04);
     for(let p = 0; p < N; p++) if(lab[p] >= 0 && fill[lab[p]]) fg[p] = 1;
   }
+  // Chaussures : vues de dessus, chacune a une forme pleine. Les lacets blancs ou l'intérieur
+  // clair peuvent ressembler au sol ; on remplit donc l'enveloppe de chaque chaussure.
+  if(inside && guide.hull) fillHulls(fg, guide.d, W, H);
   if(wantMask) return {fg, W, H};
   let count = 0; for(let p = 0; p < N; p++) count += fg[p];
   const frac = count / N;
@@ -856,6 +908,19 @@ function render(){
     `<button type="button" data-section="${id}" aria-current="${S.section===id}">${l}${id==='linge'&&dirtyCount?`<span class="count">${dirtyCount}</span>`:''}</button>`).join('')}</div></div>`;
   const body = {demain:renderDemain, tenues:renderTenues, pieces:renderPieces, linge:renderLinge}[S.section]();
   app.innerHTML = sw + body + `<p class="version">Version ${APP_VERSION}</p>`;
+  const car = document.getElementById('carousel');
+  if(car){
+    const step = () => { const sl = car.querySelector('.slide'); return sl ? sl.offsetWidth + 12 : car.clientWidth; };
+    car.scrollLeft = (+car.dataset.start || 0) * step();
+    let raf = 0;
+    car.addEventListener('scroll', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const n = Math.round(car.scrollLeft / step());
+        if(n !== S.alt){ S.alt = n; document.querySelectorAll('.dots .dot').forEach((d, k) => d.classList.toggle('on', k === n)); }
+      });
+    }, {passive:true});
+  }
 }
 
 function lookGrid(pcs){
@@ -964,15 +1029,17 @@ function renderDemain(){
 
   const {ok, blocked} = rankOutfits(w);
   if(!ok.length) return head + weather + `<div class="empty"><h3>Tout est au sale</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
-  const pick = ok[S.alt % ok.length];
-  return head + weather + `<article class="look-card">
-    <div class="look-head"><h2>${esc(pick.o.name)}</h2>${ok.length>1?`<span class="muted" style="font-size:13px">${(S.alt % ok.length)+1} sur ${ok.length}</span>`:''}</div>
-    <p class="why">${esc(sentence(pick.why))}</p>
-    ${lookView(pick.pcs)}
-    <div class="look-actions">
-      <button class="btn primary grow" type="button" data-act="plan" data-id="${esc(pick.o.id)}">Je la porte ${dayWord()}</button>
-      ${ok.length>1?`<button class="btn" type="button" data-act="another">Autre idée</button>`:''}
-    </div></article>
+  const list = ok.slice(0, 12);
+  const cur = Math.min(S.alt, list.length - 1);
+  const slides = list.map((x, n) => `<article class="look-card slide" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
+      <div class="look-head"><h2>${esc(x.o.name)}</h2>${n === 0 ? '<span class="best">Meilleur choix</span>' : ''}</div>
+      <p class="why">${esc(sentence(x.why))}</p>
+      ${lookView(x.pcs)}
+      <div class="look-actions"><button class="btn primary grow" type="button" data-act="plan" data-id="${esc(x.o.id)}">Je la porte ${dayWord()}</button></div>
+    </article>`).join('');
+  const nav = list.length > 1 ? `<div class="dots" aria-hidden="true">${list.map((_, n) => `<span class="dot${n === cur ? ' on' : ''}"></span>`).join('')}</div>
+    <p class="hint swipe-hint">Fais glisser pour voir les ${list.length} tenues possibles.</p>` : '';
+  return head + weather + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
     ${blocked.length?`<p class="hint" style="margin-top:12px">${blocked.length} tenue${blocked.length>1?'s':''} écartée${blocked.length>1?'s':''} à cause du linge sale.</p>`:''}`;
 }
 
@@ -1132,7 +1199,7 @@ const GUIDES = {
   veste:   {d:'M110 60 L55 80 L28 145 L12 310 L50 316 L70 178 L70 345 L230 345 L230 178 L250 316 L288 310 L272 145 L245 80 L190 60 L150 150 Z', extra:'M150 150 L150 345', tip:'Veste fermée, à plat'},
   manteau: {d:'M110 40 L55 60 L28 125 L12 300 L50 306 L70 160 L70 385 L230 385 L230 160 L250 306 L288 300 L272 125 L245 60 L190 40 L150 130 Z', extra:'M150 130 L150 385', tip:'Manteau fermé, à plat'},
   pantalon:{d:'M95 18 L205 18 L232 385 L166 385 L150 118 L134 385 L68 385 Z', tip:'Pantalon à plat, taille en haut'},
-  chaussures:{d:'M102 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z M158 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z', tip:'La paire côte à côte, vue de dessus, pointes en bas'},
+  chaussures:{hull:true, d:'M102 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z M158 175 a20 20 0 0 1 40 0 v75 a20 20 0 0 1 -40 0 Z', tip:'La paire côte à côte, vue de dessus, pointes en bas'},
   accessoire:{d:'M100 150 h100 a16 16 0 0 1 16 16 v68 a16 16 0 0 1 -16 16 h-100 a16 16 0 0 1 -16 -16 v-68 a16 16 0 0 1 16 -16 Z', tip:"L'accessoire au centre"},
 };
 const cam = $('#cam');

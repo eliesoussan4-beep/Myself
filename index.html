@@ -146,6 +146,9 @@ dialog::backdrop{background:rgba(10,14,22,.5)}
 .sheet{display:flex;flex-direction:column;max-height:inherit}
 .sheet-scroll{overflow-y:auto;padding:20px 18px 8px}
 .sheet h2{font-size:22px;font-weight:700;margin-bottom:14px}
+.sheet-actions .btn{padding:11px 12px;min-width:0}
+.del-link{color:var(--warn);display:block;margin:4px 0 12px}
+.sheet-actions .btn.grow{flex:1 1 0}
 .sheet-actions{display:flex;gap:8px;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .field{display:block;margin-bottom:16px}
 .field > span,.legend{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
@@ -167,6 +170,15 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .pick input:checked + .box{border-color:var(--denim);background:var(--denim-soft)}
 .pick input:focus-visible + .box{outline:2px solid var(--denim);outline-offset:2px}
 
+.photo-btns{display:flex;gap:8px;margin:-6px 0 12px}
+.photo-btns .btn{flex:1;text-align:center;position:relative;cursor:pointer}
+.photo-drop{cursor:default}
+.checker{background-color:var(--sunk);background-image:conic-gradient(var(--line) 25%,transparent 0 50%,var(--line) 0 75%,transparent 0);background-size:18px 18px}
+.cut-tools{margin:-8px 0 12px}
+.sil-wrap{background:var(--sunk);border-radius:16px;padding:16px 12px}
+.sil{position:relative;margin:0 auto}
+.sil img{position:absolute;max-width:none;object-fit:fill}
+.sil-wrap .strip{margin-top:12px}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -197,21 +209,29 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 <script>
 /* ---------- Constantes ---------- */
 const CATS = [
-  {id:'veste', label:'Veste / manteau', order:0},
-  {id:'haut', label:'Haut', order:1},
-  {id:'robe', label:'Robe / combi', order:1},
-  {id:'bas', label:'Bas', order:2},
-  {id:'chaussures', label:'Chaussures', order:3},
-  {id:'accessoire', label:'Accessoire', order:4},
+  {id:'manteau', label:'Manteau', order:0},
+  {id:'veste', label:'Veste', order:1},
+  {id:'gilet', label:'Gilet', order:2},
+  {id:'pull', label:'Pull', order:3},
+  {id:'sweat', label:'Sweat', order:4},
+  {id:'chemise', label:'Chemise', order:5},
+  {id:'tshirt', label:'T-shirt', order:6},
+  {id:'pantalon', label:'Pantalon', order:7},
+  {id:'chaussures', label:'Chaussures', order:8},
+  {id:'accessoire', label:'Accessoire', order:9},
 ];
+/* Couches pour l'assemblage : dessous < intermédiaire < dessus */
+const LAYER = {tshirt:'under', chemise:'under', haut:'under', robe:'under', pull:'mid', sweat:'mid', gilet:'mid', veste:'outer', manteau:'outer', pantalon:'bottom', bas:'bottom', chaussures:'shoes', accessoire:'acc'};
+const LAYER_RANK = {under:0, mid:1, outer:2};
+const OPEN_FRONT = new Set(['gilet','veste','manteau']);
 const BANDS = [
   {id:'froid', label:'Froid', hint:'< 10°', words:'le froid'},
   {id:'frais', label:'Frais', hint:'10–17°', words:'un temps frais'},
   {id:'doux', label:'Doux', hint:'18–24°', words:'un temps doux'},
   {id:'chaud', label:'Chaud', hint:'25°+', words:'la chaleur'},
 ];
-const catLabel = id => (CATS.find(c=>c.id===id)||{label:'Pièce'}).label;
-const catOrder = id => (CATS.find(c=>c.id===id)||{order:9}).order;
+const catLabel = id => id === 'bas' ? 'Pantalon' : (CATS.find(c=>c.id===id)||{label:'À classer'}).label;
+const catOrder = id => (CATS.find(c=>c.id===(id==='bas'?'pantalon':id))||{order:5.5}).order;
 const bandFor = t => t<10?'froid':t<18?'frais':t<25?'doux':'chaud';
 
 const ICON = {
@@ -228,7 +248,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const todayKey = () => dayKey(new Date());
-const tomorrowDate = () => { const d = new Date(); d.setDate(d.getDate()+1); return d; };
+/* Jour visé : avant midi, c'est la tenue du jour ; après midi, celle du lendemain.
+   Le sélecteur Aujourd'hui / Demain permet de forcer l'un ou l'autre. */
+const SWITCH_HOUR = 12;
+const dayOffset = () => (S.dayChoice ?? (new Date().getHours() < SWITCH_HOUR ? 0 : 1));
+const dayWord = () => dayOffset() === 0 ? "aujourd'hui" : 'demain';
+const tomorrowDate = () => { const d = new Date(); d.setDate(d.getDate() + dayOffset()); return d; };
 const tomorrowKey = () => dayKey(tomorrowDate());
 function daysSince(key){
   if(!key) return null;
@@ -245,15 +270,17 @@ function photoSrc(p){
   if(p.photo.assetId) return '/_blob/' + p.photo.assetId;
   return p.photo.dataUrl || '';
 }
+function cutSrc(p){ return p && p.photo && p.photo.cut ? p.photo.cut.dataUrl : ''; }
+function thumbSrc(p){ return cutSrc(p) || photoSrc(p); }
 function pieceVisual(p){
-  const src = photoSrc(p);
+  const src = thumbSrc(p);
   return src ? `<img src="${esc(src)}" alt="" loading="lazy">` : `<div class="noimg">${ICON.hanger}<span>${esc(catLabel(p.category))}</span></div>`;
 }
 
 /* ---------- État ---------- */
 const S = {
   pieces:new Map(), outfits:new Map(), settings:{},
-  weather:null, section:'demain', filter:'all', alt:0, ready:false,
+  weatherDays:{}, dayChoice:null, section:'demain', filter:'all', alt:0, ready:false,
 };
 
 /* ---------- Stockage : base Claude si dispo, sinon navigateur ---------- */
@@ -320,7 +347,10 @@ const store = {
       (j.outfits||[]).forEach(o => S.outfits.set(o.id, o));
       S.settings = j.settings || {};
     }
+    let migrated = false;
+    for(const pc of S.pieces.values()){ if(pc.category === 'bas'){ pc.category = 'pantalon'; migrated = true; } }
     S.ready = true; render();
+    if(migrated) this.persistLocal();
   },
   persistLocal(){
     const data = {pieces:[...S.pieces.values()], outfits:[...S.outfits.values()], settings:S.settings};
@@ -385,8 +415,8 @@ function drawScaled(img, max){
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   return c;
 }
-async function processPhoto(file){
-  const img = await loadImage(file);
+async function processPhoto(fileOrImg){
+  const img = fileOrImg instanceof HTMLImageElement ? fileOrImg : await loadImage(fileOrImg);
   if(store.assets){
     try{
       const c = drawScaled(img, 1000);
@@ -398,13 +428,80 @@ async function processPhoto(file){
   return {dataUrl: drawScaled(img, store.mode === 'local' ? 800 : 480).toDataURL('image/jpeg', store.mode === 'local' ? 0.8 : 0.74)};
 }
 
+/* Détourage : le fond (couleur des bords de la photo) devient transparent,
+   puis l'image est recadrée au plus près du vêtement. w et h gardent la taille
+   réelle relative (en fraction du grand côté de la photo) pour l'assemblage. */
+function cutout(img){
+  const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
+  const ctx = c.getContext('2d', {willReadFrequently:true});
+  const id = ctx.getImageData(0, 0, W, H), d = id.data;
+  const R = [], G = [], B = [];
+  const step = Math.max(1, Math.floor((W + H) / 500));
+  const take = px => { const i = px * 4; R.push(d[i]); G.push(d[i+1]); B.push(d[i+2]); };
+  for(let x = 0; x < W; x += step){ take(x); take((H-1)*W + x); }
+  for(let y = 0; y < H; y += step){ take(y*W); take(y*W + W - 1); }
+  const med = a => { const t = [...a].sort((p,q) => p-q); return t[t.length >> 1]; };
+  const br = med(R), bgc = med(G), bb = med(B);
+  const spread = R.map((r,k) => Math.hypot(r-br, G[k]-bgc, B[k]-bb)).sort((a,b) => a-b);
+  const tol = Math.min(78, Math.max(26, spread[Math.floor(spread.length * 0.9)] * 1.4 + 14));
+  const dist = i => Math.hypot(d[i]-br, d[i+1]-bgc, d[i+2]-bb);
+  const bg = new Uint8Array(N), q = new Int32Array(N); let qt = 0, qh = 0;
+  const visit = (px, from) => {
+    if(bg[px]) return;
+    const i = px * 4, dd = dist(i);
+    let ok = dd < tol;
+    if(!ok && from >= 0 && dd < tol * 1.7){
+      const j = from * 4;
+      ok = Math.hypot(d[i]-d[j], d[i+1]-d[j+1], d[i+2]-d[j+2]) < 9;
+    }
+    if(ok){ bg[px] = 1; q[qt++] = px; }
+  };
+  for(let x = 0; x < W; x++){ visit(x, -1); visit((H-1)*W + x, -1); }
+  for(let y = 0; y < H; y++){ visit(y*W, -1); visit(y*W + W - 1, -1); }
+  while(qh < qt){
+    const px = q[qh++], x = px % W;
+    if(x > 0) visit(px - 1, px);
+    if(x < W - 1) visit(px + 1, px);
+    if(px >= W) visit(px - W, px);
+    if(px < N - W) visit(px + W, px);
+  }
+  let fg = 0;
+  const rows = new Uint32Array(H), cols = new Uint32Array(W);
+  for(let px = 0; px < N; px++){
+    const i = px * 4;
+    if(bg[px]){ d[i+3] = 0; continue; }
+    fg++; rows[(px / W) | 0]++; cols[px % W]++;
+    const x = px % W;
+    const edge = (x > 0 && bg[px-1]) || (x < W-1 && bg[px+1]) || (px >= W && bg[px-W]) || (px < N-W && bg[px+W]);
+    if(edge) d[i+3] = 150;
+  }
+  const frac = fg / N;
+  if(frac < 0.03 || frac > 0.93) return null;
+  const rmin = Math.max(2, W * 0.012), cmin = Math.max(2, H * 0.012);
+  let y0 = 0, y1 = H - 1, x0 = 0, x1 = W - 1;
+  while(y0 < H && rows[y0] < rmin) y0++;
+  while(y1 > y0 && rows[y1] < rmin) y1--;
+  while(x0 < W && cols[x0] < cmin) x0++;
+  while(x1 > x0 && cols[x1] < cmin) x1--;
+  if(x1 - x0 < 10 || y1 - y0 < 10) return null;
+  ctx.putImageData(id, 0, 0);
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  const out = document.createElement('canvas'); out.width = cw; out.height = ch;
+  out.getContext('2d').drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+  let url = out.toDataURL('image/webp', 0.86);
+  if(!url.startsWith('data:image/webp')) url = out.toDataURL('image/png');
+  const M = Math.max(W, H);
+  return {dataUrl:url, w:cw / M, h:ch / M};
+}
+
 /* ---------- Météo (Paris) ---------- */
 const PARIS = {lat:48.8566, lon:2.3522};
 S.weatherState = 'loading'; // loading | ok | blocked
 function tomorrowWeather(){
   const k = tomorrowKey(), m = S.settings.manual;
   if(m && m.date === k) return {band:m.band, rain:!!m.rain, source:'manual'};
-  if(S.weather && S.weather.date === k) return {band:bandFor(S.weather.max), rain:S.weather.rain, source:'auto', ...S.weather};
+  const a = S.weatherDays[k];
+  if(a) return {band:bandFor(a.max), rain:a.rain, source:'auto', ...a};
   return null;
 }
 async function fetchWeather(){
@@ -414,8 +511,11 @@ async function fetchWeather(){
     const r = await fetch(url, {signal:ctrl.signal});
     const j = await r.json();
     const d = j.daily;
-    const prob = d.precipitation_probability_max[1] ?? 0, mm = d.precipitation_sum[1] ?? 0;
-    S.weather = {date:tomorrowKey(), max:Math.round(d.temperature_2m_max[1]), min:Math.round(d.temperature_2m_min[1]), rainProb:prob, rainMm:Math.round(mm*10)/10, rain: prob >= 50 || mm >= 1};
+    S.weatherDays = {};
+    d.time.forEach((day, i) => {
+      const prob = d.precipitation_probability_max[i] ?? 0, mm = d.precipitation_sum[i] ?? 0;
+      S.weatherDays[day] = {date:day, max:Math.round(d.temperature_2m_max[i]), min:Math.round(d.temperature_2m_min[i]), rainProb:prob, rainMm:Math.round(mm*10)/10, rain: prob >= 50 || mm >= 1};
+    });
     S.weatherState = 'ok';
   }catch(e){ S.weatherState = 'blocked'; }
   finally{ clearTimeout(t); render(); }
@@ -465,7 +565,7 @@ function render(){
   const app = $('#app');
   if(!S.ready){ app.innerHTML = '<p class="loading">Ouverture de ta garde-robe…</p>'; return; }
   const dirtyCount = [...S.pieces.values()].filter(p => p.dirty).length;
-  const tabs = [['demain','Demain'],['tenues','Tenues'],['pieces','Pièces'],['linge','Linge']];
+  const tabs = [['demain','Ma tenue'],['tenues','Tenues'],['pieces','Pièces'],['linge','Linge']];
   const sw = `<div class="switcher"><div class="seg" role="tablist">${tabs.map(([id,l]) =>
     `<button type="button" data-section="${id}" aria-current="${S.section===id}">${l}${id==='linge'&&dirtyCount?`<span class="count">${dirtyCount}</span>`:''}</button>`).join('')}</div></div>`;
   const body = {demain:renderDemain, tenues:renderTenues, pieces:renderPieces, linge:renderLinge}[S.section]();
@@ -479,24 +579,85 @@ function lookGrid(pcs){
   return `<div class="look ${cls}">${sorted.map(p => `<div class="tile">${pieceVisual(p)}<span class="cap">${esc(p.name)}</span></div>`).join('')}</div>`;
 }
 
+/* Tenue assemblée : hauts en haut, pantalon dessous, chaussures en bas,
+   tous à la même échelle. Veste/gilet/manteau ouverts au milieu, ou posés à côté. */
+function silhouette(pcs, jacketSide){
+  const L = p => LAYER[p.category] || 'acc';
+  const main = pcs.filter(p => L(p) !== 'acc');
+  if(!main.length || main.some(p => !(p.photo && p.photo.cut))) return null;
+  const tops = main.filter(p => L(p) in LAYER_RANK).sort((a,b) => LAYER_RANK[L(a)] - LAYER_RANK[L(b)]);
+  const hasInner = tops.some(p => L(p) !== 'outer');
+  const side = jacketSide && hasInner;
+  const torso = side ? tops.filter(p => L(p) !== 'outer') : tops;
+  const beside = side ? tops.filter(p => L(p) === 'outer') : [];
+  const items = [];
+  let torsoW = 0;
+  torso.forEach((p, i) => {
+    const c = p.photo.cut; torsoW = Math.max(torsoW, c.w);
+    const rank = LAYER_RANK[L(p)];
+    const covers = OPEN_FRONT.has(p.category) && torso.some(q => LAYER_RANK[L(q)] < rank);
+    items.push({p, x:-c.w/2, y:0, w:c.w, h:c.h, z:10 + rank*10 + i, open: covers ? (L(p) === 'outer' ? 34 : 24) : 0});
+  });
+  const innerH = torso.length ? Math.min(...torso.map(p => p.photo.cut.h)) : 0;
+  let y = torso.length ? innerH * 0.8 : 0, pantsBottom = y;
+  main.filter(p => L(p) === 'bottom').forEach((p, i) => {
+    const c = p.photo.cut; items.push({p, x:-c.w/2, y, w:c.w, h:c.h, z:5 + i});
+    pantsBottom = Math.max(pantsBottom, y + c.h);
+  });
+  const hasPants = main.some(p => L(p) === 'bottom');
+  let ys = hasPants ? pantsBottom - (pantsBottom - y) * 0.04 : (torso.length ? Math.max(...torso.map(p => p.photo.cut.h)) + 0.02 : 0);
+  main.filter(p => L(p) === 'shoes').forEach((p, i) => {
+    const c = p.photo.cut; items.push({p, x:-c.w/2, y:ys, w:c.w, h:c.h, z:1 + i}); ys += c.h * 0.6;
+  });
+  let bx = torsoW / 2 + 0.03;
+  beside.forEach(p => { const c = p.photo.cut; items.push({p, x:bx, y:0, w:c.w, h:c.h, z:40}); bx += c.w + 0.03; });
+  const minX = Math.min(...items.map(it => it.x)), maxX = Math.max(...items.map(it => it.x + it.w));
+  const maxY = Math.max(...items.map(it => it.y + it.h));
+  const TW = maxX - minX, TH = maxY;
+  const ratio = TW / TH;
+  const imgs = items.sort((a,b) => a.z - b.z).map(it => {
+    const b = it.open, clip = b ? `clip-path:polygon(0 0,100% 0,100% 100%,${50+b/2}% 100%,${50+b/2}% 17%,${50-b/2}% 17%,${50-b/2}% 100%,0 100%);` : '';
+    return `<img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${(it.y/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;${clip}">`;
+  }).join('');
+  const acc = pcs.filter(p => L(p) === 'acc');
+  return `<div class="sil-wrap"><div class="sil" style="aspect-ratio:${TW.toFixed(4)}/${TH.toFixed(4)};width:min(100%, calc(58vh * ${ratio.toFixed(4)}))">${imgs}</div>
+    ${acc.length ? `<div class="strip" style="justify-content:center">${acc.map(p => `<div class="th">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="${esc(p.name)}">`:ICON.hanger}</div>`).join('')}</div>` : ''}</div>`;
+}
+
+function lookView(pcs){
+  const hasOuter = pcs.some(p => LAYER[p.category] === 'outer') && pcs.some(p => ['under','mid'].includes(LAYER[p.category]));
+  const sil = silhouette(pcs, !!S.settings.jacketSide);
+  if(sil){
+    const toggle = hasOuter ? `<div class="band-row" style="margin:0 0 10px"><button type="button" class="chip-btn" data-act="jacket" aria-pressed="${!S.settings.jacketSide}">Veste ouverte</button><button type="button" class="chip-btn" data-act="jacket" aria-pressed="${!!S.settings.jacketSide}">Veste à côté</button></div>` : '';
+    return toggle + sil;
+  }
+  const missing = pcs.filter(p => LAYER[p.category] !== 'acc' && !(p.photo && p.photo.cut)).length;
+  return lookGrid(pcs) + (missing ? `<p class="hint" style="margin:10px 0 0">Pour voir la tenue assemblée, détoure la photo de ${missing} pièce${missing>1?'s':''} (onglet Pièces).</p>` : '');
+}
+
 function renderDemain(){
   const td = tomorrowDate();
   const dateStr = td.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   const w = tomorrowWeather();
   let wline;
   if(w && w.source === 'auto') wline = `${w.rain?ICON.rain:ICON.sun}<span>Paris : ${w.min}° à ${w.max}°, ${w.rain?`pluie (${w.rainProb} %${w.rainMm?`, ${String(w.rainMm).replace('.',',')} mm`:''})`:`pas de pluie (${w.rainProb} %)`}</span>`;
-  else if(w) wline = `${w.rain?ICON.rain:ICON.sun}<span>${esc(BANDS.find(b=>b.id===w.band).label)}${w.rain?', avec de la pluie':', sans pluie'}${S.weather&&S.weather.date===tomorrowKey()?' (ton choix)':''}</span>`;
+  else if(w) wline = `${w.rain?ICON.rain:ICON.sun}<span>${esc(BANDS.find(b=>b.id===w.band).label)}${w.rain?', avec de la pluie':', sans pluie'}${S.weatherDays[tomorrowKey()]?' (ton choix)':''}</span>`;
   else if(S.weatherState === 'loading') wline = `${ICON.unknown}<span>Météo de Paris en cours…</span>`;
-  else wline = `${ICON.unknown}<span>Quel temps demain à Paris ?</span>`;
+  else wline = `${ICON.unknown}<span>Quel temps ${dayWord()} à Paris ?</span>`;
   const curBand = w ? w.band : null;
-  const weather = `<section class="weather" aria-label="Météo de demain">
+  const weather = `<section class="weather" aria-label="Météo du jour choisi">
     <div class="weather-top"><div class="weather-now">${wline}</div>
-      <button class="linkish" type="button" data-act="auto-weather">${w && w.source==='manual' && S.weather ? 'Revenir à la météo' : 'Actualiser'}</button></div>
+      <button class="linkish" type="button" data-act="auto-weather">${w && w.source==='manual' && S.weatherDays[tomorrowKey()] ? 'Revenir à la météo' : 'Actualiser'}</button></div>
     <div class="band-row">${BANDS.map(b => `<button type="button" class="chip-btn" data-act="band" data-band="${b.id}" aria-pressed="${curBand===b.id}">${b.label} <small>${b.hint}</small></button>`).join('')}
       <button type="button" class="chip-btn" data-act="rain" aria-pressed="${!!(w && w.rain)}">Pluie</button></div>
   </section>`;
 
-  const head = `<div class="tomorrow"><div class="day">Demain</div><div class="date">${esc(dateStr)}</div></div>`;
+  const off = dayOffset();
+  const head = `<div class="tomorrow"><div class="day">${off===0?"Aujourd'hui":'Demain'}</div><div class="date">${esc(dateStr)}</div>
+    <div class="band-row" role="group" aria-label="Jour de la tenue">
+      <button type="button" class="chip-btn" data-act="day" data-off="0" aria-pressed="${off===0}">Aujourd'hui</button>
+      <button type="button" class="chip-btn" data-act="day" data-off="1" aria-pressed="${off===1}">Demain</button>
+    </div></div>`;
 
   if(!S.pieces.size) return head + weather + `<div class="empty"><h3>Commence par tes pièces</h3><p>Prends en photo tes vêtements un par un, puis assemble-les en tenues.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
   if(!S.outfits.size) return head + weather + `<div class="empty"><h3>Aucune tenue pour l'instant</h3><p>Assemble tes pièces en tenues : c'est parmi elles que je choisirai.</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
@@ -507,8 +668,8 @@ function renderDemain(){
     const anyClean = pcs.some(p => !p.dirty);
     return head + weather + `<article class="look-card">
       <div class="look-head"><h2>${esc(planned.name)}</h2><span class="planned">Prévue</span></div>
-      <p class="why">C'est la tenue que tu as choisie pour demain.</p>
-      ${lookGrid(pcs)}
+      <p class="why">C'est la tenue que tu as choisie pour ${dayWord()}.</p>
+      ${lookView(pcs)}
       <div class="look-actions">
         ${anyClean ? `<button class="btn grow" type="button" data-act="dirty-planned">Mettre au sale après</button>` : `<span class="muted" style="align-self:center;flex:1">Pièces déjà au sale</span>`}
         <button class="btn" type="button" data-act="unplan">Changer</button>
@@ -521,9 +682,9 @@ function renderDemain(){
   return head + weather + `<article class="look-card">
     <div class="look-head"><h2>${esc(pick.o.name)}</h2>${ok.length>1?`<span class="muted" style="font-size:13px">${(S.alt % ok.length)+1} sur ${ok.length}</span>`:''}</div>
     <p class="why">${esc(sentence(pick.why))}</p>
-    ${lookGrid(pick.pcs)}
+    ${lookView(pick.pcs)}
     <div class="look-actions">
-      <button class="btn primary grow" type="button" data-act="plan" data-id="${esc(pick.o.id)}">Je la porte demain</button>
+      <button class="btn primary grow" type="button" data-act="plan" data-id="${esc(pick.o.id)}">Je la porte ${dayWord()}</button>
       ${ok.length>1?`<button class="btn" type="button" data-act="another">Autre idée</button>`:''}
     </div></article>
     ${blocked.length?`<p class="hint" style="margin-top:12px">${blocked.length} tenue${blocked.length>1?'s':''} écartée${blocked.length>1?'s':''} à cause du linge sale.</p>`:''}`;
@@ -542,7 +703,7 @@ function renderTenues(){
     return `<button class="outfit" type="button" data-act="edit-outfit" data-id="${esc(o.id)}">
       <div class="row"><h3>${esc(o.name)}</h3><span class="muted" style="font-size:13px">${d===null?'Jamais portée':d<=0?(d<0?'Prévue demain':"Portée aujourd'hui"):`Il y a ${d} j`}</span></div>
       <div class="meta">${esc(meta)}</div>
-      <div class="strip">${pcs.map(p => `<div class="th ${p.dirty?'dirty':''}">${photoSrc(p)?`<img src="${esc(photoSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</div>`).join('')}</div>
+      <div class="strip">${pcs.map(p => `<div class="th ${p.dirty?'dirty':''}">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</div>`).join('')}</div>
       ${dirty?`<div class="warnline">${dirty} pièce${dirty>1?'s':''} au sale</div>`:''}
     </button>`;}).join('')}</div>`;
 }
@@ -589,23 +750,28 @@ function openSheet(html, onSubmit, onMount){
 sheet.addEventListener('click', e => { if(e.target === sheet) sheet.close(); });
 
 function pieceSheet(existing){
-  const p = existing ? {...existing} : {id:uid('p'), name:'', category:'haut', dirty:false, photo:null, createdAt:Date.now()};
+  const p = existing ? {...existing, photo: existing.photo ? {...existing.photo} : null} : {id:uid('p'), name:'', category:'', dirty:false, photo:null, createdAt:Date.now()};
+  if(p.category === 'bas') p.category = 'pantalon';
   let busy = false;
+  const detourDefault = S.settings.detour !== false;
   const html = `<form class="sheet" novalidate>
     <div class="sheet-scroll">
       <h2>${existing?'Modifier la pièce':'Nouvelle pièce'}</h2>
-      <label class="photo-drop" id="drop">
-        ${photoSrc(p)?`<img src="${esc(photoSrc(p))}" alt="Photo de la pièce">`:`<div class="noimg">${ICON.camera}<span>Prendre ou choisir une photo</span></div>`}
-        <input type="file" accept="image/*" class="sr" id="photoIn" aria-label="Photo de la pièce">
-      </label>
+      <div class="photo-drop" id="drop"></div>
+      <div class="photo-btns">
+        <label class="btn primary">Prendre une photo<input type="file" accept="image/*" capture="environment" class="sr" id="camIn"></label>
+        <label class="btn">Choisir dans l'album<input type="file" accept="image/*" class="sr" id="albIn"></label>
+      </div>
+      <label class="toggle">Détourer automatiquement<input type="checkbox" name="detour" ${detourDefault?'checked':''}></label>
+      <div id="cutTools" class="cut-tools"></div>
       <label class="field"><span>Nom</span><input type="text" name="name" value="${esc(p.name)}" placeholder="Chemise en lin bleue" autocomplete="off"></label>
       <fieldset><legend class="legend">Catégorie</legend><div class="chips">
         ${CATS.map(c => `<label class="chip"><input type="radio" name="cat" value="${c.id}" ${p.category===c.id?'checked':''}><span>${c.label}</span></label>`).join('')}
       </div></fieldset>
       <label class="toggle">Au sale<input type="checkbox" name="dirty" ${p.dirty?'checked':''}></label>
+      ${existing?'<button class="linkish del-link" type="button" id="del">Supprimer définitivement</button>':''}
     </div>
     <div class="sheet-actions">
-      ${existing?'<button class="btn danger" type="button" id="del">Supprimer</button>':''}
       <button class="btn grow" type="button" data-close>Annuler</button>
       <button class="btn primary grow" type="submit" id="save">Enregistrer</button>
     </div></form>`;
@@ -613,24 +779,54 @@ function pieceSheet(existing){
     if(busy){ toast('La photo est encore en cours de traitement.'); return false; }
     const name = form.name.value.trim();
     if(!name){ form.name.focus(); toast('Donne un nom à la pièce.'); return false; }
-    p.name = name; p.category = form.cat.value || 'haut'; p.dirty = form.dirty.checked;
+    const cat = form.querySelector('input[name=cat]:checked');
+    if(!cat){ toast('Choisis une catégorie.'); return false; }
+    p.name = name; p.category = cat.value; p.dirty = form.dirty.checked;
     store.savePiece(p); toast(existing ? 'Pièce mise à jour.' : 'Pièce ajoutée.');
   }, form => {
-    const input = form.querySelector('#photoIn'), drop = form.querySelector('#drop');
-    input.addEventListener('change', async () => {
+    const drop = form.querySelector('#drop'), tools = form.querySelector('#cutTools'), save = form.querySelector('#save');
+    const paint = (busyText) => {
+      const cut = cutSrc(p), orig = photoSrc(p);
+      drop.classList.toggle('checker', !!cut);
+      drop.innerHTML = cut ? `<img src="${esc(cut)}" alt="Pièce détourée">` : orig ? `<img src="${esc(orig)}" alt="Photo de la pièce">` : `<div class="noimg">${ICON.camera}<span>Photographie la pièce toujours au même endroit, sur un fond uni</span></div>`;
+      if(busyText) drop.insertAdjacentHTML('beforeend', `<span class="busy">${busyText}</span>`);
+      tools.innerHTML = !orig ? '' : cut
+        ? '<button type="button" class="linkish" data-cut="remove">Annuler le détourage</button>'
+        : '<button type="button" class="linkish" data-cut="run">Détourer cette photo</button>';
+    };
+    const setBusy = b => { busy = b; save.disabled = b; };
+    const runCut = async (img) => {
+      const cut = cutout(img);
+      if(cut){ p.photo.cut = cut; }
+      else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
+    };
+    const onFile = async input => {
       const f = input.files && input.files[0]; if(!f) return;
-      busy = true; form.querySelector('#save').disabled = true;
-      const preview = URL.createObjectURL(f);
-      drop.querySelectorAll('img,.noimg,.busy').forEach(n => n.remove());
-      drop.insertAdjacentHTML('afterbegin', `<img src="${preview}" alt="Photo de la pièce"><span class="busy">Enregistrement…</span>`);
+      setBusy(true); paint('Traitement…');
       try{
+        const img = await loadImage(f);
         const old = p.photo;
-        p.photo = await processPhoto(f);
+        p.photo = await processPhoto(img);
         if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
-        drop.querySelector('.busy')?.remove();
-      }catch(e){ toast('Photo illisible, essaie une autre image.'); drop.querySelector('.busy')?.remove(); }
-      busy = false; form.querySelector('#save').disabled = false;
+        if(form.detour.checked) await runCut(img);
+      }catch(e){ toast('Photo illisible, essaie une autre image.'); }
+      setBusy(false); paint(); input.value = '';
+    };
+    form.querySelector('#camIn').addEventListener('change', e => onFile(e.target));
+    form.querySelector('#albIn').addEventListener('change', e => onFile(e.target));
+    form.detour.addEventListener('change', () => store.saveSettings({detour: form.detour.checked}));
+    tools.addEventListener('click', async e => {
+      const b = e.target.closest('[data-cut]'); if(!b) return;
+      if(b.dataset.cut === 'remove'){ delete p.photo.cut; paint(); return; }
+      setBusy(true); paint('Détourage…');
+      try{
+        const img = new Image(); img.crossOrigin = 'anonymous';
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = photoSrc(p); });
+        await runCut(img);
+      }catch(err){ toast('Impossible de relire la photo.'); }
+      setBusy(false); paint();
     });
+    paint();
     const del = form.querySelector('#del');
     if(del) del.addEventListener('click', () => {
       const n = [...S.outfits.values()].filter(o => (o.pieceIds||[]).includes(p.id)).length;
@@ -648,15 +844,15 @@ function outfitSheet(existing){
       <h2>${existing?'Modifier la tenue':'Nouvelle tenue'}</h2>
       <label class="field"><span>Nom</span><input type="text" name="name" value="${esc(o.name)}" placeholder="Bureau décontracté" autocomplete="off"></label>
       <fieldset><legend class="legend">Pièces</legend><div class="picker">
-        ${pieces.map(p => `<label class="pick"><input type="checkbox" name="pc" value="${esc(p.id)}" ${o.pieceIds.includes(p.id)?'checked':''}><span class="box"><span class="ph">${photoSrc(p)?`<img src="${esc(photoSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}
+        ${pieces.map(p => `<label class="pick"><input type="checkbox" name="pc" value="${esc(p.id)}" ${o.pieceIds.includes(p.id)?'checked':''}><span class="box"><span class="ph">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}
       </div></fieldset>
       <fieldset><legend class="legend">Pour quel temps ?</legend><div class="chips">
         ${BANDS.map(b => `<label class="chip"><input type="checkbox" name="band" value="${b.id}" ${(o.bands||[]).includes(b.id)?'checked':''}><span>${b.label} <small>${b.hint}</small></span></label>`).join('')}
       </div></fieldset>
       <label class="toggle">Convient sous la pluie<input type="checkbox" name="rainOk" ${o.rainOk?'checked':''}></label>
+      ${existing?'<button class="linkish del-link" type="button" id="del">Supprimer définitivement</button>':''}
     </div>
     <div class="sheet-actions">
-      ${existing?'<button class="btn danger" type="button" id="del">Supprimer</button>':''}
       <button class="btn grow" type="button" data-close>Annuler</button>
       <button class="btn primary grow" type="submit">Enregistrer</button>
     </div></form>`;
@@ -700,18 +896,20 @@ document.addEventListener('click', e => {
       store.saveSettings({manual:{date:tomorrowKey(), band: w ? w.band : 'doux', rain: !(w && w.rain)}}); S.alt = 0; break;
     }
     case 'auto-weather': refreshWeather(); break;
+    case 'day': S.dayChoice = +el.dataset.off; S.alt = 0; render(); break;
     case 'another': S.alt++; render(); break;
     case 'plan': {
       const o = S.outfits.get(id); if(!o) break;
       store.saveOutfit({...o, prevWorn:o.lastWorn ?? null, lastWorn:tomorrowKey()});
       store.saveSettings({planned:{date:tomorrowKey(), outfitId:id}});
-      toast('C\'est noté pour demain.'); break;
+      toast(`C'est noté pour ${dayWord()}.`); break;
     }
     case 'unplan': {
       const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId);
       if(o && o.lastWorn === tomorrowKey()) store.saveOutfit({...o, lastWorn:o.prevWorn ?? null});
       store.saveSettings({planned:null}); S.alt = 0; break;
     }
+    case 'jacket': store.saveSettings({jacketSide: el.textContent.includes('côté')}); break;
     case 'dirty-planned': {
       const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId); if(!o) break;
       (o.pieceIds||[]).forEach(pid => { const p = S.pieces.get(pid); if(p && !p.dirty) store.savePiece({...p, dirty:true}); });

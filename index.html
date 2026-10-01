@@ -227,6 +227,10 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:width .2s,background .2s}
 .dot.on{width:20px;border-radius:4px;background:var(--denim)}
 .swipe-hint{text-align:center;margin:8px 0 0}
+.backup{margin-top:28px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.backup h3{font-size:17px;margin-bottom:6px}
+.backup .hint{margin:0 0 12px}
+.backup .btn{position:relative;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -258,30 +262,40 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 18;
+const APP_VERSION = 21;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
-  {id:'gilet', label:'Gilet', order:2},
-  {id:'pull', label:'Pull', order:3},
-  {id:'sweat', label:'Sweat', order:4},
-  {id:'chemise', label:'Chemise', order:5},
-  {id:'tshirt', label:'T-shirt', order:6},
-  {id:'pantalon', label:'Pantalon', order:7},
-  {id:'chaussures', label:'Chaussures', order:8},
-  {id:'accessoire', label:'Accessoire', order:9},
+  {id:'gilet_capuche', label:'Gilet zippé à capuche', order:2},
+  {id:'gilet', label:'Gilet zippé', order:3},
+  {id:'sweat_capuche', label:'Sweat à capuche', order:4},
+  {id:'sweat', label:'Sweat', order:5},
+  {id:'pull', label:'Pull', order:6},
+  {id:'chemise', label:'Chemise', order:7},
+  {id:'tshirt_ml', label:'T-shirt manches longues', order:8},
+  {id:'tshirt', label:'T-shirt manches courtes', order:9},
+  {id:'pantalon', label:'Pantalon', order:10},
+  {id:'short', label:'Short', order:11},
+  {id:'chaussures', label:'Chaussures', order:12},
+  {id:'accessoire', label:'Accessoire', order:13},
 ];
 /* Couches pour l'assemblage : dessous < intermédiaire < dessus */
-const LAYER = {tshirt:'under', chemise:'under', haut:'under', robe:'under', pull:'mid', sweat:'mid', gilet:'mid', veste:'outer', manteau:'outer', pantalon:'bottom', bas:'bottom', chaussures:'shoes', accessoire:'acc'};
+const LAYER = {tshirt:'under', tshirt_ml:'under', sweat_capuche:'mid', gilet_capuche:'mid', short:'bottom', chemise:'under', haut:'under', robe:'under', pull:'mid', sweat:'mid', gilet:'mid', veste:'outer', manteau:'outer', pantalon:'bottom', bas:'bottom', chaussures:'shoes', accessoire:'acc'};
 const LAYER_RANK = {under:0, mid:1, outer:2};
-const OPEN_FRONT = new Set(['chemise','gilet','veste','manteau']);
+const OPEN_FRONT = new Set(['chemise','gilet','gilet_capuche','veste','manteau']);
+/* Pièces avec capuche : la capuche reste entière, derrière la nuque */
+const HOODED = new Set(['sweat_capuche','gilet_capuche']);
+/* Part de la hauteur de la photo occupée par la capuche (au-dessus du col), d'après le contour */
+const HOOD_FRAC = 0.17;
 /* Ordre d'empilement des hauts, du plus proche du corps au plus extérieur */
-const TOP_RANK = {tshirt:0, haut:0, robe:0, chemise:1, pull:2, sweat:2, gilet:3, veste:4, manteau:4};
+const TOP_RANK = {tshirt:0, tshirt_ml:0, haut:0, robe:0, chemise:1, pull:2, sweat:2, sweat_capuche:2, gilet:3, gilet_capuche:3, veste:4, manteau:4};
 /* Écart entre les deux pans quand la pièce est portée ouverte (fraction de sa largeur) */
-const OPEN_GAP = {chemise:0.2, gilet:0.14, veste:0.16, manteau:0.18};
+const OPEN_GAP = {chemise:0.2, gilet:0.14, gilet_capuche:0.14, veste:0.16, manteau:0.18};
 /* Chemise : ouverte en V sous le col (boutonnée en haut, pans qui pivotent).
    Gilet, veste, manteau : ouverts sur toute la hauteur, col compris (fermeture éclair ou boutons). */
-const OPEN_STYLE = {chemise:'pivot', gilet:'full', veste:'full', manteau:'full'};
+/* Longueur d'un pantalon dans le contour (taille → chevilles), en fraction de la hauteur du cadre */
+const LEG_LEN = 0.9;
+const OPEN_STYLE = {chemise:'pivot', gilet:'full', gilet_capuche:'full', veste:'full', manteau:'full'};
 const BANDS = [
   {id:'froid', label:'Froid', hint:'< 10°', words:'le froid'},
   {id:'frais', label:'Frais', hint:'10–17°', words:'un temps frais'},
@@ -344,23 +358,49 @@ const S = {
 /* ---------- Stockage : base Claude si dispo, sinon navigateur ---------- */
 const LS_KEY = 'garde-robe-v1';
 /* Hors de claude.ai : tout est gardé dans IndexedDB (bien plus de place que localStorage pour les photos) */
+/* Stockage dans le téléphone (IndexedDB) : une fiche par pièce et par tenue.
+   Modifier une pièce ne réécrit qu'elle, même avec des centaines de pièces. */
 const idb = {
   open(){
     if(this._p) return this._p;
     this._p = new Promise((res, rej) => {
-      const r = indexedDB.open('garde-robe', 1);
-      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      const r = indexedDB.open('garde-robe', 2);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        if(!db.objectStoreNames.contains('pieces')) db.createObjectStore('pieces', {keyPath:'id'});
+        if(!db.objectStoreNames.contains('outfits')) db.createObjectStore('outfits', {keyPath:'id'});
+      };
       r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
     });
     return this._p;
   },
-  async get(){
+  async req(storeName, mode, fn){
     const db = await this.open();
-    return new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get('state'); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); });
+    return new Promise((res, rej) => {
+      const tx = db.transaction(storeName, mode), st = tx.objectStore(storeName), q = fn(st);
+      tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error);
+    });
   },
-  async set(v){
-    const db = await this.open();
-    return new Promise((res, rej) => { const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').put(v, 'state'); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+  getAll(name){ return this.req(name, 'readonly', st => st.getAll()); },
+  getKv(key){ return this.req('kv', 'readonly', st => st.get(key)); },
+  put(name, v){ return this.req(name, 'readwrite', st => st.put(v)); },
+  del(name, id){ return this.req(name, 'readwrite', st => st.delete(id)); },
+  putKv(key, v){ return this.req('kv', 'readwrite', st => st.put(v, key)); },
+  delKv(key){ return this.req('kv', 'readwrite', st => st.delete(key)); },
+  async load(){
+    let pieces = await this.getAll('pieces'), outfits = await this.getAll('outfits');
+    let settings = await this.getKv('settings');
+    // Ancien format (versions 1 à 20) : tout dans un seul bloc « state » → on le répartit une fois
+    const legacy = await this.getKv('state');
+    if(legacy && !pieces.length && !outfits.length){
+      pieces = legacy.pieces || []; outfits = legacy.outfits || []; settings = legacy.settings || {};
+      for(const pc of pieces) await this.put('pieces', pc);
+      for(const o of outfits) await this.put('outfits', o);
+      await this.putKv('settings', settings);
+      await this.delKv('state');
+    }
+    return {pieces, outfits, settings: settings || {}};
   },
 };
 const store = {
@@ -398,8 +438,10 @@ const store = {
     }
     this.mode = 'local';
     let j = null;
-    try{ j = await idb.get(); }catch(e){}
-    if(!j){ try{ const raw = localStorage.getItem(LS_KEY); if(raw) j = JSON.parse(raw); }catch(e){} }
+    try{ j = await idb.load(); }catch(e){ console.warn(e); }
+    if(!j || (!j.pieces.length && !j.outfits.length)){
+      try{ const raw = localStorage.getItem(LS_KEY); if(raw){ j = JSON.parse(raw); this.writeAllLocal(j); localStorage.removeItem(LS_KEY); } }catch(e){}
+    }
     if(j){
       (j.pieces||[]).forEach(p => S.pieces.set(p.id, p));
       (j.outfits||[]).forEach(o => S.outfits.set(o.id, o));
@@ -408,14 +450,19 @@ const store = {
     let migrated = false;
     for(const pc of S.pieces.values()){ if(pc.category === 'bas'){ pc.category = 'pantalon'; migrated = true; } }
     S.ready = true; render();
-    if(migrated) this.persistLocal();
+    if(migrated) for(const pc of S.pieces.values()) this.local('put', 'pieces', pc);
   },
-  persistLocal(){
-    const data = {pieces:[...S.pieces.values()], outfits:[...S.outfits.values()], settings:S.settings};
-    idb.set(data).catch(() => {
-      try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
-      catch(e){ toast("Stockage plein : supprime quelques photos."); }
+  local(op, name, v){
+    const job = op === 'put' ? idb.put(name, v) : op === 'del' ? idb.del(name, v) : idb.putKv('settings', v);
+    job.catch(e => {
+      console.warn(e);
+      toast(e && e.name === 'QuotaExceededError' ? "Le téléphone n'a plus de place : libère de l'espace." : "Enregistrement impossible, réessaie.");
     });
+  },
+  writeAllLocal(j){
+    (j.pieces || []).forEach(pc => this.local('put', 'pieces', pc));
+    (j.outfits || []).forEach(o => this.local('put', 'outfits', o));
+    this.local('kv', 'settings', j.settings || {});
   },
   async write(fn){
     try{ await fn(); }
@@ -427,7 +474,7 @@ const store = {
   savePiece(p){
     S.pieces.set(p.id, p); render();
     if(this.mode === 'db') return this.write(() => this.base.collection('pieces').doc(p.id).set(p));
-    this.persistLocal();
+    this.local('put', 'pieces', p);
   },
   deletePiece(id){
     const p = S.pieces.get(id);
@@ -438,22 +485,22 @@ const store = {
     render();
     if(p && p.photo && p.photo.assetId && this.assets){ this.assets.delete(p.photo.assetId).catch(()=>{}); }
     if(this.mode === 'db') return this.write(() => this.base.collection('pieces').doc(id).delete());
-    this.persistLocal();
+    this.local('del', 'pieces', id);
   },
   saveOutfit(o){
     S.outfits.set(o.id, o); render();
     if(this.mode === 'db') return this.write(() => this.base.collection('outfits').doc(o.id).set(o));
-    this.persistLocal();
+    this.local('put', 'outfits', o);
   },
   deleteOutfit(id){
     S.outfits.delete(id); render();
     if(this.mode === 'db') return this.write(() => this.base.collection('outfits').doc(id).delete());
-    this.persistLocal();
+    this.local('del', 'outfits', id);
   },
   saveSettings(patch){
     S.settings = {...S.settings, ...patch}; render();
     if(this.mode === 'db') return this.write(() => this.base.collection('meta').doc('settings').set(S.settings));
-    this.persistLocal();
+    this.local('kv', 'settings', S.settings);
   },
 };
 
@@ -583,8 +630,8 @@ function growRegions(lab, F, W, H, penalty){
 }
 /* Remplit l'enveloppe convexe du masque autour de chaque forme du contour
    (une par chaussure). Chaque pixel est rattaché à la forme la plus proche. */
-function peelEdges(fg, Fs, bgC, fgC, W, H){
-  const N = W * H, maxDepth = Math.round(0.08 * W), depth = new Int16Array(N).fill(-1), q = new Int32Array(N);
+function peelEdges(fg, Fs, bgC, fgC, W, H, ratio = 1.15, depthFrac = 0.08, maxDB = Infinity){
+  const N = W * H, maxDepth = Math.round(depthFrac * W), depth = new Int16Array(N).fill(-1), q = new Int32Array(N);
   let h = 0, t = 0;
   for(let p = 0; p < N; p++){
     if(!fg[p]) continue;
@@ -593,7 +640,8 @@ function peelEdges(fg, Fs, bgC, fgC, W, H){
   }
   while(h < t){
     const p = q[h++];
-    if(!(nearest(Fs, p, bgC) < nearest(Fs, p, fgC) * 1.15)) continue;   // c'est du tissu : on s'arrête là
+    const dB = nearest(Fs, p, bgC);
+    if(!(dB < maxDB && dB < nearest(Fs, p, fgC) * ratio)) continue;   // c'est du tissu : on s'arrête là
     fg[p] = 0;
     if(depth[p] >= maxDepth) continue;
     const x = p % W;
@@ -640,6 +688,14 @@ function fillHulls(fg, d, W, H, clip){
   const a = ox.getImageData(0, 0, W, H).data, lim = clip * W;
   for(let p = 0; p < W * H; p++) if(a[p*4+3] > 127 && (!clip || maps.some(mm => mm[p] <= lim))) fg[p] = 1;
 }
+function colorFeatures(d, N){
+  const F = new Float32Array(N * 3);
+  for(let p = 0; p < N; p++){
+    const r = d[p*4], g = d[p*4+1], b = d[p*4+2], L = (r + g + b) / 3, k = 100 / Math.max(L, 35);
+    F[p*3] = L * 0.3; F[p*3+1] = (r - g) * k; F[p*3+2] = ((r + g) / 2 - b) * k;
+  }
+  return F;
+}
 function cutout(img, guideCat, wantMask){
   const c = drawScaled(img, 720), W = c.width, H = c.height, N = W * H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
@@ -647,11 +703,7 @@ function cutout(img, guideCat, wantMask){
   // Couleur décrite surtout par sa teinte, rapportée à la luminosité : une ombre
   // assombrit un t-shirt blanc sans le rendre orangé comme le parquet.
   // La luminosité compte peu (sinon chaque ombre passe pour du fond).
-  const F = new Float32Array(N * 3);
-  for(let p = 0; p < N; p++){
-    const r = d[p*4], g = d[p*4+1], b = d[p*4+2], L = (r + g + b) / 3, k = 100 / Math.max(L, 35);
-    F[p*3] = L * 0.3; F[p*3+1] = (r - g) * k; F[p*3+2] = ((r + g) / 2 - b) * k;
-  }
+  const F = colorFeatures(d, N);
   const fg = new Uint8Array(N);
   const guide = guideCat && GUIDES[guideCat];
   let inside = null, peel = null;
@@ -932,32 +984,64 @@ async function aiCut(img, guideCat, onProgress){
   const alpha = new Uint8Array(N), fg = new Uint8Array(N);
   for(let p = 0; p < N; p++){ alpha[p] = ad[p*4+3]; fg[p] = alpha[p] > 127 ? 1 : 0; }
   const guide = guideCat && GUIDES[guideCat];
-  const {lab, info} = components(fg, 1, W, H);
-  if(!info.length) return null;
-  const keep = new Uint8Array(info.length);
+  const orig = Uint8Array.from(fg);
+  let keep, lab, info;
   if(guide && Math.abs(W / H - 0.75) < 0.03){
-    // Contour connu : on garde ce qui touche le contour, rien de très éloigné,
-    // et pour les chaussures rien au-dessus ni en dessous des chaussures.
-    const inside = guideMask(guide, W, H), dOut = distMap(inside, W, H), far = (guide.far || 0.18) * W;
+    // Contour connu : rien de très éloigné, et pour les chaussures rien au-dessus ni en dessous.
+    const inside = guideMask(guide, W, H), outside = inside.map(v => 1 - v);
+    const dOut = distMap(inside, W, H), dIn = distMap(outside, W, H), far = (guide.far || 0.18) * W;
     let top = H, bot = 0;
     for(let p = 0; p < N; p++) if(inside[p]){ const y = (p / W) | 0; if(y < top) top = y; if(y > bot) bot = y; }
     const cutTop = guide.topCut ? (top - guide.topCut * W) : -1, cutBot = guide.bottomCut ? (bot + guide.bottomCut * W) : H;
     for(let p = 0; p < N; p++){
       const y = (p / W) | 0;
-      if((!inside[p] && dOut[p] > far) || y < cutTop || y > cutBot){ fg[p] = 0; continue; }
-      if(lab[p] >= 0 && inside[p]) keep[lab[p]] = 1;
+      if((!inside[p] && dOut[p] > far) || y < cutTop || y > cutBot) fg[p] = 0;
     }
+    // L'IA garde parfois un bout de sol collé à la pièce (entre deux objets, sous l'ourlet…).
+    // On apprend la couleur du sol autour (là où l'IA voit du fond) et celle du vêtement
+    // (au cœur du contour), puis on « épluche » depuis le bord ce qui ressemble nettement au sol.
+    const d = c.getContext('2d', {willReadFrequently:true}).getImageData(0, 0, W, H).data;
+    const F = colorFeatures(d, N), bgIdx = [], coreIdx = [];
+    for(let p = 0; p < N; p++){
+      if(!inside[p] && dOut[p] > 0.04 * W && dOut[p] < 0.3 * W && alpha[p] < 40 && (!guide.bgBelow || (p / W | 0) >= top)) bgIdx.push(p);
+      else if(inside[p] && dIn[p] > 0.05 * W && alpha[p] > 200) coreIdx.push(p);
+    }
+    let bgC = kmeans(F, bgIdx, 6); const mainBg = bgC.filter(q => q.share >= 0.07); if(mainBg.length) bgC = mainBg;
+    let fgC = kmeans(F, coreIdx, 4);
+    const pure = fgC.filter(q => Math.min(...bgC.map(b => Math.hypot(q[0]-b[0], q[1]-b[1], q[2]-b[2]))) > 10);
+    if(pure.length) fgC = pure;
+    // …et inversement : une « couleur du fond » presque identique à une couleur du vêtement
+    // vient d'un bout de vêtement ou d'un objet semblable : on ne s'en sert pas pour éplucher.
+    const clean = bgC.filter(b => Math.min(...fgC.map(q => Math.hypot(q[0]-b[0], q[1]-b[1], q[2]-b[2]))) > 12);
+    if(clean.length) bgC = clean;
+    if(bgC.length && fgC.length){
+      const Fs = new Float32Array(N * 3);
+      for(let ch = 0; ch < 3; ch++){
+        const one = new Float32Array(N); for(let p = 0; p < N; p++) one[p] = F[p*3+ch];
+        const bl = blurBox(one, W, H, 2); for(let p = 0; p < N; p++) Fs[p*3+ch] = bl[p];
+      }
+      peelEdges(fg, Fs, bgC, fgC, W, H, 0.8, 0.25, 22);
+    }
+    ({lab, info} = components(fg, 1, W, H));
+    keep = new Uint8Array(info.length);
+    for(let p = 0; p < N; p++) if(lab[p] >= 0 && inside[p]) keep[lab[p]] = 1;
   } else {
     // Photo de l'album : on garde les objets principaux (les plus grands)
-    const big = Math.max(...info.map(it => it.size));
+    ({lab, info} = components(fg, 1, W, H));
+    const big = info.length ? Math.max(...info.map(it => it.size)) : 0;
+    keep = new Uint8Array(info.length);
     info.forEach((it, n) => keep[n] = it.size >= big * 0.15 ? 1 : 0);
   }
+  if(!info.length) return null;
   for(let p = 0; p < N; p++) if(fg[p] && !keep[lab[p]]) fg[p] = 0;
   let count = 0; for(let p = 0; p < N; p++) count += fg[p];
   if(count < N * 0.005) return null;
   // Bords doux de l'IA conservés, mais seulement autour de ce qu'on garde
   const near = blurBox(Float32Array.from(fg), W, H, 2);
-  for(let p = 0; p < N; p++) if(!(near[p] > 0.01)) alpha[p] = 0; else if(!fg[p]) alpha[p] = Math.min(alpha[p], 127);
+  for(let p = 0; p < N; p++){
+    if(!(near[p] > 0.01) || (!fg[p] && orig[p])) alpha[p] = 0;   // retiré volontairement : totalement transparent
+    else if(!fg[p]) alpha[p] = Math.min(alpha[p], 127);
+  }
   return finalizeCut(c, fg, false, alpha);
 }
 
@@ -1131,10 +1215,11 @@ function silhouette(pcs, openMode){
   // n'apparaissent qu'à l'intérieur de cette silhouette (jamais au-delà des épaules ou de l'ourlet).
   const outer = torso.length > 1 ? torso[torso.length - 1] : null;
   const axisOf = p => (p.photo.cut.meta && p.photo.cut.meta.mid) || 0.5;
-  const outerRect = outer ? {url:outer.photo.cut.dataUrl, x:-axisOf(outer) * outer.photo.cut.w, y:0, w:outer.photo.cut.w, h:outer.photo.cut.h} : null;
+  const yOf = p => HOODED.has(p.category) ? -HOOD_FRAC * p.photo.cut.h : 0;
+  const outerRect = outer ? {url:outer.photo.cut.dataUrl, x:-axisOf(outer) * outer.photo.cut.w, y:yOf(outer), w:outer.photo.cut.w, h:outer.photo.cut.h} : null;
   torso.forEach((p, i) => {
     const c = p.photo.cut; torsoW = Math.max(torsoW, c.w);
-    const z = 10 + rankOf(p) * 10 + i, axis = axisOf(p), x0 = -axis * c.w;
+    const z = 10 + rankOf(p) * 10 + i, axis = axisOf(p), x0 = -axis * c.w, y0 = yOf(p);
     const mask = outer && p !== outer ? outerRect : null;
     if(mode === 'open' && opens(p) && OPEN_STYLE[p.category] === 'full'){
       // Ouverte de haut en bas : chaque pan garde son bord extérieur (épaule, manche) en place
@@ -1142,8 +1227,19 @@ function silhouette(pcs, openMode){
       // col compris, comme un gilet ou une veste dézippé. La silhouette ne s'élargit pas.
       const gap = OPEN_GAP[p.category] || 0.16;
       const kl = Math.max(0.5, 1 - gap / (2 * axis)), kr = Math.max(0.5, 1 - gap / (2 * (1 - axis)));
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - axis) * 100).toFixed(1)}% 0 0)`, tf:`scaleX(${kl.toFixed(4)})`, origin:'0% 50%'});
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(axis * 100).toFixed(1)}%)`, tf:`scaleX(${kr.toFixed(4)})`, origin:'100% 50%'});
+      if(HOODED.has(p.category)){
+        // La capuche (en haut, au centre) reste entière et passe derrière le haut du dessous ;
+        // seuls les pans s'ouvrent, sous la capuche.
+        const hc = 0.22, a = (Math.max(0, axis - 0.13) * 100).toFixed(1), b = (Math.min(1, axis + 0.13) * 100).toFixed(1), m = (axis * 100).toFixed(1), hp = (hc * 100).toFixed(1);
+        // la capuche couvre aussi l'espace laissé par les pans resserrés, pour ne laisser aucun trou
+        const ha = (Math.max(0, axis - 0.13) * kl * 100).toFixed(1), hb = ((1 - (1 - Math.min(1, axis + 0.13)) * kr) * 100).toFixed(1);
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z:9, clip:`polygon(${ha}% 0,${hb}% 0,${hb}% ${hp}%,${ha}% ${hp}%)`});
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`polygon(0 0,${a}% 0,${a}% ${hp}%,${m}% ${hp}%,${m}% 100%,0 100%)`, tf:`scaleX(${kl.toFixed(4)})`, origin:'0% 50%'});
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`polygon(${b}% 0,100% 0,100% 100%,${m}% 100%,${m}% ${hp}%,${b}% ${hp}%)`, tf:`scaleX(${kr.toFixed(4)})`, origin:'100% 50%'});
+      } else {
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - axis) * 100).toFixed(1)}% 0 0)`, tf:`scaleX(${kl.toFixed(4)})`, origin:'0% 50%'});
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(axis * 100).toFixed(1)}%)`, tf:`scaleX(${kr.toFixed(4)})`, origin:'100% 50%'});
+      }
     } else if(mode === 'open' && opens(p)){
       // Photo prise fermée : on la coupe au milieu (un peu à droite pour garder la patte
       // de boutonnage entière à gauche) et chaque pan pivote autour du col.
@@ -1151,17 +1247,26 @@ function silhouette(pcs, openMode){
       const cutAt = Math.min(0.9, axis + 0.02);
       const deg = Math.atan(((OPEN_GAP[p.category] || 0.15) * c.w / 2) / (c.h * 0.85)) * 180 / Math.PI;
       const origin = `${(cutAt * 100).toFixed(1)}% 12%`;
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - cutAt) * 100).toFixed(1)}% 0 0)`, tf:`rotate(${deg.toFixed(2)}deg)`, origin});
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(cutAt * 100).toFixed(1)}%)`, tf:`rotate(${(-deg).toFixed(2)}deg)`, origin});
+      items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - cutAt) * 100).toFixed(1)}% 0 0)`, tf:`rotate(${deg.toFixed(2)}deg)`, origin});
+      items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(cutAt * 100).toFixed(1)}%)`, tf:`rotate(${(-deg).toFixed(2)}deg)`, origin});
     } else {
-      items.push({p, x:x0, y:0, w:c.w, h:c.h, z, mask});
+      let clip;
+      // Sous un gilet à capuche ouvert, le haut du dessous ne commence que sous la capuche
+      if(mask && mode === 'open' && outer && HOODED.has(outer.category) && opens(outer)){
+        const hoodBottom = yOf(outer) + 0.22 * outer.photo.cut.h;
+        const t = Math.max(0, (hoodBottom - y0) / c.h);
+        if(t > 0) clip = `inset(${(t * 100).toFixed(1)}% 0 0 0)`;
+      }
+      items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip});
     }
   });
-  const innerH = torso.length ? Math.min(...torso.map(p => p.photo.cut.h)) : 0;
-  let y = torso.length ? innerH * 0.8 : 0, pantsBottom = y, legX = null;
+  const innerH = torso.length ? Math.min(...torso.map(p => p.photo.cut.h + yOf(p))) : 0;   // hauteur sous le col
+  let y = torso.length ? innerH * 0.8 : 0, pantsBottom = y, legX = null, onlyShorts = true;
   main.filter(p => L(p) === 'bottom').forEach((p, i) => {
     const c = p.photo.cut; items.push({p, x:-c.w/2, y, w:c.w, h:c.h, z:5 + i});
-    pantsBottom = Math.max(pantsBottom, y + c.h);
+    // Avec un short, les pieds restent là où finirait un pantalon (jambes non dessinées)
+    if(p.category === 'short') pantsBottom = Math.max(pantsBottom, y + LEG_LEN);
+    else { pantsBottom = Math.max(pantsBottom, y + c.h); onlyShorts = false; }
     if(i === 0){
       const lg = c.meta && c.meta.legs;
       legX = lg ? lg.map(f => -c.w/2 + f * c.w) : [-c.w * 0.22, c.w * 0.22];
@@ -1173,7 +1278,7 @@ function silhouette(pcs, openMode){
   main.filter(p => L(p) === 'shoes').slice(0, 1).forEach(p => {
     const c = p.photo.cut, parts = c.meta && c.meta.parts;
     // Vue de face : l'ourlet recouvre le haut de la chaussure (languette, col) ; vue de dessus : juste le talon
-    const tuck = p.photo.shoeView === 'face' ? 0.4 : 0.3;
+    const tuck = (hasPants && onlyShorts) ? 0.1 : p.photo.shoeView === 'face' ? 0.4 : 0.3;
     if(parts && parts.length === 2){
       const centers = legX || [-c.w * 0.25, c.w * 0.25];
       parts.forEach((pt, k) => {
@@ -1187,12 +1292,12 @@ function silhouette(pcs, openMode){
   let bx = torsoW / 2 + 0.03;
   beside.forEach(p => { const c = p.photo.cut; items.push({p, x:bx, y:0, w:c.w, h:c.h, z:40}); bx += c.w + 0.03; });
   const minX = Math.min(...items.map(it => it.x)), maxX = Math.max(...items.map(it => it.x + it.w));
-  const maxY = Math.max(...items.map(it => it.y + it.h));
-  const TW = maxX - minX, TH = maxY;
+  const minY = Math.min(0, ...items.map(it => it.y)), maxY = Math.max(...items.map(it => it.y + it.h));
+  const TW = maxX - minX, TH = maxY - minY;
   const ratio = TW / TH;
   const imgs = items.sort((a,b) => a.z - b.z).map(it => {
     const clip = it.clip ? `clip-path:${it.clip};-webkit-clip-path:${it.clip};` : '';
-    const pos = `left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${(it.y/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;`;
+    const pos = `left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${((it.y-minY)/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;`;
     if(it.part){
       const pt = it.part;
       return `<div class="part" style="${pos}"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${(-pt.x/pt.w*100).toFixed(2)}%;top:${(-pt.y/pt.h*100).toFixed(2)}%;width:${(100/pt.w).toFixed(2)}%;height:${(100/pt.h).toFixed(2)}%"></div>`;
@@ -1200,11 +1305,11 @@ function silhouette(pcs, openMode){
     const rot = it.tf ? `transform:${it.tf};transform-origin:${it.origin};` : '';
     if(it.mask){
       // Haut du dessous : découpé à la silhouette de la pièce extérieure (masque)
-      const m = it.mask, mp = `left:${((m.x-minX)/TW*100).toFixed(2)}%;top:${(m.y/TH*100).toFixed(2)}%;width:${(m.w/TW*100).toFixed(2)}%;height:${(m.h/TH*100).toFixed(2)}%;`;
+      const m = it.mask, mp = `left:${((m.x-minX)/TW*100).toFixed(2)}%;top:${((m.y-minY)/TH*100).toFixed(2)}%;width:${(m.w/TW*100).toFixed(2)}%;height:${(m.h/TH*100).toFixed(2)}%;`;
       const mi = `url('${esc(m.url)}')`;
       return `<div class="mk" style="${mp}-webkit-mask-image:${mi};mask-image:${mi};"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-m.x)/m.w*100).toFixed(2)}%;top:${((it.y-m.y)/m.h*100).toFixed(2)}%;width:${(it.w/m.w*100).toFixed(2)}%;height:${(it.h/m.h*100).toFixed(2)}%;${clip}${rot}"></div>`;
     }
-    return `<img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${(it.y/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;${clip}${rot}">`;
+    return `<img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${((it.y-minY)/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;${clip}${rot}">`;
   }).join('');
   const acc = pcs.filter(p => L(p) === 'acc');
   return `<div class="sil-wrap"><div class="sil" style="aspect-ratio:${TW.toFixed(4)}/${TH.toFixed(4)};width:min(100%, calc(58vh * ${ratio.toFixed(4)}))">${imgs}</div>
@@ -1317,13 +1422,51 @@ function pieceCard(p, act){
 function renderPieces(){
   const all = [...S.pieces.values()];
   const head = `<div class="page-head"><h1>Pièces</h1><button class="btn primary" type="button" data-act="new-piece">Ajouter</button></div>`;
-  if(!all.length) return head + `<div class="empty"><h3>Ta penderie est vide</h3><p>Photographie une pièce sur un fond uni : c'est cette photo qui apparaîtra dans tes tenues.</p><button class="btn primary" type="button" data-act="new-piece">Prendre une photo</button></div>`;
+  if(!all.length) return head + `<div class="empty"><h3>Ta penderie est vide</h3><p>Photographie une pièce sur un fond uni : c'est cette photo qui apparaîtra dans tes tenues.</p><button class="btn primary" type="button" data-act="new-piece">Prendre une photo</button></div>` + backupBlock();
   const used = CATS.filter(c => all.some(p => p.category === c.id));
   const filters = `<div class="filters"><button type="button" class="chip-btn" data-act="filter" data-cat="all" aria-pressed="${S.filter==='all'}">Tout (${all.length})</button>${used.map(c => `<button type="button" class="chip-btn" data-act="filter" data-cat="${c.id}" aria-pressed="${S.filter===c.id}">${c.label}</button>`).join('')}</div>`;
   const shown = all.filter(p => S.filter === 'all' || p.category === S.filter)
     .sort((a,b) => catOrder(a.category) - catOrder(b.category) || (a.name||'').localeCompare(b.name||'', 'fr'));
-  return head + filters + `<div class="pieces">${shown.map(p => pieceCard(p, 'edit-piece')).join('')}</div>`;
+  return head + filters + `<div class="pieces">${shown.map(p => pieceCard(p, 'edit-piece')).join('')}</div>` + backupBlock();
 }
+
+function backupBlock(){
+  return `<section class="backup">
+    <h3>Sauvegarde</h3>
+    <p class="hint">Un seul fichier avec toutes tes pièces (photos d'origine comprises) et tes tenues. Pratique pour garder une copie, changer de téléphone, ou l'envoyer à Claude pour régler le rendu.</p>
+    <div class="band-row">
+      <button type="button" class="btn" data-act="export">Exporter</button>
+      <label class="btn">Importer<input type="file" accept=".json,application/json" class="sr" id="importIn"></label>
+    </div></section>`;
+}
+async function exportData(){
+  const data = {app:'mon-quotidien', version:APP_VERSION, date:new Date().toISOString(),
+    pieces:[...S.pieces.values()], outfits:[...S.outfits.values()], settings:S.settings};
+  const name = `garde-robe-${todayKey()}.json`;
+  const file = new File([JSON.stringify(data)], name, {type:'application/json'});
+  // Sur téléphone : feuille de partage (Drive, WhatsApp, mail…) ; sinon téléchargement
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:name}); return; }catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(file), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Fichier enregistré dans Téléchargements.');
+}
+async function importData(file){
+  try{
+    const data = JSON.parse(await file.text());
+    if(data.app !== 'mon-quotidien' || !Array.isArray(data.pieces)){ toast("Ce fichier n'est pas une sauvegarde de l'app."); return; }
+    const np = data.pieces.length, no = (data.outfits || []).length;
+    if(!confirm(`Importer ${np} pièce${np>1?'s':''} et ${no} tenue${no>1?'s':''} ? Celles qui existent déjà seront remplacées.`)) return;
+    for(const pc of data.pieces) if(pc && pc.id) store.savePiece(pc);
+    for(const o of (data.outfits || [])) if(o && o.id) store.saveOutfit(o);
+    toast('Sauvegarde importée.');
+  }catch(e){ toast('Fichier illisible.'); }
+}
+document.addEventListener('change', e => {
+  if(e.target && e.target.id === 'importIn' && e.target.files && e.target.files[0]){ importData(e.target.files[0]); e.target.value = ''; }
+});
 
 function renderLinge(){
   const all = [...S.pieces.values()].sort((a,b) => catOrder(a.category) - catOrder(b.category));
@@ -1436,15 +1579,20 @@ async function openRetouch(photo, onDone){
    Cadre 3:4 (300 x 400 unités). Tous les contours sont dessinés à la même échelle
    (environ 0,29 cm par unité) : si tu remplis le contour, les proportions entre
    pièces sont justes dans la tenue assemblée. */
+const HOOD = 'M117 80 Q108 26 150 18 Q192 26 183 80 Q150 96 117 80 Z';
 const LONG_TOP = 'M115 70 L60 90 L35 150 L20 300 L55 305 L75 170 L75 330 L225 330 L225 170 L245 305 L280 300 L265 150 L240 90 L185 70 Q150 96 115 70 Z';
 const GUIDES = {
   tshirt:  {d:'M115 75 L60 95 L25 150 L65 170 L75 152 L75 325 L225 325 L225 152 L235 170 L275 150 L240 95 L185 75 Q150 100 115 75 Z', tip:'T-shirt à plat, manches écartées'},
   chemise: {d:LONG_TOP, extra:'M122 72 L150 102 L178 72 M150 102 L150 330', tip:'Chemise boutonnée, manches le long du corps'},
   pull:    {d:LONG_TOP, tip:'Pull à plat, manches le long du corps'},
-  sweat:   {d:LONG_TOP, tip:'Sweat à plat, capuche repliée derrière'},
-  gilet:   {d:LONG_TOP, extra:'M122 72 L150 175 L178 72 M150 175 L150 330', tip:'Gilet fermé, à plat'},
+  sweat:   {d:LONG_TOP, tip:'Sweat à plat, manches le long du corps'},
+  sweat_capuche:{d:LONG_TOP + ' ' + HOOD, tip:'Sweat à plat, capuche dépliée à plat au-dessus du col'},
+  tshirt_ml:{d:LONG_TOP, tip:'T-shirt à plat, manches le long du corps'},
+  gilet:   {d:LONG_TOP, extra:'M150 80 L150 330', tip:'Gilet zippé fermé, à plat'},
+  gilet_capuche:{d:LONG_TOP + ' ' + HOOD, extra:'M150 80 L150 330', tip:'Gilet zippé fermé, capuche dépliée à plat au-dessus du col'},
   veste:   {d:'M110 60 L55 80 L28 145 L12 310 L50 316 L70 178 L70 345 L230 345 L230 178 L250 316 L288 310 L272 145 L245 80 L190 60 L150 150 Z', extra:'M150 150 L150 345', tip:'Veste fermée, à plat'},
   manteau: {d:'M110 40 L55 60 L28 125 L12 300 L50 306 L70 160 L70 385 L230 385 L230 160 L250 306 L288 300 L272 125 L245 60 L190 40 L150 130 Z', extra:'M150 130 L150 385', tip:'Manteau fermé, à plat'},
+  short:   {d:'M95 40 L205 40 L224 210 L163 214 L150 108 L137 214 L76 210 Z', tip:'Short à plat, taille en haut'},
   pantalon:{d:'M95 18 L205 18 L232 385 L166 385 L150 118 L134 385 L68 385 Z', tip:'Pantalon à plat, taille en haut'},
   // Vue de face, téléphone posé au ras du sol devant les chaussures
   chaussures:{view:'face', far:0.04, hull:true, hullClip:0.015, bgBelow:true, topCut:0.015, bottomCut:0.012, d:'M110 184 Q123 176 136 184 L145 230 Q149 252 147 263 Q145 268 139 268 L107 268 Q101 268 99 263 Q97 252 101 230 Z M164 184 Q177 176 190 184 L199 230 Q203 252 201 263 Q199 268 193 268 L161 268 Q155 268 153 263 Q151 252 155 230 Z', tip:'Pointes vers toi, un doigt d\'écart ; téléphone posé au sol devant elles, sur un fond dégagé (idéalement un mur uni derrière)'},
@@ -1699,6 +1847,7 @@ document.addEventListener('click', e => {
   const id = el.dataset.id;
   switch(el.dataset.act){
     case 'new-piece': pieceSheet(); break;
+    case 'export': exportData(); break;
     case 'edit-piece': pieceSheet(S.pieces.get(id)); break;
     case 'new-outfit': outfitSheet(); break;
     case 'edit-outfit': outfitSheet(S.outfits.get(id)); break;

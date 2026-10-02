@@ -176,9 +176,13 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .checker{background-color:var(--sunk);background-image:conic-gradient(var(--line) 25%,transparent 0 50%,var(--line) 0 75%,transparent 0);background-size:18px 18px}
 .cut-tools{margin:-8px 0 12px}
 .sil-wrap{background:var(--sunk);border-radius:16px;padding:16px 12px}
-.sil{position:relative;margin:0 auto}
+.sil{position:relative;margin:0 auto;container-type:inline-size}
+.sil .legs{position:absolute;border:0;background:none;padding:0;cursor:pointer}
+.sil .legs svg{display:block}
+.sil .head{position:absolute;display:flex;align-items:center;justify-content:center;line-height:1;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
 .sil img{position:absolute;max-width:none;object-fit:fill}
 .sil .part{position:absolute;overflow:hidden}
+.sil .sh{position:absolute;filter:drop-shadow(0 0 2px rgba(0,0,0,.35))}
 .sil .mk{position:absolute;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .sil-wrap .strip{margin-top:12px}
 #cam{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;border-radius:0;background:#000;color:#fff}
@@ -231,6 +235,13 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .backup h3{font-size:17px;margin-bottom:6px}
 .backup .hint{margin:0 0 12px}
 .backup .btn{position:relative;cursor:pointer}
+.adjust{margin-top:8px;padding:10px 12px;background:var(--sunk);border-radius:12px}
+.adj-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.adj-name{flex:1;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adj-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:20px;font-weight:600;line-height:1}
+.adj-val{width:52px;text-align:center;font-variant-numeric:tabular-nums;font-size:14px}
+.shuffle-btn{width:100%;margin:0 0 14px;font-size:16px}
+.shuffle-card{margin:0 0 18px;border:2px solid var(--denim)}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -262,7 +273,7 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 21;
+const APP_VERSION = 33;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -294,7 +305,7 @@ const OPEN_GAP = {chemise:0.2, gilet:0.14, gilet_capuche:0.14, veste:0.16, mante
 /* Chemise : ouverte en V sous le col (boutonnée en haut, pans qui pivotent).
    Gilet, veste, manteau : ouverts sur toute la hauteur, col compris (fermeture éclair ou boutons). */
 /* Longueur d'un pantalon dans le contour (taille → chevilles), en fraction de la hauteur du cadre */
-const LEG_LEN = 0.9;
+const LEG_LEN = 104 * 0.5 / 54;
 const OPEN_STYLE = {chemise:'pivot', gilet:'full', gilet_capuche:'full', veste:'full', manteau:'full'};
 const BANDS = [
   {id:'froid', label:'Froid', hint:'< 10°', words:'le froid'},
@@ -705,7 +716,7 @@ function cutout(img, guideCat, wantMask){
   // La luminosité compte peu (sinon chaque ombre passe pour du fond).
   const F = colorFeatures(d, N);
   const fg = new Uint8Array(N);
-  const guide = guideCat && GUIDES[guideCat];
+  const guide = guideOf(guideCat);
   let inside = null, peel = null;
   if(guide && Math.abs(W / H - 0.75) < 0.03){
     const gc = document.createElement('canvas'); gc.width = W; gc.height = H;
@@ -870,7 +881,7 @@ function blurBox(src, W, H, r){
 /* Repère la forme d'une pièce détourée pour l'assemblage :
    - legs : position des deux jambes en bas (pantalon), en fraction de la largeur ;
    - parts : les morceaux séparés (les deux chaussures), en fractions de l'image. */
-function analyzeCut(cv){
+function analyzeCut(cv, lines){
   const w = cv.width, h = cv.height, a = cv.getContext('2d').getImageData(0, 0, w, h).data;
   let legs = null;
   const runsAt = y => {
@@ -939,7 +950,62 @@ function analyzeCut(cv){
       if(sc < best){ best = sc; mid = c / w; }
     }
   }
-  return {legs, parts, mid};
+  // Mesures pour les proportions : largeur du buste, de la ceinture, hauteur de la capuche
+  const cxp = Math.round(mid * w), cw = new Float32Array(h);
+  for(let y = 0; y < h; y++){
+    if(a[(y * w + cxp) * 4 + 3] <= 128){ cw[y] = 0; continue; }
+    let l = cxp, r = cxp;
+    while(l > 0 && a[(y * w + l - 1) * 4 + 3] > 128) l--;
+    while(r < w - 1 && a[(y * w + r + 1) * 4 + 3] > 128) r++;
+    cw[y] = r - l + 1;
+  }
+  const maxW = Math.max(...cw), medianOf = arr => { const t = arr.filter(v => v > 0).sort((p, q) => p - q); return t.length ? t[t.length >> 1] : 0; };
+  let hood = 0, shoulder = 0;
+  while(shoulder < h && cw[shoulder] < 0.55 * maxW) shoulder++;
+  if(shoulder > h * 0.2 && shoulder < h * 0.45){   // une vraie capuche est haute ; un col ne l'est pas
+    const above = Array.from(cw.slice(0, shoulder));
+    if(above.filter(v => v > 0).length > h * 0.08 && medianOf(above) < 0.42 * maxW){
+      // bas de la capuche = là où la silhouette commence à s'élargir vers les épaules
+      const hoodW = medianOf(Array.from(cw.slice(Math.round(h * 0.05), Math.round(h * 0.2))));
+      let j = Math.round(h * 0.15);
+      while(j < shoulder && cw[j] < hoodW * 1.3) j++;
+      hood = j / h;
+    }
+  }
+  const top = Math.round(hood * h), bodyH = h - top;
+  // Buste : la largeur la plus étroite du bas du vêtement (vers l'ourlet, là où les manches
+  // écartées ne touchent plus le corps), en ignorant les trous éventuels
+  const torsoRows = Array.from(cw.slice(Math.round(top + bodyH * 0.62), Math.round(top + bodyH * 0.96))).filter(v => v > w * 0.25);
+  const pct = (arr, q) => { const t = [...arr].sort((x, y) => x - y); return t.length ? t[Math.min(t.length - 1, Math.floor(t.length * q))] : 0; };
+  const torso = pct(torsoRows, 0.3) / w;
+  const hemRows = Array.from(cw.slice(Math.round(top + bodyH * 0.84), Math.round(top + bodyH * 0.97))).filter(v => v > w * 0.25);
+  let hem = pct(hemRows, 0.5) / w;
+  // Ceinture (pantalon, short) : largeur totale de tissu sur les lignes du haut
+  const filled = y => { let n = 0; for(let x = 0; x < w; x++) if(a[(y * w + x) * 4 + 3] > 128) n++; return n; };
+  const wr = []; for(let y = Math.round(h * 0.03); y <= Math.round(h * 0.15); y++) wr.push(filled(y));
+  let waist = pct(wr, 0.8) / w;
+  // Lignes de repère connues (photo prise avec les lignes) : elles remplacent les estimations
+  if(lines){
+    const clampR = (v, a, b) => Math.max(a, Math.min(b, v));
+    if(lines.mid != null && lines.mid > 0.2 && lines.mid < 0.8) mid = lines.mid;
+    if(lines.top != null) hood = lines.top > 0.12 ? clampR(lines.top, 0, 0.5) : 0;
+    if(lines.bottom != null){
+      const b = clampR(lines.bottom, 0.1, 0.99), cxl = Math.round(mid * w), rws = [];
+      for(let y = Math.round(h * Math.max(0, b - 0.07)); y <= Math.round(h * Math.max(0, b - 0.015)); y++){
+        if(y >= h || a[(y * w + cxl) * 4 + 3] <= 128) continue;
+        let l = cxl, r = cxl;
+        while(l > 0 && a[(y * w + l - 1) * 4 + 3] > 128) l--;
+        while(r < w - 1 && a[(y * w + r + 1) * 4 + 3] > 128) r++;
+        if(r - l > w * 0.2) rws.push(r - l + 1);
+      }
+      if(rws.length) hem = pct(rws, 0.5) / w;
+    }
+    if(lines.top != null && lines.top >= -0.05 && lines.top < 0.3){
+      const wr2 = []; for(let y = Math.round(h * Math.max(0, lines.top + 0.02)); y <= Math.round(h * Math.max(0, lines.top + 0.09)); y++) if(y < h) wr2.push(filled(y));
+      if(wr2.length) waist = pct(wr2, 0.8) / w;
+    }
+  }
+  return {v:2, legs, parts, mid, hood, torso, waist, hem, lines:!!lines};
 }
 /* ---------- Détourage intelligent (IA) ----------
    Un réseau de neurones spécialisé repère l'objet principal de la photo.
@@ -982,10 +1048,11 @@ async function aiCut(img, guideCat, onProgress){
   const mx = mc.getContext('2d', {willReadFrequently:true}); mx.drawImage(mimg, 0, 0, W, H);
   const ad = mx.getImageData(0, 0, W, H).data;
   const alpha = new Uint8Array(N), fg = new Uint8Array(N);
-  for(let p = 0; p < N; p++){ alpha[p] = ad[p*4+3]; fg[p] = alpha[p] > 127 ? 1 : 0; }
-  const guide = guideCat && GUIDES[guideCat];
+  // zones où l'IA hésite (alpha moyen) : on tranche plus nettement pour éviter les parties « fantômes »
+  for(let p = 0; p < N; p++){ const v = ad[p*4+3]; alpha[p] = Math.round(255 * Math.min(1, Math.max(0, (v - 50) / 150))); fg[p] = v > 127 ? 1 : 0; }
+  const guide = guideOf(guideCat);
   const orig = Uint8Array.from(fg);
-  let keep, lab, info;
+  let keep, lab, info, colorModel = null;
   if(guide && Math.abs(W / H - 0.75) < 0.03){
     // Contour connu : rien de très éloigné, et pour les chaussures rien au-dessus ni en dessous.
     const inside = guideMask(guide, W, H), outside = inside.map(v => 1 - v);
@@ -1008,7 +1075,8 @@ async function aiCut(img, guideCat, onProgress){
     }
     let bgC = kmeans(F, bgIdx, 6); const mainBg = bgC.filter(q => q.share >= 0.07); if(mainBg.length) bgC = mainBg;
     let fgC = kmeans(F, coreIdx, 4);
-    const pure = fgC.filter(q => Math.min(...bgC.map(b => Math.hypot(q[0]-b[0], q[1]-b[1], q[2]-b[2]))) > 10);
+    // (une couleur très présente au cœur de la pièce — les rayures blanches d'une marinière — reste une couleur du vêtement)
+    const pure = fgC.filter(q => q.share >= 0.25 || Math.min(...bgC.map(b => Math.hypot(q[0]-b[0], q[1]-b[1], q[2]-b[2]))) > 10);
     if(pure.length) fgC = pure;
     // …et inversement : une « couleur du fond » presque identique à une couleur du vêtement
     // vient d'un bout de vêtement ou d'un objet semblable : on ne s'en sert pas pour éplucher.
@@ -1020,11 +1088,27 @@ async function aiCut(img, guideCat, onProgress){
         const one = new Float32Array(N); for(let p = 0; p < N; p++) one[p] = F[p*3+ch];
         const bl = blurBox(one, W, H, 2); for(let p = 0; p < N; p++) Fs[p*3+ch] = bl[p];
       }
+      colorModel = {Fs, bgC, fgC};
+      // Là où l'IA hésite (une manche dans l'ombre…), c'est la couleur qui tranche :
+      // plus proche du vêtement que du sol → on garde, sinon on retire.
+      for(let p = 0; p < N; p++){
+        const v = ad[p*4+3];
+        if(v < 30 || v > 215) continue;
+        if(!inside[p] && dOut[p] > far) continue;
+        const y = (p / W) | 0; if(y < cutTop || y > cutBot) continue;
+        const dB = nearest(Fs, p, bgC), dF = nearest(Fs, p, fgC);
+        if(dF < dB * 0.85){ fg[p] = 1; alpha[p] = 255; }
+        else if(dB < dF * 0.85){ fg[p] = 0; }
+      }
+      // le bord adouci de la zone récupérée
       peelEdges(fg, Fs, bgC, fgC, W, H, 0.8, 0.25, 22);
     }
     ({lab, info} = components(fg, 1, W, H));
     keep = new Uint8Array(info.length);
     for(let p = 0; p < N; p++) if(lab[p] >= 0 && inside[p]) keep[lab[p]] = 1;
+    // Les petits morceaux à part (tes pieds au bord de la photo, un objet…) ne sont pas la pièce
+    const big = Math.max(0, ...info.map((it, n) => keep[n] ? it.size : 0));
+    info.forEach((it, n) => { if(it.size < big * 0.15) keep[n] = 0; });
   } else {
     // Photo de l'album : on garde les objets principaux (les plus grands)
     ({lab, info} = components(fg, 1, W, H));
@@ -1036,19 +1120,67 @@ async function aiCut(img, guideCat, onProgress){
   for(let p = 0; p < N; p++) if(fg[p] && !keep[lab[p]]) fg[p] = 0;
   let count = 0; for(let p = 0; p < N; p++) count += fg[p];
   if(count < N * 0.005) return null;
-  // Bords doux de l'IA conservés, mais seulement autour de ce qu'on garde
-  const near = blurBox(Float32Array.from(fg), W, H, 2);
-  for(let p = 0; p < N; p++){
-    if(!(near[p] > 0.01) || (!fg[p] && orig[p])) alpha[p] = 0;   // retiré volontairement : totalement transparent
-    else if(!fg[p]) alpha[p] = Math.min(alpha[p], 127);
+  // Trous à l'intérieur de la pièce : les tout petits (reflets, rayures claires) sont toujours rebouchés ;
+  // les moyens seulement s'ils ont la couleur du vêtement (un bout de sol entre la manche et le corps reste vide).
+  {
+    const {lab:hl, info:hi} = components(fg, 0, W, H);
+    const sums = hi.map(() => [0, 0]);
+    if(colorModel){
+      const {Fs, bgC, fgC} = colorModel;
+      for(let p = 0; p < N; p++){ const l = hl[p]; if(l < 0 || hi[l].border || hi[l].size >= N * 0.006) continue; sums[l][0]++; if(nearest(Fs, p, fgC) < nearest(Fs, p, bgC)) sums[l][1]++; }
+    }
+    const fill = hi.map((it, n) => !it.border && (it.size < N * 0.001 || (it.size < N * 0.006 && (!colorModel || sums[n][1] > sums[n][0] * 0.5))));
+    for(let p = 0; p < N; p++) if(hl[p] >= 0 && fill[hl[p]]) fg[p] = 1;
   }
+  if(guide && guide.hull && Math.abs(W / H - 0.75) < 0.03) fillHulls(fg, guide.d, W, H, guide.hullClip || 0);
+  // Contour lissé (plus de marches d'escalier) puis bord doux de 2 pixels
+  {
+    const sm = blurBox(blurBox(Float32Array.from(fg), W, H, 2), W, H, 2);
+    for(let p = 0; p < N; p++) fg[p] = sm[p] > 0.5 ? 1 : 0;
+    const soft = blurBox(Float32Array.from(fg), W, H, 1);
+    for(let p = 0; p < N; p++) alpha[p] = Math.round(255 * Math.min(1, Math.max(0, (soft[p] - 0.15) / 0.7)));
+  }
+  defringe(c, alpha, W, H);
   return finalizeCut(c, fg, false, alpha);
+}
+/* Supprime le liseré de sol autour de la pièce : sur les 2-3 pixels du bord, la couleur
+   est remplacée par celle du tissu juste à l'intérieur, et le bord est rentré d'un pixel. */
+function defringe(c, alpha, W, H){
+  const N = W * H, ctx = c.getContext('2d', {willReadFrequently:true}), id = ctx.getImageData(0, 0, W, H), d = id.data;
+  const solid = new Float32Array(N);
+  for(let p = 0; p < N; p++) solid[p] = alpha[p] > 230 ? 1 : 0;
+  const core = blurBox(solid, W, H, 2);                 // 1 = entouré de tissu plein
+  const inner = new Float32Array(N); for(let p = 0; p < N; p++) inner[p] = core[p] > 0.999 ? 1 : 0;
+  const wsum = blurBox(inner, W, H, 4), cols = [0, 1, 2].map(ch => {
+    const a = new Float32Array(N); for(let p = 0; p < N; p++) a[p] = d[p*4+ch] * inner[p];
+    return blurBox(a, W, H, 4);
+  });
+  for(let p = 0; p < N; p++){
+    if(!alpha[p] || inner[p]) continue;
+    if(wsum[p] > 0.001) for(let ch = 0; ch < 3; ch++) d[p*4+ch] = Math.round(cols[ch][p] / wsum[p]);
+  }
+  ctx.putImageData(id, 0, 0);
+  // bord rentré d'environ un pixel, en douceur
+  const a01 = new Float32Array(N); for(let p = 0; p < N; p++) a01[p] = alpha[p] / 255;
+  const sm = blurBox(a01, W, H, 1);
+  for(let p = 0; p < N; p++) if(alpha[p] && alpha[p] < 255 || sm[p] < 0.999) alpha[p] = Math.round(255 * Math.max(0, Math.min(alpha[p] / 255, (sm[p] - 0.35) / 0.65)));
 }
 
 /* Les pièces détourées avant cette version n'ont pas ces repères : on les calcule une fois. */
+async function metaWithLines(photo, cut){
+  if(!photo || !photo.lines || !cut || cut.x === undefined) return cut;
+  try{
+    const M = Math.max(cut.W, cut.H), cw = cut.w * M, ch = cut.h * M;
+    const L = photo.lines;
+    const lines = {top:(L.top * cut.H - cut.y) / ch, bottom:(L.bottom * cut.H - cut.y) / ch, mid:L.mid != null ? (L.mid * cut.W - cut.x) / cw : null};
+    const img = await loadSrc(cut.dataUrl), cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+    cv.getContext('2d').drawImage(img, 0, 0);
+    return {...cut, meta:analyzeCut(cv, lines)};
+  }catch(e){ return cut; }
+}
 async function upgradeCuts(){
   for(const p of [...S.pieces.values()]){
-    const c = p.photo && p.photo.cut; if(!c || (c.meta && c.meta.mid !== undefined)) continue;
+    const c = p.photo && p.photo.cut; if(!c || (c.meta && c.meta.v === 2)) continue;
     try{
       const img = await loadSrc(c.dataUrl);
       const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
@@ -1199,7 +1331,89 @@ function lookGrid(pcs){
 
 /* Tenue assemblée : hauts en haut, pantalon dessous, chaussures en bas,
    tous à la même échelle. Veste/gilet/manteau ouverts au milieu, ou posés à côté. */
-function silhouette(pcs, openMode){
+/* Proportions réelles (en « unités » : un buste de ~54 cm à plat = 0,5).
+   Chaque pièce est remise à l'échelle d'après ce qu'on mesure sur sa photo, quelle que soit
+   la distance de prise de vue : largeur du buste pour les hauts, de la ceinture pour les bas,
+   largeur d'une chaussure pour les chaussures. Les couches extérieures sont un peu plus amples. */
+/* Proportions : chaque pièce est mise à l'échelle d'après sa LONGUEUR, mesurée sur la photo
+   (col → ourlet pour un haut, taille → bas pour un pantalon), rapportée à une longueur type.
+   C'est la mesure la plus fiable : elle ne dépend ni de la distance de prise de vue, ni de
+   l'angle des manches, ni d'un bord-côte resserré. Unité : 1 cm = CM. */
+const CM = 0.5 / 54;
+/* Proportions :
+   - les rapports ENTRE pièces viennent de tes photos « porté sur le pantalon » (largeur de l'ourlet
+     comparée à celle du pantalon, mesurées à la même hauteur, donc sans effet de perspective) :
+     t-shirt / sweat 0,91 de la veste, gilet 0,80, manteau 0,96 ;
+   - le niveau général est calé sur Test 2 (veste) et Test 3 (chemise), que tu as validés ;
+   - la position du pantalon sous le col est aussi celle de Test 2 / Test 3. */
+const HEM_RATIO = {tshirt:1.24, tshirt_ml:1.24, haut:1.24, robe:1.3, chemise:1.4, pull:1.24, sweat:1.24, sweat_capuche:1.24,
+  gilet:1.10, gilet_capuche:1.10, veste:1.37, manteau:1.32};
+const WAIST_DROP = 1.43;                  // haut du pantalon sous le col, en largeurs de ceinture
+const PANTS_LEN = 104, SHORT_LEN = 50;    // longueurs de référence des bas (cm)
+const NOMINAL_PW = 0.405;
+const NECK_TO_FEET = WAIST_DROP + 2.6;                 // largeur de pantalon de référence (en unités)
+const SHOE_W = 16.5 * CM;                 // largeur d'une chaussure (validée sur Test 4)
+const WAIST = 42 * CM;
+function bottomScale(p){
+  const c = p.photo.cut;
+  return (p.category === 'short' ? SHORT_LEN : PANTS_LEN) * CM / c.h;
+}
+function pantsWidth(p){            // largeur du haut du pantalon une fois mis à l'échelle
+  const c = p.photo.cut, m = c.meta || {};
+  return (m.waist > 0.2 ? m.waist : 0.87) * c.w * bottomScale(p);
+}
+function normScale(p, pw){
+  const c = p.photo.cut, m = c.meta || {}, L = LAYER[p.category];
+  let k = 1;
+  if(L in LAYER_RANK){
+    const hem = (m.hem > 0.2 ? m.hem : m.torso > 0.2 ? m.torso : 0.6) * c.w;
+    k = (HEM_RATIO[p.category] || 0.96) * pw / hem;
+  }
+  // short : même largeur de ceinture que ton pantalon (c'est ta taille) ; sa longueur suit la photo
+  else if(p.category === 'short') k = (m.waist > 0.2 ? pw / (m.waist * c.w) : bottomScale(p));
+  else if(L === 'bottom') k = bottomScale(p);
+  else if(L === 'shoes' && m.parts && m.parts.length === 2) k = SHOE_W / (((m.parts[0].w + m.parts[1].w) / 2) * c.w);
+  return Math.min(3, Math.max(0.3, k)) * (p.sizeAdj || 1);   // sizeAdj : réglage « pour rire » propre à une tenue
+}
+/* Jambes d'animaux sous un short (à la place du vide entre le short et les chaussures) */
+const ANIMAL_LEGS = [
+  {name:'flamant', base:'#f6a3c1', thin:true},
+  {name:'tigre', base:'#f29a2e', pat:'stripes', ink:'#1d1a17'},
+  {name:'zèbre', base:'#f4f4f2', pat:'stripes', ink:'#151515'},
+  {name:'léopard', base:'#e8b65a', pat:'spots', ink:'#4a2c12'},
+  {name:'cheval', base:'#7a4a26', pat:'fetlock', ink:'#3a2212'},
+  {name:'dragon', base:'#3e9a4c', pat:'scales', ink:'#24692f'},
+  {name:'girafe', base:'#f1c24e', pat:'patches', ink:'#a15f27'},
+];
+function legsSVG(a, W, H, legs, uid2){
+  const S1 = 1000 / W, w = W * S1, h = H * S1, u = 1000;   // unités internes
+  const id = 'pat' + uid2;
+  const pats = {
+    stripes:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u}" height="${h * 0.09}"><rect width="${u}" height="${h * 0.09}" fill="${a.base}"/><path d="M0 ${h*0.02} Q${u*0.25} ${h*0.045} ${u*0.5} ${h*0.025} T${u} ${h*0.03} L${u} ${h*0.055} Q${u*0.75} ${h*0.07} ${u*0.5} ${h*0.05} T0 ${h*0.045} Z" fill="${a.ink}"/></pattern>`,
+    spots:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u*0.09}" height="${u*0.09}"><rect width="100%" height="100%" fill="${a.base}"/><circle cx="${u*0.03}" cy="${u*0.03}" r="${u*0.017}" fill="none" stroke="${a.ink}" stroke-width="${u*0.009}"/><circle cx="${u*0.075}" cy="${u*0.07}" r="${u*0.012}" fill="${a.ink}"/></pattern>`,
+    scales:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u*0.05}" height="${u*0.04}"><rect width="100%" height="100%" fill="${a.base}"/><path d="M0 ${u*0.04} A${u*0.025} ${u*0.025} 0 0 1 ${u*0.05} ${u*0.04}" fill="none" stroke="${a.ink}" stroke-width="${u*0.006}"/><path d="M${-u*0.025} ${u*0.02} A${u*0.025} ${u*0.025} 0 0 1 ${u*0.025} ${u*0.02} M${u*0.025} ${u*0.02} A${u*0.025} ${u*0.025} 0 0 1 ${u*0.075} ${u*0.02}" fill="none" stroke="${a.ink}" stroke-width="${u*0.006}"/></pattern>`,
+    patches:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u*0.11}" height="${u*0.11}"><rect width="100%" height="100%" fill="#f7e2a8"/><rect x="${u*0.006}" y="${u*0.006}" width="${u*0.05}" height="${u*0.045}" rx="${u*0.012}" fill="${a.ink}"/><rect x="${u*0.062}" y="${u*0.012}" width="${u*0.042}" height="${u*0.05}" rx="${u*0.012}" fill="${a.ink}"/><rect x="${u*0.02}" y="${u*0.058}" width="${u*0.06}" height="${u*0.046}" rx="${u*0.012}" fill="${a.ink}"/></pattern>`,
+    fetlock:`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0.72" stop-color="${a.base}"/><stop offset="0.8" stop-color="${a.ink}"/></linearGradient>`,
+  };
+  const fill = a.pat ? `url(#${id})` : a.base;
+  const paths = legs.map(l => {
+    const cx = l.cx * S1, tw = (a.thin ? l.tw * 0.22 : l.tw) * S1, bw = (a.thin ? l.tw * 0.18 : l.bw) * S1;
+    const leg = `M${cx - tw/2} 0 L${cx + tw/2} 0 Q${cx + tw*0.62} ${h*0.4} ${cx + bw/2} ${h} L${cx - bw/2} ${h} Q${cx - tw*0.62} ${h*0.4} ${cx - tw/2} 0 Z`;
+    const knee = a.thin ? `<ellipse cx="${cx}" cy="${h*0.52}" rx="${tw*0.9}" ry="${tw*0.75}" fill="${a.base}"/>` : '';
+    return `<path d="${leg}" fill="${fill}" stroke="rgba(0,0,0,.18)" stroke-width="${u*0.004}"/>${knee}`;
+  }).join('');
+  return `<svg viewBox="0 0 ${w.toFixed(1)} ${h.toFixed(1)}" preserveAspectRatio="none" width="100%" height="100%"><defs>${a.pat ? pats[a.pat] : ''}</defs>${paths}</svg>`;
+}
+const HEADS = ['😎','🙂','😄','🤓','🥸','😏','🤠','😴','🤩','😁','🥶','🤪','😇','🧐','😌'];
+function silhouette(pcsIn, openMode){
+  // largeur du pantalon de la tenue : sert d'étalon pour les hauts
+  const pantsP = pcsIn.find(p => LAYER[p.category] === 'bottom' && p.category !== 'short' && p.photo && p.photo.cut);
+  const pw = pantsP ? pantsWidth(pantsP) : NOMINAL_PW;
+  const pcs = pcsIn.map(p => {
+    if(!(p.photo && p.photo.cut)) return p;
+    const k = normScale(p, pw), c = p.photo.cut;
+    return {...p, photo:{...p.photo, cut:{...c, w:c.w * k, h:c.h * k}}};
+  });
   const L = p => LAYER[p.category] || 'acc';
   const main = pcs.filter(p => L(p) !== 'acc');
   if(!main.length || main.some(p => !(p.photo && p.photo.cut))) return null;
@@ -1215,7 +1429,8 @@ function silhouette(pcs, openMode){
   // n'apparaissent qu'à l'intérieur de cette silhouette (jamais au-delà des épaules ou de l'ourlet).
   const outer = torso.length > 1 ? torso[torso.length - 1] : null;
   const axisOf = p => (p.photo.cut.meta && p.photo.cut.meta.mid) || 0.5;
-  const yOf = p => HOODED.has(p.category) ? -HOOD_FRAC * p.photo.cut.h : 0;
+  const hoodOf = p => (p.photo.cut.meta && p.photo.cut.meta.hood) || (HOODED.has(p.category) ? HOOD_FRAC : 0);
+  const yOf = p => -hoodOf(p) * p.photo.cut.h;
   const outerRect = outer ? {url:outer.photo.cut.dataUrl, x:-axisOf(outer) * outer.photo.cut.w, y:yOf(outer), w:outer.photo.cut.w, h:outer.photo.cut.h} : null;
   torso.forEach((p, i) => {
     const c = p.photo.cut; torsoW = Math.max(torsoW, c.w);
@@ -1227,15 +1442,24 @@ function silhouette(pcs, openMode){
       // col compris, comme un gilet ou une veste dézippé. La silhouette ne s'élargit pas.
       const gap = OPEN_GAP[p.category] || 0.16;
       const kl = Math.max(0.5, 1 - gap / (2 * axis)), kr = Math.max(0.5, 1 - gap / (2 * (1 - axis)));
-      if(HOODED.has(p.category)){
-        // La capuche (en haut, au centre) reste entière et passe derrière le haut du dessous ;
-        // seuls les pans s'ouvrent, sous la capuche.
-        const hc = 0.22, a = (Math.max(0, axis - 0.13) * 100).toFixed(1), b = (Math.min(1, axis + 0.13) * 100).toFixed(1), m = (axis * 100).toFixed(1), hp = (hc * 100).toFixed(1);
-        // la capuche couvre aussi l'espace laissé par les pans resserrés, pour ne laisser aucun trou
-        const ha = (Math.max(0, axis - 0.13) * kl * 100).toFixed(1), hb = ((1 - (1 - Math.min(1, axis + 0.13)) * kr) * 100).toFixed(1);
-        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z:9, clip:`polygon(${ha}% 0,${hb}% 0,${hb}% ${hp}%,${ha}% ${hp}%)`});
-        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`polygon(0 0,${a}% 0,${a}% ${hp}%,${m}% ${hp}%,${m}% 100%,0 100%)`, tf:`scaleX(${kl.toFixed(4)})`, origin:'0% 50%'});
-        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`polygon(${b}% 0,100% 0,100% 100%,${m}% 100%,${m}% ${hp}%,${b}% ${hp}%)`, tf:`scaleX(${kr.toFixed(4)})`, origin:'100% 50%'});
+      if(true){
+        // On ne coupe ni ne déplace rien (capuche et col restent entiers). On ouvre simplement le devant,
+        // juste sous la capuche (qui reste entière), en V puis droit jusqu'en bas.
+        // L'ouverture part en pointe sous la capuche / le col et s'évase en douceur, comme une fermeture
+        // éclair qu'on vient d'ouvrir ; une ombre légère sur les bords donne l'épaisseur du tissu.
+        const zip = p.category === 'gilet' || p.category === 'gilet_capuche';
+        // gilet zippé ouvert : les deux côtés ne se rejoignent pas sous la capuche, l'ouverture remonte dans la capuche
+        // gilet zippé ouvert (d'après ta photo) : bande droite et large, juste sous la capuche
+        const zgap = zip ? Math.max(gap, 0.33 * ((c.meta && c.meta.hem) || 0.5)) : gap;
+        const T = (hoodOf(p) > 0 ? hoodOf(p) + (zip ? 0 : 0.01) : (zip ? 0.04 : 0.1)) * 100, V = zip ? 2 : 16, m = axis * 100, half = zgap / 2 * 100;
+        const f = v => v.toFixed(1), steps = 7, curve = [];
+        for(let k = 0; k <= steps; k++){ const t = k / steps; curve.push([half * (1 - (1 - t) * (1 - t)), T + t * V]); }
+        const right = curve.slice().reverse().map(([dx, yy]) => `${f(Math.min(100, m + dx))}% ${f(yy)}%`);
+        const left = curve.map(([dx, yy]) => `${f(Math.max(0, m - dx))}% ${f(yy)}%`);
+        // dos du vêtement, derrière le haut du dessous : comble l'encolure (on voit l'intérieur du col, pas le vide)
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z:8, mask, dark:true, clip:`inset(0 0 ${(100 - T - V - 12).toFixed(1)}% 0)`});
+        items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, shadow:true,
+          clip:`polygon(0 0,100% 0,100% 100%,${f(Math.min(100, m + half))}% 100%,${right.join(',')},${left.join(',')},${f(Math.max(0, m - half))}% 100%,0 100%)`});
       } else {
         items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - axis) * 100).toFixed(1)}% 0 0)`, tf:`scaleX(${kl.toFixed(4)})`, origin:'0% 50%'});
         items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(axis * 100).toFixed(1)}%)`, tf:`scaleX(${kr.toFixed(4)})`, origin:'100% 50%'});
@@ -1250,23 +1474,21 @@ function silhouette(pcs, openMode){
       items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 ${((1 - cutAt) * 100).toFixed(1)}% 0 0)`, tf:`rotate(${deg.toFixed(2)}deg)`, origin});
       items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip:`inset(0 0 0 ${(cutAt * 100).toFixed(1)}%)`, tf:`rotate(${(-deg).toFixed(2)}deg)`, origin});
     } else {
-      let clip;
-      // Sous un gilet à capuche ouvert, le haut du dessous ne commence que sous la capuche
-      if(mask && mode === 'open' && outer && HOODED.has(outer.category) && opens(outer)){
-        const hoodBottom = yOf(outer) + 0.22 * outer.photo.cut.h;
-        const t = Math.max(0, (hoodBottom - y0) / c.h);
-        if(t > 0) clip = `inset(${(t * 100).toFixed(1)}% 0 0 0)`;
-      }
-      items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask, clip});
+      items.push({p, x:x0, y:y0, w:c.w, h:c.h, z, mask});
     }
   });
   const innerH = torso.length ? Math.min(...torso.map(p => p.photo.cut.h + yOf(p))) : 0;   // hauteur sous le col
-  let y = torso.length ? innerH * 0.8 : 0, pantsBottom = y, legX = null, onlyShorts = true;
+  // Haut du pantalon (ou du short) à la même hauteur sous le col pour toutes les tenues
+  // … mais toujours caché sous le haut le plus court (la ceinture ne doit jamais dépasser)
+  const minHem = torso.length ? Math.min(...torso.map(p => yOf(p) + p.photo.cut.h)) : 0;
+  const waistY = torso.length ? Math.min(WAIST_DROP * pw, minHem - 0.15 * pw) : 0;
+  let pantsBottom = waistY, legX = null, onlyShorts = true;
   main.filter(p => L(p) === 'bottom').forEach((p, i) => {
-    const c = p.photo.cut; items.push({p, x:-c.w/2, y, w:c.w, h:c.h, z:5 + i});
-    // Avec un short, les pieds restent là où finirait un pantalon (jambes non dessinées)
-    if(p.category === 'short') pantsBottom = Math.max(pantsBottom, y + LEG_LEN);
-    else { pantsBottom = Math.max(pantsBottom, y + c.h); onlyShorts = false; }
+    const c = p.photo.cut, y = waistY;
+    items.push({p, x:-c.w/2, y, w:c.w, h:c.h, z:5 + i});
+    if(p.category !== 'short') onlyShorts = false;
+    // avec un short, les pieds restent là où finirait un pantalon (jambes non dessinées)
+    pantsBottom = Math.max(pantsBottom, y + (p.category === 'short' ? PANTS_LEN * CM : c.h));
     if(i === 0){
       const lg = c.meta && c.meta.legs;
       legX = lg ? lg.map(f => -c.w/2 + f * c.w) : [-c.w * 0.22, c.w * 0.22];
@@ -1291,6 +1513,33 @@ function silhouette(pcs, openMode){
   });
   let bx = torsoW / 2 + 0.03;
   beside.forEach(p => { const c = p.photo.cut; items.push({p, x:bx, y:0, w:c.w, h:c.h, z:40}); bx += c.w + 0.03; });
+  // Jambes d'animaux entre le short et les chaussures
+  const shortP = main.find(p => p.category === 'short');
+  if(shortP && onlyShorts){
+    const it = items.find(i => i.p === shortP), sc = shortP.photo.cut;
+    const lg = (sc.meta && sc.meta.legs) || [0.27, 0.73];
+    const top = it.y + it.h * 0.82, bottom = pantsBottom - 0.02;
+    const legW = sc.w * 0.3;
+    const legs = lg.map((f, k) => ({cx:(it.x + f * sc.w) - (it.x), tw:legW, bw:legW * 0.5}));
+    if(legX) legs.forEach((l, k) => { if(legX[k] !== undefined) l.cx = legX[k] - it.x; });
+    const seed2 = pcs.map(p => p.id).join('|'); let h2 = 7; for(const ch of seed2) h2 = (h2 * 33 + ch.charCodeAt(0)) >>> 0;
+    const animal = ANIMAL_LEGS[(h2 + (S.legShift || 0)) % ANIMAL_LEGS.length];
+    items.push({legs:true, animal, legList:legs, x:it.x, y:top, w:sc.w, h:Math.max(0.05, bottom - top), z:0.5});
+  }
+  // Tête emoji, pour rire : au-dessus du col, ou dans la capuche si le haut extérieur en a une
+  if(torso.length && S.settings.heads !== false){
+    const hooded = [...torso].reverse().find(p => hoodOf(p) > 0);
+    const outerTop = torso[torso.length - 1];
+    let hs = 0.95 * pw, hx = 0, hy = -hs * 0.88;   // une vraie tête : environ la largeur de la taille
+    if(hooded && hooded === outerTop){
+      const hh = hoodOf(hooded) * hooded.photo.cut.h;
+      hs = Math.min(0.95 * pw, hh * 1.05);
+      hy = yOf(hooded) + hh * 0.55 - hs * 0.5;
+    }
+    const seed = pcs.map(p => p.id).join('|');
+    let hsh = 0; for(const ch of seed) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+    items.push({head:true, emoji:HEADS[(hsh + (S.headShift || 0)) % HEADS.length], x:hx - hs / 2, y:hy, w:hs, h:hs, z:90});
+  }
   const minX = Math.min(...items.map(it => it.x)), maxX = Math.max(...items.map(it => it.x + it.w));
   const minY = Math.min(0, ...items.map(it => it.y)), maxY = Math.max(...items.map(it => it.y + it.h));
   const TW = maxX - minX, TH = maxY - minY;
@@ -1298,17 +1547,20 @@ function silhouette(pcs, openMode){
   const imgs = items.sort((a,b) => a.z - b.z).map(it => {
     const clip = it.clip ? `clip-path:${it.clip};-webkit-clip-path:${it.clip};` : '';
     const pos = `left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${((it.y-minY)/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;`;
+    if(it.legs) return `<button type="button" class="legs" data-act="legs" aria-label="Jambes de ${it.animal.name} — toucher pour changer" style="${pos}">${legsSVG(it.animal, it.w, it.h, it.legList, Math.random().toString(36).slice(2, 8))}</button>`;
+    if(it.head) return `<button type="button" class="head" data-act="head" aria-label="Changer de tête" style="${pos}font-size:${(it.h / TW * 100).toFixed(2)}cqw">${it.emoji}</button>`;
     if(it.part){
       const pt = it.part;
       return `<div class="part" style="${pos}"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${(-pt.x/pt.w*100).toFixed(2)}%;top:${(-pt.y/pt.h*100).toFixed(2)}%;width:${(100/pt.w).toFixed(2)}%;height:${(100/pt.h).toFixed(2)}%"></div>`;
     }
-    const rot = it.tf ? `transform:${it.tf};transform-origin:${it.origin};` : '';
+    const rot = (it.tf ? `transform:${it.tf};transform-origin:${it.origin};` : '') + (it.dark ? 'filter:brightness(.4);' : '');
     if(it.mask){
       // Haut du dessous : découpé à la silhouette de la pièce extérieure (masque)
       const m = it.mask, mp = `left:${((m.x-minX)/TW*100).toFixed(2)}%;top:${((m.y-minY)/TH*100).toFixed(2)}%;width:${(m.w/TW*100).toFixed(2)}%;height:${(m.h/TH*100).toFixed(2)}%;`;
       const mi = `url('${esc(m.url)}')`;
       return `<div class="mk" style="${mp}-webkit-mask-image:${mi};mask-image:${mi};"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-m.x)/m.w*100).toFixed(2)}%;top:${((it.y-m.y)/m.h*100).toFixed(2)}%;width:${(it.w/m.w*100).toFixed(2)}%;height:${(it.h/m.h*100).toFixed(2)}%;${clip}${rot}"></div>`;
     }
+    if(it.shadow) return `<div class="sh" style="${pos}"><img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:0;top:0;width:100%;height:100%;${clip}${rot}"></div>`;
     return `<img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${((it.y-minY)/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;${clip}${rot}">`;
   }).join('');
   const acc = pcs.filter(p => L(p) === 'acc');
@@ -1320,7 +1572,8 @@ function openMode(){
   if(S.settings.openMode) return S.settings.openMode;
   return S.settings.jacketSide ? 'side' : 'open';
 }
-function lookView(pcs){
+function withAdj(pcs, adj){ return pcs.map(p => ({...p, sizeAdj:(adj && adj[p.id]) || 1})); }
+function lookView(pcs, opts){
   const rk = p => TOP_RANK[p.category] ?? 0;
   const tops = pcs.filter(p => p.category in TOP_RANK);
   const opener = tops.find(p => OPEN_FRONT.has(p.category) && tops.some(q => rk(q) < rk(p)));
@@ -1332,10 +1585,78 @@ function lookView(pcs){
     const toggle = opener ? `<div class="band-row" style="margin:0 0 10px" role="group" aria-label="Porter la ${esc(nm)}">
       ${[['open', fem ? 'Ouverte' : 'Ouvert'], ['closed', fem ? 'Fermée' : 'Fermé']].map(([m, l]) =>
         `<button type="button" class="chip-btn" data-act="openmode" data-mode="${m}" aria-pressed="${mode === m}">${l}</button>`).join('')}</div>` : '';
-    return toggle + sil;
+    // Réglage de la taille de chaque pièce dans la tenue (mémorisé sur la pièce, donc valable partout)
+    const key = pcs.map(p => p.id).join('|');
+    const sized = pcs.filter(p => p.photo && p.photo.cut && LAYER[p.category] !== 'acc');
+    if(!(opts && opts.adjust)) return toggle + sil;
+    const panel = S.adjustKey === key ? `<div class="adjust">
+      ${sized.map(p => `<div class="adj-row"><span class="adj-name">${esc(p.name)}</span>
+        <button type="button" class="adj-btn" data-act="size" data-id="${esc(p.id)}" data-d="-1" aria-label="Plus petit">−</button>
+        <span class="adj-val">${Math.round((p.sizeAdj || 1) * 100)} %</span>
+        <button type="button" class="adj-btn" data-act="size" data-id="${esc(p.id)}" data-d="1" aria-label="Plus grand">+</button></div>`).join('')}
+      <button type="button" class="btn" data-act="size-reset" style="margin-top:8px;width:100%">Tout remettre à 100 %</button>
+      <p class="hint" style="margin:8px 0 0">Ces tailles ne valent que pour cette tenue au hasard (et la suivent si tu la valides).</p></div>` : '';
+    const adjBtn = `<button type="button" class="linkish" data-act="adjust" data-key="${esc(key)}">${S.adjustKey === key ? 'Terminer le réglage des tailles' : 'Ajuster les tailles'}</button>`;
+    return toggle + sil + adjBtn + panel;
   }
   const missing = pcs.filter(p => LAYER[p.category] !== 'acc' && !(p.photo && p.photo.cut)).length;
   return lookGrid(pcs) + (missing ? `<p class="hint" style="margin:10px 0 0">Pour voir la tenue assemblée, détoure la photo de ${missing} pièce${missing>1?'s':''} (onglet Pièces).</p>` : '');
+}
+
+/* ---------- Tenue au hasard ----------
+   Compose une tenue plausible avec des pièces propres, selon la météo du jour choisi :
+   un haut de base, un bas, des chaussures, et des couches en plus quand il fait frais ou froid. */
+function randomOutfit(){
+  const clean = [...S.pieces.values()].filter(p => !p.dirty && p.photo && p.photo.cut);
+  const of = (...cats) => clean.filter(p => cats.includes(p.category));
+  const pick = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+  const chance = x => Math.random() < x;
+  const w = tomorrowWeather(), band = (w && w.band) || pick(['frais', 'doux']);
+  const ids = [];
+  // haut de base
+  let base = band === 'chaud' ? pick(of('tshirt')) || pick(of('tshirt_ml', 'chemise'))
+           : band === 'froid' ? pick(of('tshirt_ml', 'tshirt', 'chemise')) : pick(of('tshirt', 'tshirt_ml', 'chemise'));
+  if(!base) base = pick(of('pull', 'sweat', 'sweat_capuche'));
+  if(!base) return null;
+  ids.push(base.id);
+  // bas
+  const pants = of('pantalon'), shorts = of('short');
+  const bottom = band === 'chaud' && shorts.length && (chance(0.7) || !pants.length) ? pick(shorts) : pick(pants) || pick(shorts);
+  if(!bottom) return null;
+  ids.push(bottom.id);
+  // couches selon la météo
+  const mids = of('pull', 'sweat', 'sweat_capuche', 'gilet', 'gilet_capuche').filter(p => p.id !== base.id);
+  const overshirt = base.category !== 'chemise' ? of('chemise') : [];
+  const outers = band === 'froid' ? (of('manteau').length ? of('manteau') : of('veste')) : of('veste');
+  if(band === 'froid'){
+    const o = pick(outers); if(o) ids.push(o.id);
+    if(chance(0.6)){ const m = pick(mids); if(m) ids.push(m.id); }
+  } else if(band === 'frais'){
+    const m = chance(0.65) ? pick(mids) : null; if(m) ids.push(m.id);
+    if(!m || chance(0.35)){ const o = pick(of('veste')) || pick(overshirt); if(o) ids.push(o.id); }
+  } else if(band === 'doux'){
+    if(chance(0.45)){ const o = pick([...overshirt, ...of('gilet', 'gilet_capuche', 'veste')]); if(o) ids.push(o.id); }
+  }
+  // pluie : un manteau ou une veste si possible
+  if(w && w.rain && !ids.some(id => ['manteau', 'veste'].includes(S.pieces.get(id).category))){
+    const o = pick(of('manteau', 'veste')); if(o && band !== 'chaud') ids.push(o.id);
+  }
+  const shoes = pick(of('chaussures')); if(shoes) ids.push(shoes.id);
+  return ids;
+}
+function shuffleUI(){
+  if(S.pieces.size < 2) return '';
+  if(!S.shuffle) return `<button type="button" class="btn shuffle-btn" data-act="shuffle">🎲 Tenue au hasard</button>`;
+  const pcs = S.shuffle.map(id => S.pieces.get(id)).filter(Boolean);
+  return `<article class="look-card shuffle-card">
+    <div class="look-head"><h2>Tenue au hasard</h2><span class="best">🎲</span></div>
+    <p class="why">${esc(pcs.map(p => p.name).join(' · '))}</p>
+    ${lookView(withAdj(pcs, S.shuffleAdj), {adjust:true})}
+    <div class="look-actions">
+      <button class="btn primary grow" type="button" data-act="shuffle-ok">Valider</button>
+      <button class="btn" type="button" data-act="shuffle">Relancer</button>
+      <button class="btn" type="button" data-act="shuffle-cancel">Annuler</button>
+    </div></article>`;
 }
 
 function renderDemain(){
@@ -1363,16 +1684,16 @@ function renderDemain(){
     </div></div>`;
 
   if(!S.pieces.size) return head + weather + `<div class="empty"><h3>Commence par tes pièces</h3><p>Prends en photo tes vêtements un par un, puis assemble-les en tenues.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
-  if(!S.outfits.size) return head + weather + `<div class="empty"><h3>Aucune tenue pour l'instant</h3><p>Assemble tes pièces en tenues : c'est parmi elles que je choisirai.</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
+  if(!S.outfits.size) return head + weather + shuffleUI() + `<div class="empty"><h3>Aucune tenue pour l'instant</h3><p>Assemble tes pièces en tenues : c'est parmi elles que je choisirai.</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
 
   const planned = S.settings.planned && S.settings.planned.date === tomorrowKey() ? S.outfits.get(S.settings.planned.outfitId) : null;
   if(planned){
     const pcs = (planned.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean);
     const anyClean = pcs.some(p => !p.dirty);
-    return head + weather + `<article class="look-card">
+    return head + weather + shuffleUI() + `<article class="look-card">
       <div class="look-head"><h2>${esc(planned.name)}</h2><span class="planned">Prévue</span></div>
       <p class="why">C'est la tenue que tu as choisie pour ${dayWord()}.</p>
-      ${lookView(pcs)}
+      ${lookView(withAdj(pcs, planned.sizeAdj))}
       <div class="look-actions">
         ${anyClean ? `<button class="btn grow" type="button" data-act="dirty-planned">Mettre au sale après</button>` : `<span class="muted" style="align-self:center;flex:1">Pièces déjà au sale</span>`}
         <button class="btn" type="button" data-act="unplan">Changer</button>
@@ -1380,18 +1701,18 @@ function renderDemain(){
   }
 
   const {ok, blocked} = rankOutfits(w);
-  if(!ok.length) return head + weather + `<div class="empty"><h3>Tout est au sale</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
+  if(!ok.length) return head + weather + shuffleUI() + `<div class="empty"><h3>Tout est au sale</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
   const list = ok.slice(0, 12);
   const cur = Math.min(S.alt, list.length - 1);
   const slides = list.map((x, n) => `<article class="look-card slide" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
       <div class="look-head"><h2>${esc(x.o.name)}</h2>${n === 0 ? '<span class="best">Meilleur choix</span>' : ''}</div>
       <p class="why">${esc(sentence(x.why))}</p>
-      ${lookView(x.pcs)}
+      ${lookView(withAdj(x.pcs, x.o.sizeAdj))}
       <div class="look-actions"><button class="btn primary grow" type="button" data-act="plan" data-id="${esc(x.o.id)}">Je la porte ${dayWord()}</button></div>
     </article>`).join('');
   const nav = list.length > 1 ? `<div class="dots" aria-hidden="true">${list.map((_, n) => `<span class="dot${n === cur ? ' on' : ''}"></span>`).join('')}</div>
     <p class="hint swipe-hint">Fais glisser pour voir les ${list.length} tenues possibles.</p>` : '';
-  return head + weather + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
+  return head + weather + shuffleUI() + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
     ${blocked.length?`<p class="hint" style="margin-top:12px">${blocked.length} tenue${blocked.length>1?'s':''} écartée${blocked.length>1?'s':''} à cause du linge sale.</p>`:''}`;
 }
 
@@ -1437,7 +1758,25 @@ function backupBlock(){
     <div class="band-row">
       <button type="button" class="btn" data-act="export">Exporter</button>
       <label class="btn">Importer<input type="file" accept=".json,application/json" class="sr" id="importIn"></label>
-    </div></section>`;
+    </div>
+    <p class="hint" style="margin:14px 0 8px">Après une mise à jour du détourage, tu peux refaire celui de toutes tes pièces d'un coup (environ 15 secondes par pièce).</p>
+    <button type="button" class="btn" data-act="recut-all">Redétourer toutes les pièces</button></section>`;
+}
+async function recutAll(){
+  const list = [...S.pieces.values()].filter(p => p.photo && photoSrc(p));
+  if(!list.length || !confirm(`Refaire le détourage de ${list.length} pièce${list.length>1?'s':''} ? Garde l'app ouverte pendant ce temps.`)) return;
+  let n = 0, fails = 0;
+  for(const p of list){
+    n++; toast(`Détourage ${n} / ${list.length} : ${p.name}…`);
+    try{
+      const img = await loadSrc(photoSrc(p));
+      let cut = null;
+      try{ cut = await aiCut(img, guideKey(p.photo)); }catch(e){ console.warn(e); }
+      if(!cut) cut = cutout(img, guideKey(p.photo));
+      if(cut) store.savePiece({...p, photo:{...p.photo, cut:await metaWithLines(p.photo, cut)}}); else fails++;
+    }catch(e){ fails++; }
+  }
+  toast(fails ? `Terminé, ${fails} pièce${fails>1?'s':''} à vérifier.` : 'Toutes les pièces sont redétourées.');
 }
 async function exportData(){
   const data = {app:'mon-quotidien', version:APP_VERSION, date:new Date().toISOString(),
@@ -1462,6 +1801,7 @@ async function importData(file){
     for(const pc of data.pieces) if(pc && pc.id) store.savePiece(pc);
     for(const o of (data.outfits || [])) if(o && o.id) store.saveOutfit(o);
     toast('Sauvegarde importée.');
+    setTimeout(upgradeCuts, 300);
   }catch(e){ toast('Fichier illisible.'); }
 }
 document.addEventListener('change', e => {
@@ -1580,18 +1920,22 @@ async function openRetouch(photo, onDone){
    (environ 0,29 cm par unité) : si tu remplis le contour, les proportions entre
    pièces sont justes dans la tenue assemblée. */
 const HOOD = 'M117 80 Q108 26 150 18 Q192 26 183 80 Q150 96 117 80 Z';
-const LONG_TOP = 'M115 70 L60 90 L35 150 L20 300 L55 305 L75 170 L75 330 L225 330 L225 170 L245 305 L280 300 L265 150 L240 90 L185 70 Q150 96 115 70 Z';
+/* Hauts à manches longues : manches écartées vers le bas et les côtés.
+   Les contours servent à cadrer et à guider le détourage ; les proportions entre pièces
+   sont recalculées à partir des vraies mesures de chaque pièce (largeur du buste, de la taille…). */
+const sleevesOut = hem => `M120 78 L78 94 L8 232 L36 246 L94 150 L94 ${hem} L206 ${hem} L206 150 L264 246 L292 232 L222 94 L180 78 Q150 100 120 78 Z`;
+const LONG_TOP = sleevesOut(275);
 const GUIDES = {
   tshirt:  {d:'M115 75 L60 95 L25 150 L65 170 L75 152 L75 325 L225 325 L225 152 L235 170 L275 150 L240 95 L185 75 Q150 100 115 75 Z', tip:'T-shirt à plat, manches écartées'},
-  chemise: {d:LONG_TOP, extra:'M122 72 L150 102 L178 72 M150 102 L150 330', tip:'Chemise boutonnée, manches le long du corps'},
-  pull:    {d:LONG_TOP, tip:'Pull à plat, manches le long du corps'},
-  sweat:   {d:LONG_TOP, tip:'Sweat à plat, manches le long du corps'},
-  sweat_capuche:{d:LONG_TOP + ' ' + HOOD, tip:'Sweat à plat, capuche dépliée à plat au-dessus du col'},
-  tshirt_ml:{d:LONG_TOP, tip:'T-shirt à plat, manches le long du corps'},
-  gilet:   {d:LONG_TOP, extra:'M150 80 L150 330', tip:'Gilet zippé fermé, à plat'},
-  gilet_capuche:{d:LONG_TOP + ' ' + HOOD, extra:'M150 80 L150 330', tip:'Gilet zippé fermé, capuche dépliée à plat au-dessus du col'},
-  veste:   {d:'M110 60 L55 80 L28 145 L12 310 L50 316 L70 178 L70 345 L230 345 L230 178 L250 316 L288 310 L272 145 L245 80 L190 60 L150 150 Z', extra:'M150 150 L150 345', tip:'Veste fermée, à plat'},
-  manteau: {d:'M110 40 L55 60 L28 125 L12 300 L50 306 L70 160 L70 385 L230 385 L230 160 L250 306 L288 300 L272 125 L245 60 L190 40 L150 130 Z', extra:'M150 130 L150 385', tip:'Manteau fermé, à plat'},
+  chemise: {d:LONG_TOP, extra:'M128 80 L150 104 L172 80 M150 104 L150 275', tip:'Chemise boutonnée, à plat, manches écartées'},
+  pull:    {d:LONG_TOP, tip:'Pull à plat, manches écartées'},
+  sweat:   {d:LONG_TOP, tip:'Sweat à plat, manches écartées'},
+  sweat_capuche:{d:LONG_TOP + ' ' + HOOD, tip:'Sweat à plat, manches écartées, capuche dépliée au-dessus du col'},
+  tshirt_ml:{d:LONG_TOP, tip:'T-shirt à plat, manches écartées'},
+  gilet:   {d:LONG_TOP, extra:'M150 95 L150 275', tip:'Gilet zippé fermé, à plat, manches écartées'},
+  gilet_capuche:{d:LONG_TOP + ' ' + HOOD, extra:'M150 95 L150 275', tip:'Gilet zippé fermé, manches écartées, capuche dépliée au-dessus du col'},
+  veste:   {d:sleevesOut(285), extra:'M150 95 L150 285', tip:'Veste fermée, à plat, manches écartées'},
+  manteau: {d:sleevesOut(335), extra:'M150 95 L150 335', tip:'Manteau fermé, à plat, manches écartées (capuche dépliée au-dessus s\'il en a une)'},
   short:   {d:'M95 40 L205 40 L224 210 L163 214 L150 108 L137 214 L76 210 Z', tip:'Short à plat, taille en haut'},
   pantalon:{d:'M95 18 L205 18 L232 385 L166 385 L150 118 L134 385 L68 385 Z', tip:'Pantalon à plat, taille en haut'},
   // Vue de face, téléphone posé au ras du sol devant les chaussures
@@ -1601,7 +1945,26 @@ const GUIDES = {
   accessoire:{d:'M100 150 h100 a16 16 0 0 1 16 16 v68 a16 16 0 0 1 -16 16 h-100 a16 16 0 0 1 -16 -16 v-68 a16 16 0 0 1 16 -16 Z', tip:"L'accessoire au centre"},
 };
 /* Quel contour a servi pour cette photo ? (les chaussures photographiées avant la vue de face gardent l'ancien) */
+/* Repères de l'appareil photo : une ligne pour le haut (col / ceinture), une pour le bas
+   (ourlet / bas du pantalon), et une ligne verticale au milieu pour ce qui s'ouvre.
+   Tu cadres pour poser le col sur la ligne du haut et l'ourlet sur celle du bas. */
+const LINES = {
+  tshirt:{top:.22, bottom:.8, tl:'col', bl:'ourlet'}, tshirt_ml:{top:.22, bottom:.8, tl:'col', bl:'ourlet'},
+  chemise:{top:.22, bottom:.8, mid:true, tl:'col', bl:'ourlet'}, pull:{top:.22, bottom:.8, tl:'col', bl:'bas du pull'},
+  sweat:{top:.22, bottom:.8, tl:'col', bl:'bas du sweat'}, sweat_capuche:{top:.33, bottom:.86, tl:'col (sous la capuche)', bl:'bas du sweat'},
+  gilet:{top:.22, bottom:.8, mid:true, tl:'col', bl:'bas du gilet'}, gilet_capuche:{top:.33, bottom:.86, mid:true, tl:'col (sous la capuche)', bl:'bas du gilet'},
+  veste:{top:.22, bottom:.82, mid:true, tl:'col', bl:'bas de la veste'}, manteau:{top:.28, bottom:.9, mid:true, tl:'col (sous la capuche s\'il y en a une)', bl:'bas du manteau'},
+  pantalon:{top:.06, bottom:.95, tl:'ceinture', bl:'bas des jambes'}, short:{top:.18, bottom:.78, tl:'ceinture', bl:'bas du short'},
+};
+/* Zone de détourage déduite des lignes : un rectangle large autour (les manches peuvent être n'importe où) */
+function lineGuide(key){
+  const cat = key.slice(6), L = LINES[cat]; if(!L) return null;
+  const top = Math.max(0.01, L.top - (['sweat_capuche', 'gilet_capuche', 'manteau'].includes(cat) ? 0.3 : 0.08)) * 400, bot = Math.min(0.99, L.bottom + 0.05) * 400;
+  return {d:`M8 ${top.toFixed(0)} H292 V${bot.toFixed(0)} H8 Z`, far:0.1};
+}
+const guideOf = key => key && (GUIDES[key] || (key.startsWith('lines:') ? lineGuide(key) : null));
 function guideKey(photo){
+  if(photo && photo.lines && photo.guide) return 'lines:' + photo.guide;
   if(!photo || !photo.guide) return undefined;
   if(photo.guide === 'chaussures' && photo.shoeView !== 'face') return 'chaussures_dessus';
   return photo.guide;
@@ -1611,12 +1974,28 @@ let camStream = null;
 function stopCamera(){ if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } }
 cam.addEventListener('close', stopCamera);
 function guideSvg(cat){
+  const L = LINES[cat];
+  if(L){
+    const ty = L.top * 400, by = L.bottom * 400;
+    const line = (y, label) => `<path d="M0 ${y}H300" stroke="rgba(0,0,0,.55)" stroke-width="5"/><path d="M0 ${y}H300" stroke="#fff" stroke-width="2.2" stroke-dasharray="9 6"/>
+      <text x="8" y="${y - 6}" fill="#fff" stroke="rgba(0,0,0,.6)" stroke-width="3" paint-order="stroke" font-size="11" font-family="system-ui,sans-serif" font-weight="600">${esc(label)}</text>`;
+    const mid = L.mid ? `<path d="M150 ${ty}V${by}" stroke="rgba(0,0,0,.55)" stroke-width="5"/><path d="M150 ${ty}V${by}" stroke="#ffd34d" stroke-width="2.2" stroke-dasharray="9 6"/>
+      <text x="156" y="${(ty + by) / 2}" fill="#ffd34d" stroke="rgba(0,0,0,.6)" stroke-width="3" paint-order="stroke" font-size="11" font-family="system-ui,sans-serif" font-weight="600">milieu (zip / boutons)</text>` : '';
+    return `<svg viewBox="0 0 300 400" preserveAspectRatio="none" aria-hidden="true" fill="none">${line(ty, L.tl)}${line(by, L.bl)}${mid}
+      <g stroke="#fff" stroke-width="3" fill="none"><path d="M6 30V6h24M270 6h24v24M294 370v24h-24M30 394H6v-24"/></g></svg>`;
+  }
   const g = GUIDES[cat] || GUIDES.tshirt;
   const paths = `<path d="${g.d}"/>${g.extra ? `<path d="${g.extra}"/>` : ''}`;
   return `<svg viewBox="0 0 300 400" preserveAspectRatio="none" aria-hidden="true">
     <g fill="none" stroke="rgba(0,0,0,.55)" stroke-width="5" stroke-linejoin="round">${paths}</g>
     <g fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="7 5" stroke-linejoin="round">${paths}</g>
     <g stroke="#fff" stroke-width="3" fill="none"><path d="M6 30V6h24M270 6h24v24M294 370v24h-24M30 394H6v-24"/></g></svg>`;
+}
+function camTip(cat){
+  const L = LINES[cat];
+  if(!L) return GUIDES[cat].tip + '. Remplis le contour.';
+  const art = t => t.startsWith('ceinture') ? 'la ' + t : t.startsWith('ourlet') ? "l'" + t : 'le ' + t;
+  return `À plat. Avance ou recule pour poser ${art(L.tl)} sur la ligne du haut et ${art(L.bl)} sur celle du bas` + (L.mid ? ', le zip ou les boutons sur la ligne jaune.' : '.');
 }
 async function openCamera(cat, onShot, onFallback){
   let current = GUIDES[cat] ? cat : 'tshirt';
@@ -1626,7 +2005,7 @@ async function openCamera(cat, onShot, onFallback){
       <div class="cam-cats">${CATS.map(c => `<button type="button" class="chip-btn" data-cam-cat="${c.id}" aria-pressed="${c.id===current}">${c.label}</button>`).join('')}</div>
     </div>
     <div class="cam-box"><video playsinline muted autoplay></video><div class="cam-guide">${guideSvg(current)}</div></div>
-    <p class="cam-tip" id="camTip">${esc(GUIDES[current].tip)}. Remplis le contour.</p>
+    <p class="cam-tip" id="camTip">${esc(camTip(current))}</p>
     <div class="cam-bottom"><button type="button" class="cam-shot" data-cam="shot" aria-label="Prendre la photo" disabled></button></div>
   </div>`;
   cam.showModal();
@@ -1638,7 +2017,7 @@ async function openCamera(cat, onShot, onFallback){
       current = c.dataset.camCat;
       cam.querySelectorAll('[data-cam-cat]').forEach(b => b.setAttribute('aria-pressed', b === c));
       cam.querySelector('.cam-guide').innerHTML = guideSvg(current);
-      cam.querySelector('#camTip').textContent = GUIDES[current].tip + '. Remplis le contour.';
+      cam.querySelector('#camTip').textContent = camTip(current);
       return;
     }
     const a = e.target.closest('[data-cam]'); if(!a) return;
@@ -1725,7 +2104,7 @@ function pieceSheet(existing){
         toast('Détourage intelligent indisponible pour l\'instant : méthode simple utilisée.');
       }
       if(!cut){ label('Détourage…'); cut = cutout(img, guideKey(p.photo)); }
-      if(cut){ p.photo.cut = cut; toast('Pièce détourée.'); }
+      if(cut){ p.photo.cut = await metaWithLines(p.photo, cut); toast('Pièce détourée.'); }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
     const useImage = async (img, guideCat) => {
@@ -1733,7 +2112,7 @@ function pieceSheet(existing){
       try{
         const old = p.photo;
         p.photo = await processPhoto(img);
-        if(guideCat){ p.photo.guide = guideCat; if(guideCat === 'chaussures') p.photo.shoeView = 'face'; }
+        if(guideCat){ p.photo.guide = guideCat; if(guideCat === 'chaussures') p.photo.shoeView = 'face'; if(LINES[guideCat]) p.photo.lines = {top:LINES[guideCat].top, bottom:LINES[guideCat].bottom, mid:LINES[guideCat].mid ? 0.5 : null}; }
         paint('Détourage…');
         if(old && old.assetId && store.assets && old.assetId !== p.photo.assetId) store.assets.delete(old.assetId).catch(()=>{});
         if(form.detour.checked) await runCut(img);
@@ -1848,6 +2227,7 @@ document.addEventListener('click', e => {
   switch(el.dataset.act){
     case 'new-piece': pieceSheet(); break;
     case 'export': exportData(); break;
+    case 'recut-all': recutAll(); break;
     case 'edit-piece': pieceSheet(S.pieces.get(id)); break;
     case 'new-outfit': outfitSheet(); break;
     case 'edit-outfit': outfitSheet(S.outfits.get(id)); break;
@@ -1877,6 +2257,30 @@ document.addEventListener('click', e => {
       store.saveSettings({planned:null}); S.alt = 0; break;
     }
     case 'openmode': store.saveSettings({openMode: el.dataset.mode}); break;
+    case 'head': S.headShift = (S.headShift || 0) + 1; render(); break;
+    case 'shuffle': {
+      const ids = randomOutfit();
+      if(!ids){ toast("Pas assez de pièces propres pour composer une tenue (il faut au moins un haut et un bas)."); break; }
+      S.shuffle = ids; S.shuffleAdj = {}; S.adjustKey = null; render(); break;
+    }
+    case 'shuffle-cancel': S.shuffle = null; render(); break;
+    case 'shuffle-ok': {
+      const w = tomorrowWeather(), n = [...S.outfits.values()].filter(o => /^Tenue au hasard/.test(o.name || '')).length + 1;
+      store.saveOutfit({id:uid('o'), name:`Tenue au hasard ${n}`, pieceIds:S.shuffle, bands: w ? [w.band] : [], rainOk: !!(w && w.rain), createdAt:Date.now(), sizeAdj:{...(S.shuffleAdj || {})}});
+      S.shuffle = null; toast('Tenue enregistrée dans Tenues (tu peux la renommer).'); render(); break;
+    }
+    case 'adjust': S.adjustKey = S.adjustKey === el.dataset.key ? null : el.dataset.key; render(); break;
+    case 'size': {
+      S.shuffleAdj = S.shuffleAdj || {};
+      const v = Math.min(2, Math.max(0.4, Math.round(((S.shuffleAdj[id] || 1) + (+el.dataset.d) * 0.1) * 100) / 100));
+      S.shuffleAdj[id] = v; render(); break;
+    }
+    case 'size-reset': {
+      S.shuffleAdj = {};
+      for(const p of S.pieces.values()) if(p.sizeAdj && p.sizeAdj !== 1){ const q = {...p}; delete q.sizeAdj; store.savePiece(q); }
+      render(); toast('Toutes les tailles sont revenues à 100 %.'); break;
+    }
+    case 'legs': S.legShift = (S.legShift || 0) + 1; render(); break;
     case 'dirty-planned': {
       const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId); if(!o) break;
       (o.pieceIds||[]).forEach(pid => { const p = S.pieces.get(pid); if(p && !p.dirty) store.savePiece({...p, dirty:true}); });

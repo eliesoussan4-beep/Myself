@@ -242,6 +242,36 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .adj-val{width:52px;text-align:center;font-variant-numeric:tabular-nums;font-size:14px}
 .shuffle-btn{width:100%;margin:0 0 14px;font-size:16px}
 .shuffle-card{margin:0 0 18px;border:2px solid var(--denim)}
+.filters .chip-btn{white-space:nowrap;flex:none}
+.cat-group{margin:0 0 10px}
+.cat-g{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+details.adv{margin:0 0 16px;border:1px solid var(--line);border-radius:12px;padding:0 12px}
+details.adv summary{cursor:pointer;padding:12px 0;font-weight:600;font-size:15px;color:var(--muted)}
+details.adv[open] summary{color:var(--ink)}
+.head-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{padding:10px 12px;font-size:17px;line-height:1}
+.set-h{font-size:16px;margin:4px 0 8px}
+.home-pad{height:14px}
+.back{border:0;background:none;color:var(--denim);font-weight:600;font-size:15px;padding:14px 0 0;cursor:pointer}
+.wx{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:16px 18px;margin:0 0 14px;cursor:pointer;color:var(--ink)}
+.wx-day{font-size:14px;color:var(--muted);font-weight:500;text-transform:none}
+.wx-main{display:flex;align-items:baseline;gap:12px;margin:2px 0}
+.wx-ico{font-size:52px;line-height:1;align-self:center}
+.wx-temp{font-family:var(--display);font-size:60px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.wx-word{font-size:44px}
+.wx-min{font-size:22px;color:var(--muted);font-weight:600}
+.wx-sub{font-size:14px;color:var(--muted)}
+.home-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 18px}
+.home-nav button{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 6px;font-weight:600;font-size:15px;color:var(--ink);cursor:pointer}
+.home-nav .hn-ico{font-size:24px;line-height:1.1}
+.home-nav small{font-size:12px;color:var(--muted);font-weight:500}
+.wx-auto{margin:0;font-size:15px}
+.city-row{display:flex;gap:8px}
+.city-row input{flex:1}
+.city-res{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.city-btn{display:flex;flex-direction:column;align-items:flex-start;text-align:left;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:10px 12px;color:var(--ink);cursor:pointer}
+.city-btn span{font-size:13px;color:var(--muted)}
+#cityIn{width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:11px 12px;font-size:16px}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -273,7 +303,10 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 
 <script>
 /* ---------- Constantes ---------- */
-const APP_VERSION = 33;
+/* Ton de l'app : tx(sobre, ludique). La version sobre est l'ancien texte, gardé tel quel.
+   Réglages → « Ton de l'app » permet de revenir au sobre à tout moment. */
+const tx = (sobre, fun) => ((typeof S !== 'undefined' && S.settings && S.settings.tone === 'sobre') ? sobre : fun);
+const APP_VERSION = 37;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -291,6 +324,13 @@ const CATS = [
   {id:'accessoire', label:'Accessoire', order:13},
 ];
 /* Couches pour l'assemblage : dessous < intermédiaire < dessus */
+const CAT_GROUPS = [
+  ['Hauts', ['tshirt', 'tshirt_ml', 'chemise']],
+  ['Pulls et sweats', ['pull', 'sweat', 'sweat_capuche']],
+  ['Gilets, vestes et manteaux', ['gilet', 'gilet_capuche', 'veste', 'manteau']],
+  ['Bas', ['pantalon', 'short']],
+  ['Pieds et accessoires', ['chaussures', 'accessoire']],
+];
 const LAYER = {tshirt:'under', tshirt_ml:'under', sweat_capuche:'mid', gilet_capuche:'mid', short:'bottom', chemise:'under', haut:'under', robe:'under', pull:'mid', sweat:'mid', gilet:'mid', veste:'outer', manteau:'outer', pantalon:'bottom', bas:'bottom', chaussures:'shoes', accessoire:'acc'};
 const LAYER_RANK = {under:0, mid:1, outer:2};
 const OPEN_FRONT = new Set(['chemise','gilet','gilet_capuche','veste','manteau']);
@@ -334,7 +374,7 @@ const todayKey = () => dayKey(new Date());
 /* Jour visé : avant midi, c'est la tenue du jour ; après midi, celle du lendemain.
    Le sélecteur Aujourd'hui / Demain permet de forcer l'un ou l'autre. */
 const SWITCH_HOUR = 12;
-const dayOffset = () => (S.dayChoice ?? (new Date().getHours() < SWITCH_HOUR ? 0 : 1));
+const dayOffset = () => (S.dayChoice ?? 0);
 const dayWord = () => dayOffset() === 0 ? "aujourd'hui" : 'demain';
 const tomorrowDate = () => { const d = new Date(); d.setDate(d.getDate() + dayOffset()); return d; };
 const tomorrowKey = () => dayKey(tomorrowDate());
@@ -1241,8 +1281,10 @@ function tomorrowWeather(){
   if(a) return {band:bandFor(a.max), rain:a.rain, source:'auto', ...a};
   return null;
 }
+const cityOf = () => S.settings.city || {name:'Paris', lat:PARIS.lat, lon:PARIS.lon};
 async function fetchWeather(){
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${PARIS.lat}&longitude=${PARIS.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=Europe%2FParis&forecast_days=2`;
+  const C = cityOf();
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${C.lat}&longitude=${C.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=auto&forecast_days=2`;
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
   try{
     const r = await fetch(url, {signal:ctrl.signal});
@@ -1262,7 +1304,7 @@ async function refreshWeather(){
   await fetchWeather();
   if(S.weatherState === 'ok'){
     if(S.settings.manual && S.settings.manual.date === tomorrowKey()) store.saveSettings({manual:null});
-    toast('Météo de Paris mise à jour.');
+    toast(`Météo de ${cityOf().name} mise à jour.`);
   } else toast('Météo automatique bloquée sur cette page : choisis à la main.');
 }
 
@@ -1302,11 +1344,9 @@ function render(){
   const app = $('#app');
   if(!S.ready){ app.innerHTML = '<p class="loading">Ouverture de ta garde-robe…</p>'; return; }
   const dirtyCount = [...S.pieces.values()].filter(p => p.dirty).length;
-  const tabs = [['demain','Ma tenue'],['tenues','Tenues'],['pieces','Pièces'],['linge','Linge']];
-  const sw = `<div class="switcher"><div class="seg" role="tablist">${tabs.map(([id,l]) =>
-    `<button type="button" data-section="${id}" aria-current="${S.section===id}">${l}${id==='linge'&&dirtyCount?`<span class="count">${dirtyCount}</span>`:''}</button>`).join('')}</div></div>`;
+  const sw = S.section === 'demain' ? '<div class="home-pad"></div>' : `<button type="button" class="back" data-section="demain">← Accueil</button>`;
   const body = {demain:renderDemain, tenues:renderTenues, pieces:renderPieces, linge:renderLinge}[S.section]();
-  app.innerHTML = sw + body + `<p class="version">Version ${APP_VERSION}</p>`;
+  app.innerHTML = sw + body;
   const car = document.getElementById('carousel');
   if(car){
     const step = () => { const sl = car.querySelector('.slide'); return sl ? sl.offsetWidth + 12 : car.clientWidth; };
@@ -1376,33 +1416,30 @@ function normScale(p, pw){
   return Math.min(3, Math.max(0.3, k)) * (p.sizeAdj || 1);   // sizeAdj : réglage « pour rire » propre à une tenue
 }
 /* Jambes d'animaux sous un short (à la place du vide entre le short et les chaussures) */
+/* Jambes fantaisie sous un short. Seul le style fin et stylisé rend bien (testé : flamant) :
+   on garde donc uniquement des jambes fines, chacune avec son détail (genou, écailles, boulons, bois…). */
 const ANIMAL_LEGS = [
-  {name:'flamant', base:'#f6a3c1', thin:true},
-  {name:'tigre', base:'#f29a2e', pat:'stripes', ink:'#1d1a17'},
-  {name:'zèbre', base:'#f4f4f2', pat:'stripes', ink:'#151515'},
-  {name:'léopard', base:'#e8b65a', pat:'spots', ink:'#4a2c12'},
-  {name:'cheval', base:'#7a4a26', pat:'fetlock', ink:'#3a2212'},
-  {name:'dragon', base:'#3e9a4c', pat:'scales', ink:'#24692f'},
-  {name:'girafe', base:'#f1c24e', pat:'patches', ink:'#a15f27'},
+  {name:'flamant', base:'#f6a3c1', w:0.22, knee:'ball'},
+  {name:'poule', base:'#f2b233', w:0.2, knee:'ball', rings:'#c9861a'},
+  {name:'héron', base:'#8fa3b8', w:0.16, knee:'small'},
+  {name:'autruche', base:'#e7b8a6', w:0.3, knee:'big', rings:'#c99a88'},
+  {name:'robot', base:'#b9c0c8', w:0.26, knee:'bolt', rings:'#7d8690'},
+  {name:'jambe de bois', base:'#a46a36', w:0.3, knee:'none', grain:'#7a4a22'},
 ];
-function legsSVG(a, W, H, legs, uid2){
-  const S1 = 1000 / W, w = W * S1, h = H * S1, u = 1000;   // unités internes
-  const id = 'pat' + uid2;
-  const pats = {
-    stripes:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u}" height="${h * 0.09}"><rect width="${u}" height="${h * 0.09}" fill="${a.base}"/><path d="M0 ${h*0.02} Q${u*0.25} ${h*0.045} ${u*0.5} ${h*0.025} T${u} ${h*0.03} L${u} ${h*0.055} Q${u*0.75} ${h*0.07} ${u*0.5} ${h*0.05} T0 ${h*0.045} Z" fill="${a.ink}"/></pattern>`,
-    spots:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u*0.09}" height="${u*0.09}"><rect width="100%" height="100%" fill="${a.base}"/><circle cx="${u*0.03}" cy="${u*0.03}" r="${u*0.017}" fill="none" stroke="${a.ink}" stroke-width="${u*0.009}"/><circle cx="${u*0.075}" cy="${u*0.07}" r="${u*0.012}" fill="${a.ink}"/></pattern>`,
-    scales:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u*0.05}" height="${u*0.04}"><rect width="100%" height="100%" fill="${a.base}"/><path d="M0 ${u*0.04} A${u*0.025} ${u*0.025} 0 0 1 ${u*0.05} ${u*0.04}" fill="none" stroke="${a.ink}" stroke-width="${u*0.006}"/><path d="M${-u*0.025} ${u*0.02} A${u*0.025} ${u*0.025} 0 0 1 ${u*0.025} ${u*0.02} M${u*0.025} ${u*0.02} A${u*0.025} ${u*0.025} 0 0 1 ${u*0.075} ${u*0.02}" fill="none" stroke="${a.ink}" stroke-width="${u*0.006}"/></pattern>`,
-    patches:`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${u*0.11}" height="${u*0.11}"><rect width="100%" height="100%" fill="#f7e2a8"/><rect x="${u*0.006}" y="${u*0.006}" width="${u*0.05}" height="${u*0.045}" rx="${u*0.012}" fill="${a.ink}"/><rect x="${u*0.062}" y="${u*0.012}" width="${u*0.042}" height="${u*0.05}" rx="${u*0.012}" fill="${a.ink}"/><rect x="${u*0.02}" y="${u*0.058}" width="${u*0.06}" height="${u*0.046}" rx="${u*0.012}" fill="${a.ink}"/></pattern>`,
-    fetlock:`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0.72" stop-color="${a.base}"/><stop offset="0.8" stop-color="${a.ink}"/></linearGradient>`,
-  };
-  const fill = a.pat ? `url(#${id})` : a.base;
-  const paths = legs.map(l => {
-    const cx = l.cx * S1, tw = (a.thin ? l.tw * 0.22 : l.tw) * S1, bw = (a.thin ? l.tw * 0.18 : l.bw) * S1;
-    const leg = `M${cx - tw/2} 0 L${cx + tw/2} 0 Q${cx + tw*0.62} ${h*0.4} ${cx + bw/2} ${h} L${cx - bw/2} ${h} Q${cx - tw*0.62} ${h*0.4} ${cx - tw/2} 0 Z`;
-    const knee = a.thin ? `<ellipse cx="${cx}" cy="${h*0.52}" rx="${tw*0.9}" ry="${tw*0.75}" fill="${a.base}"/>` : '';
-    return `<path d="${leg}" fill="${fill}" stroke="rgba(0,0,0,.18)" stroke-width="${u*0.004}"/>${knee}`;
+function legsSVG(a, W, H, legs){
+  const S1 = 1000 / W, h = H * S1, w = W * S1;
+  const parts = legs.map(l => {
+    const cx = l.cx * S1, lw = l.tw * a.w * S1, ky = h * 0.5;
+    let g = `<rect x="${cx - lw/2}" y="0" width="${lw}" height="${h}" rx="${lw/2}" fill="${a.base}" stroke="rgba(0,0,0,.2)" stroke-width="${lw*0.08}"/>`;
+    if(a.rings) for(let k = 1; k < 9; k++){ const y = h * (0.56 + k * 0.05); if(y < h * 0.98) g += `<path d="M${cx - lw/2} ${y}h${lw}" stroke="${a.rings}" stroke-width="${lw*0.1}"/>`; }
+    if(a.grain) g += `<path d="M${cx - lw*0.15} ${h*0.05}V${h*0.95}M${cx + lw*0.18} ${h*0.1}V${h*0.9}" stroke="${a.grain}" stroke-width="${lw*0.07}"/><rect x="${cx - lw*0.6}" y="${h*0.02}" width="${lw*1.2}" height="${lw*0.35}" rx="${lw*0.1}" fill="${a.grain}"/>`;
+    if(a.knee === 'ball') g += `<circle cx="${cx}" cy="${ky}" r="${lw*0.85}" fill="${a.base}" stroke="rgba(0,0,0,.18)" stroke-width="${lw*0.08}"/>`;
+    if(a.knee === 'small') g += `<circle cx="${cx}" cy="${ky}" r="${lw*0.7}" fill="${a.base}"/>`;
+    if(a.knee === 'big') g += `<ellipse cx="${cx}" cy="${ky}" rx="${lw*0.75}" ry="${lw*0.6}" fill="${a.base}" stroke="rgba(0,0,0,.15)" stroke-width="${lw*0.06}"/>`;
+    if(a.knee === 'bolt') g += `<circle cx="${cx}" cy="${ky}" r="${lw*0.7}" fill="#8d959e" stroke="#5c636b" stroke-width="${lw*0.1}"/><circle cx="${cx}" cy="${ky}" r="${lw*0.2}" fill="#5c636b"/><circle cx="${cx}" cy="${h*0.18}" r="${lw*0.12}" fill="#5c636b"/><circle cx="${cx}" cy="${h*0.82}" r="${lw*0.12}" fill="#5c636b"/>`;
+    return g;
   }).join('');
-  return `<svg viewBox="0 0 ${w.toFixed(1)} ${h.toFixed(1)}" preserveAspectRatio="none" width="100%" height="100%"><defs>${a.pat ? pats[a.pat] : ''}</defs>${paths}</svg>`;
+  return `<svg viewBox="0 0 ${w.toFixed(1)} ${h.toFixed(1)}" preserveAspectRatio="none" width="100%" height="100%">${parts}</svg>`;
 }
 const HEADS = ['😎','🙂','😄','🤓','🥸','😏','🤠','😴','🤩','😁','🥶','🤪','😇','🧐','😌'];
 function silhouette(pcsIn, openMode){
@@ -1547,7 +1584,7 @@ function silhouette(pcsIn, openMode){
   const imgs = items.sort((a,b) => a.z - b.z).map(it => {
     const clip = it.clip ? `clip-path:${it.clip};-webkit-clip-path:${it.clip};` : '';
     const pos = `left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${((it.y-minY)/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;`;
-    if(it.legs) return `<button type="button" class="legs" data-act="legs" aria-label="Jambes de ${it.animal.name} — toucher pour changer" style="${pos}">${legsSVG(it.animal, it.w, it.h, it.legList, Math.random().toString(36).slice(2, 8))}</button>`;
+    if(it.legs) return `<button type="button" class="legs" data-act="legs" aria-label="Jambes : ${it.animal.name} — toucher pour changer" style="${pos}">${legsSVG(it.animal, it.w, it.h, it.legList)}</button>`;
     if(it.head) return `<button type="button" class="head" data-act="head" aria-label="Changer de tête" style="${pos}font-size:${(it.h / TW * 100).toFixed(2)}cqw">${it.emoji}</button>`;
     if(it.part){
       const pt = it.part;
@@ -1646,7 +1683,7 @@ function randomOutfit(){
 }
 function shuffleUI(){
   if(S.pieces.size < 2) return '';
-  if(!S.shuffle) return `<button type="button" class="btn shuffle-btn" data-act="shuffle">🎲 Tenue au hasard</button>`;
+  if(!S.shuffle) return `<button type="button" class="btn shuffle-btn" data-act="shuffle">${tx('🎲 Tenue au hasard', '🎲 Surprends-moi')}</button>`;
   const pcs = S.shuffle.map(id => S.pieces.get(id)).filter(Boolean);
   return `<article class="look-card shuffle-card">
     <div class="look-head"><h2>Tenue au hasard</h2><span class="best">🎲</span></div>
@@ -1659,38 +1696,49 @@ function shuffleUI(){
     </div></article>`;
 }
 
+function weatherIcon(w){
+  if(!w) return '❔';
+  if(w.rain) return '🌧️';
+  return {froid:'🥶', frais:'🌥️', doux:'⛅', chaud:'☀️'}[w.band] || '⛅';
+}
+function homeTop(){
+  const w = tomorrowWeather(), off = dayOffset();
+  const dateStr = tomorrowDate().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  let main, sub;
+  if(w && w.source === 'auto'){
+    main = `<span class="wx-temp">${w.max}°</span><span class="wx-min">${w.min}°</span>`;
+    sub = `${esc(cityOf().name)} · ${w.rain ? `pluie ${w.rainProb} %` : `pas de pluie (${w.rainProb} %)`}`;
+  } else if(w){
+    const b = BANDS.find(x => x.id === w.band);
+    main = `<span class="wx-temp wx-word">${esc(b.label)}</span><span class="wx-min">${esc(b.hint)}</span>`;
+    sub = `Réglée à la main · ${w.rain ? 'avec de la pluie' : 'sans pluie'}`;
+  } else {
+    main = `<span class="wx-temp wx-word">${S.weatherState === 'loading' ? '…' : '?'}</span>`;
+    sub = S.weatherState === 'loading' ? `Météo de ${esc(cityOf().name)} en cours…` : 'Touche pour choisir la météo';
+  }
+  const dirty = [...S.pieces.values()].filter(p => p.dirty).length;
+  return `<button type="button" class="wx" data-act="weather-sheet" aria-label="Météo, toucher pour la modifier">
+      <span class="wx-day">${off === 0 ? "Aujourd'hui" : 'Demain'} · ${esc(dateStr)}</span>
+      <span class="wx-main"><span class="wx-ico">${weatherIcon(w)}</span>${main}</span>
+      <span class="wx-sub">${sub}</span>
+    </button>
+    ${shuffleUI()}
+    <nav class="home-nav" aria-label="Rubriques">
+      <button type="button" data-section="tenues"><span class="hn-ico">👔</span>Tenues<small>${S.outfits.size}</small></button>
+      <button type="button" data-section="pieces"><span class="hn-ico">👕</span>Pièces<small>${S.pieces.size}</small></button>
+      <button type="button" data-section="linge"><span class="hn-ico">🧺</span>Linge<small>${dirty ? dirty + ' au sale' : 'tout propre'}</small></button>
+    </nav>`;
+}
 function renderDemain(){
-  const td = tomorrowDate();
-  const dateStr = td.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
-  const w = tomorrowWeather();
-  let wline;
-  if(w && w.source === 'auto') wline = `${w.rain?ICON.rain:ICON.sun}<span>Paris : ${w.min}° à ${w.max}°, ${w.rain?`pluie (${w.rainProb} %${w.rainMm?`, ${String(w.rainMm).replace('.',',')} mm`:''})`:`pas de pluie (${w.rainProb} %)`}</span>`;
-  else if(w) wline = `${w.rain?ICON.rain:ICON.sun}<span>${esc(BANDS.find(b=>b.id===w.band).label)}${w.rain?', avec de la pluie':', sans pluie'}${S.weatherDays[tomorrowKey()]?' (ton choix)':''}</span>`;
-  else if(S.weatherState === 'loading') wline = `${ICON.unknown}<span>Météo de Paris en cours…</span>`;
-  else wline = `${ICON.unknown}<span>Quel temps ${dayWord()} à Paris ?</span>`;
-  const curBand = w ? w.band : null;
-  const weather = `<section class="weather" aria-label="Météo du jour choisi">
-    <div class="weather-top"><div class="weather-now">${wline}</div>
-      <button class="linkish" type="button" data-act="auto-weather">${w && w.source==='manual' && S.weatherDays[tomorrowKey()] ? 'Revenir à la météo' : 'Actualiser'}</button></div>
-    <div class="band-row">${BANDS.map(b => `<button type="button" class="chip-btn" data-act="band" data-band="${b.id}" aria-pressed="${curBand===b.id}">${b.label} <small>${b.hint}</small></button>`).join('')}
-      <button type="button" class="chip-btn" data-act="rain" aria-pressed="${!!(w && w.rain)}">Pluie</button></div>
-  </section>`;
-
-  const off = dayOffset();
-  const head = `<div class="tomorrow"><div class="day">${off===0?"Aujourd'hui":'Demain'}</div><div class="date">${esc(dateStr)}</div>
-    <div class="band-row" role="group" aria-label="Jour de la tenue">
-      <button type="button" class="chip-btn" data-act="day" data-off="0" aria-pressed="${off===0}">Aujourd'hui</button>
-      <button type="button" class="chip-btn" data-act="day" data-off="1" aria-pressed="${off===1}">Demain</button>
-    </div></div>`;
-
-  if(!S.pieces.size) return head + weather + `<div class="empty"><h3>Commence par tes pièces</h3><p>Prends en photo tes vêtements un par un, puis assemble-les en tenues.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
-  if(!S.outfits.size) return head + weather + shuffleUI() + `<div class="empty"><h3>Aucune tenue pour l'instant</h3><p>Assemble tes pièces en tenues : c'est parmi elles que je choisirai.</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
+  const top = homeTop(), w = tomorrowWeather();
+  if(!S.pieces.size) return top + `<div class="empty"><h3>${tx('Commence par tes pièces', 'Penderie vide 👀')}</h3><p>${tx('Prends en photo tes vêtements un par un, puis assemble-les en tenues.', 'Prends tes fringues en photo une par une, je m\'occupe du reste.')}</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
+  if(!S.outfits.size) return top + `<div class="empty"><h3>${tx('Aucune tenue pour l\'instant', 'Pas encore de tenue 🤷')}</h3><p>${tx('Assemble tes pièces en tenues : c\'est parmi elles que je choisirai.', 'Assemble quelques pièces, et chaque matin je te dirai quoi mettre.')}</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
 
   const planned = S.settings.planned && S.settings.planned.date === tomorrowKey() ? S.outfits.get(S.settings.planned.outfitId) : null;
   if(planned){
     const pcs = (planned.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean);
     const anyClean = pcs.some(p => !p.dirty);
-    return head + weather + shuffleUI() + `<article class="look-card">
+    return top + `<article class="look-card">
       <div class="look-head"><h2>${esc(planned.name)}</h2><span class="planned">Prévue</span></div>
       <p class="why">C'est la tenue que tu as choisie pour ${dayWord()}.</p>
       ${lookView(withAdj(pcs, planned.sizeAdj))}
@@ -1701,25 +1749,25 @@ function renderDemain(){
   }
 
   const {ok, blocked} = rankOutfits(w);
-  if(!ok.length) return head + weather + shuffleUI() + `<div class="empty"><h3>Tout est au sale</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
+  if(!ok.length) return top + `<div class="empty"><h3>${tx('Tout est au sale', 'Tout est au sale 🧺')}</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
   const list = ok.slice(0, 12);
   const cur = Math.min(S.alt, list.length - 1);
   const slides = list.map((x, n) => `<article class="look-card slide" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
-      <div class="look-head"><h2>${esc(x.o.name)}</h2>${n === 0 ? '<span class="best">Meilleur choix</span>' : ''}</div>
+      <div class="look-head"><h2>${esc(x.o.name)}</h2>${n === 0 ? `<span class="best">${tx('Meilleur choix', '⭐ Mon préféré')}</span>` : ''}</div>
       <p class="why">${esc(sentence(x.why))}</p>
       ${lookView(withAdj(x.pcs, x.o.sizeAdj))}
-      <div class="look-actions"><button class="btn primary grow" type="button" data-act="plan" data-id="${esc(x.o.id)}">Je la porte ${dayWord()}</button></div>
+      <div class="look-actions"><button class="btn primary grow" type="button" data-act="plan" data-id="${esc(x.o.id)}">${tx('Je la porte ' + dayWord(), 'Je mets ça ' + dayWord() + ' 👍')}</button></div>
     </article>`).join('');
   const nav = list.length > 1 ? `<div class="dots" aria-hidden="true">${list.map((_, n) => `<span class="dot${n === cur ? ' on' : ''}"></span>`).join('')}</div>
-    <p class="hint swipe-hint">Fais glisser pour voir les ${list.length} tenues possibles.</p>` : '';
-  return head + weather + shuffleUI() + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
+    <p class="hint swipe-hint">${tx(`Fais glisser pour voir les ${list.length} tenues possibles.`, `Glisse pour voir les ${list.length} options 👉`)}</p>` : '';
+  return top + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
     ${blocked.length?`<p class="hint" style="margin-top:12px">${blocked.length} tenue${blocked.length>1?'s':''} écartée${blocked.length>1?'s':''} à cause du linge sale.</p>`:''}`;
 }
 
 function renderTenues(){
   const list = [...S.outfits.values()].sort((a,b) => (a.name||'').localeCompare(b.name||'', 'fr'));
   const head = `<div class="page-head"><h1>Tenues</h1><button class="btn primary" type="button" data-act="new-outfit">Nouvelle tenue</button></div>`;
-  if(!list.length) return head + `<div class="empty"><h3>Aucune tenue</h3><p>${S.pieces.size?'Choisis quelques pièces qui vont bien ensemble.':"Ajoute d'abord des pièces dans l'onglet Pièces."}</p>${S.pieces.size?'<button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button>':'<button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button>'}</div>`;
+  if(!list.length) return head + `<div class="empty"><h3>${tx('Aucune tenue', 'Aucune tenue… pour l\'instant 😏')}</h3><p>${S.pieces.size?'Choisis quelques pièces qui vont bien ensemble.':"Ajoute d'abord des pièces dans l'onglet Pièces."}</p>${S.pieces.size?'<button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button>':'<button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button>'}</div>`;
   return head + `<div class="outfits">${list.map(o => {
     const pcs = (o.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean).sort((a,b) => catOrder(a.category) - catOrder(b.category));
     const dirty = pcs.filter(p => p.dirty).length;
@@ -1742,15 +1790,124 @@ function pieceCard(p, act){
 
 function renderPieces(){
   const all = [...S.pieces.values()];
-  const head = `<div class="page-head"><h1>Pièces</h1><button class="btn primary" type="button" data-act="new-piece">Ajouter</button></div>`;
-  if(!all.length) return head + `<div class="empty"><h3>Ta penderie est vide</h3><p>Photographie une pièce sur un fond uni : c'est cette photo qui apparaîtra dans tes tenues.</p><button class="btn primary" type="button" data-act="new-piece">Prendre une photo</button></div>` + backupBlock();
+  const head = `<div class="page-head"><h1>Pièces</h1><div class="head-actions"><button class="btn icon-btn" type="button" data-act="settings" aria-label="Réglages">⚙️</button><button class="btn primary" type="button" data-act="new-piece">Ajouter</button></div></div>`;
+  if(!all.length) return head + `<div class="empty"><h3>${tx('Ta penderie est vide', 'Rien dans la penderie 🫥')}</h3><p>Photographie une pièce sur un fond uni : c'est cette photo qui apparaîtra dans tes tenues.</p><button class="btn primary" type="button" data-act="new-piece">Prendre une photo</button></div>`;
   const used = CATS.filter(c => all.some(p => p.category === c.id));
   const filters = `<div class="filters"><button type="button" class="chip-btn" data-act="filter" data-cat="all" aria-pressed="${S.filter==='all'}">Tout (${all.length})</button>${used.map(c => `<button type="button" class="chip-btn" data-act="filter" data-cat="${c.id}" aria-pressed="${S.filter===c.id}">${c.label}</button>`).join('')}</div>`;
   const shown = all.filter(p => S.filter === 'all' || p.category === S.filter)
     .sort((a,b) => catOrder(a.category) - catOrder(b.category) || (a.name||'').localeCompare(b.name||'', 'fr'));
-  return head + filters + `<div class="pieces">${shown.map(p => pieceCard(p, 'edit-piece')).join('')}</div>` + backupBlock();
+  return head + filters + `<div class="pieces">${shown.map(p => pieceCard(p, 'edit-piece')).join('')}</div>`;
 }
 
+/* Recherche de ville : service Open-Meteo, et OpenStreetMap en secours s'il ne répond pas */
+async function findCities(q){
+  const get = async (url, ms = 7000) => {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), ms);
+    try{ const r = await fetch(url, {signal:ctrl.signal}); if(!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+    finally{ clearTimeout(t); }
+  };
+  try{
+    const j = await get(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=fr&format=json`);
+    return (j.results || []).map(c => ({name:c.name, latitude:c.latitude, longitude:c.longitude, admin1:c.admin1, country:c.country}));
+  }catch(e){
+    const j = await get(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&accept-language=fr&q=${encodeURIComponent(q)}`);
+    return j.map(c => ({name:(c.address && (c.address.city || c.address.town || c.address.village || c.address.municipality)) || c.display_name.split(',')[0],
+      latitude:+c.lat, longitude:+c.lon, admin1:c.address && (c.address.state || c.address.county), country:c.address && c.address.country}));
+  }
+}
+const IS_TEST_COPY = !!document.getElementById('seed') || /claude/.test(location.hostname);
+function weatherSheet(results){
+  const off = dayOffset(), k = tomorrowKey(), w = tomorrowWeather(), auto = S.weatherDays[k], m = S.settings.manual && S.settings.manual.date === k ? S.settings.manual : null;
+  const C = cityOf();
+  const autoLine = auto ? `${esc(C.name)} : ${auto.min}° à ${auto.max}°, ${auto.rain ? `pluie ${auto.rainProb} %` : `pas de pluie (${auto.rainProb} %)`}`
+    : S.weatherState === 'loading' ? 'Chargement…' : IS_TEST_COPY ? 'Bloquée dans la version de test sur claude.ai (elle marche sur ton téléphone). Règle-la à la main ci-dessous.' : 'Le service météo ne répond pas (connexion ?). Touche « Actualiser » ou règle à la main.';
+  openSheet(`<form class="sheet" novalidate>
+    <div class="sheet-scroll">
+      <h2>Météo</h2>
+      <div class="chips" style="margin-bottom:16px"><button type="button" class="chip-btn" data-wday="0" aria-pressed="${off === 0}">Aujourd'hui</button><button type="button" class="chip-btn" data-wday="1" aria-pressed="${off === 1}">Demain</button></div>
+      <h3 class="set-h">Automatique</h3>
+      <p class="wx-auto">${autoLine}${m ? ' <span class="muted">(remplacée par ton choix)</span>' : ''}</p>
+      <div class="band-row" style="margin:6px 0 12px"><button type="button" class="chip-btn" data-w="refresh">Actualiser</button>${m ? '<button type="button" class="chip-btn" data-w="auto">Revenir à l\'automatique</button>' : ''}</div>
+      <div class="field"><span>Ville : <b>${esc(C.name)}</b></span>
+        <input type="search" id="cityIn" placeholder="Tape une autre ville…" autocomplete="off" enterkeyhint="search">
+        <div id="cityRes" class="city-res" aria-live="polite"></div>
+        <button type="button" class="linkish" data-w="here">📍 Utiliser ma position</button>
+      </div>
+      <h3 class="set-h" style="margin-top:14px">À la main</h3>
+      <div class="band-row">${BANDS.map(b => `<button type="button" class="chip-btn" data-band="${b.id}" aria-pressed="${!!(m && m.band === b.id)}">${b.label} <small>${b.hint}</small></button>`).join('')}
+        <button type="button" class="chip-btn" data-w="rain" aria-pressed="${!!(m ? m.rain : (w && w.rain))}">Pluie</button></div>
+    </div>
+    <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>OK</button></div></form>`, () => false, form => {
+    let found = [];
+    const box = form.querySelector('#cityRes'), input = form.querySelector('#cityIn');
+    let timer = 0, seq = 0;
+    const search = async () => {
+      const q = input.value.trim(), my = ++seq;
+      if(q.length < 2){ box.innerHTML = ''; return; }
+      box.innerHTML = '<span class="hint">Recherche…</span>';
+      try{
+        found = await findCities(q); if(my !== seq) return;
+        box.innerHTML = found.length ? found.map((c, n) => `<button type="button" class="city-btn" data-city="${n}"><b>${esc(c.name)}</b><span>${esc([c.admin1, c.country].filter(Boolean).join(', '))}</span></button>`).join('')
+          : '<span class="hint">Aucune ville trouvée.</span>';
+      }catch(err){ if(my === seq) box.innerHTML = `<span class="hint">${IS_TEST_COPY ? 'Dans la version de test sur claude.ai, la recherche de ville et la météo automatique sont bloquées par claude.ai. Sur ton téléphone, elles fonctionnent.' : 'Recherche impossible : vérifie ta connexion.'}</span>`; }
+    };
+    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 350); });
+    input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); clearTimeout(timer); search(); input.blur(); } });
+    const useCity = async c => {
+      store.saveSettings({city:c, manual:null}); S.weatherDays = {}; S.weatherState = 'loading';
+      toast(`Météo de ${c.name}…`); weatherSheet(); await fetchWeather();
+      toast(S.weatherState === 'ok' ? `Météo de ${c.name} chargée.` : 'Ville enregistrée, mais la météo ne répond pas pour l\'instant.');
+      if(sheet.open) weatherSheet();
+    };
+    form.addEventListener('click', async e => {
+      const d = e.target.closest('[data-wday]');
+      if(d){ S.dayChoice = +d.dataset.wday; S.alt = 0; render(); weatherSheet(); return; }
+      const b = e.target.closest('[data-band]');
+      if(b){ store.saveSettings({manual:{date:tomorrowKey(), band:b.dataset.band, rain: !!(tomorrowWeather() && tomorrowWeather().rain)}}); S.alt = 0; weatherSheet(); return; }
+      const c = e.target.closest('[data-city]');
+      if(c){ const r = found[+c.dataset.city]; if(r) await useCity({name:r.name, lat:r.latitude, lon:r.longitude}); return; }
+      const a = e.target.closest('[data-w]'); if(!a) return;
+      if(a.dataset.w === 'rain'){ const cw = tomorrowWeather(); store.saveSettings({manual:{date:tomorrowKey(), band: cw ? cw.band : 'doux', rain: !(cw && cw.rain)}}); weatherSheet(); }
+      if(a.dataset.w === 'auto'){ store.saveSettings({manual:null}); weatherSheet(); }
+      if(a.dataset.w === 'refresh'){ await refreshWeather(); weatherSheet(); }
+      if(a.dataset.w === 'here'){
+        if(!navigator.geolocation){ toast('Position indisponible sur ce téléphone.'); return; }
+        toast('Recherche de ta position…');
+        navigator.geolocation.getCurrentPosition(async pos => {
+          let name = 'Ma position';
+          try{
+            const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${pos.coords.latitude.toFixed(2)},${pos.coords.longitude.toFixed(2)}&count=1&language=fr`);
+            const j = await r.json(); if(j.results && j.results[0]) name = j.results[0].name;
+          }catch(err){}
+          useCity({name, lat:+pos.coords.latitude.toFixed(3), lon:+pos.coords.longitude.toFixed(3)});
+        }, () => toast('Position refusée : autorise-la dans Chrome ou tape ta ville.'), {timeout:10000, maximumAge:600000});
+      }
+    });
+    form.addEventListener('submit', e => e.preventDefault());
+  });
+}
+function settingsSheet(){
+  const tone = S.settings.tone === 'sobre' ? 'sobre' : 'fun', heads = S.settings.heads !== false;
+  openSheet(`<form class="sheet" novalidate>
+    <div class="sheet-scroll">
+      <h2>Réglages</h2>
+      <h3 class="set-h">Ton de l'app</h3>
+      <div class="chips"><button type="button" class="chip-btn" data-set="tone" data-v="fun" aria-pressed="${tone === 'fun'}">Ludique 😄</button><button type="button" class="chip-btn" data-set="tone" data-v="sobre" aria-pressed="${tone === 'sobre'}">Sobre</button></div>
+      <label class="toggle" style="margin-top:12px">Têtes emoji sur les tenues<input type="checkbox" id="headsT" ${heads ? 'checked' : ''}></label>
+      ${backupBlock()}
+      <p class="version" style="margin-top:16px">Version ${APP_VERSION}</p>
+    </div>
+    <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Fermer</button></div></form>`, () => false, form => {
+    form.addEventListener('click', e => {
+      const b = e.target.closest('[data-set]');
+      if(b){ store.saveSettings({[b.dataset.set]: b.dataset.v}); form.querySelectorAll(`[data-set="${b.dataset.set}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); return; }
+      const a = e.target.closest('[data-act]'); if(!a) return;
+      if(a.dataset.act === 'export') exportData();
+      if(a.dataset.act === 'recut-all'){ sheet.close(); recutAll(); }
+    });
+    form.querySelector('#headsT').addEventListener('change', e => store.saveSettings({heads: e.target.checked}));
+  });
+}
 function backupBlock(){
   return `<section class="backup">
     <h3>Sauvegarde</h3>
@@ -1812,7 +1969,7 @@ function renderLinge(){
   const all = [...S.pieces.values()].sort((a,b) => catOrder(a.category) - catOrder(b.category));
   const dirty = all.filter(p => p.dirty), clean = all.filter(p => !p.dirty);
   const head = `<div class="page-head"><h1>Linge</h1>${dirty.length?'<button class="btn" type="button" data-act="all-clean">Tout est propre</button>':''}</div>`;
-  if(!all.length) return head + `<div class="empty"><h3>Rien à laver</h3><p>Ajoute des pièces pour suivre ce qui est au sale.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
+  if(!all.length) return head + `<div class="empty"><h3>${tx('Rien à laver', 'Rien à laver 🎉')}</h3><p>Ajoute des pièces pour suivre ce qui est au sale.</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
   return head + `<p class="hint">Touche une pièce pour changer son état.</p>
     <div class="group-title">Au sale <span class="muted" style="font:500 14px var(--body)">${dirty.length}</span></div>
     ${dirty.length ? `<div class="pieces">${dirty.map(p => pieceCard(p, 'toggle-dirty')).join('')}</div>` : '<p class="muted">Tout est propre.</p>'}
@@ -1824,11 +1981,12 @@ function renderLinge(){
 const sheet = $('#sheet');
 function openSheet(html, onSubmit, onMount){
   sheet.innerHTML = html;
+  const already = sheet.open;
   const form = sheet.querySelector('form');
   form.addEventListener('submit', e => { e.preventDefault(); if(onSubmit(form) !== false) sheet.close(); });
   sheet.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => sheet.close()));
   if(onMount) onMount(form);
-  sheet.showModal();
+  if(!already) sheet.showModal();
 }
 sheet.addEventListener('click', e => { if(e.target === sheet) sheet.close(); });
 
@@ -2058,11 +2216,13 @@ function pieceSheet(existing){
         <input type="file" accept="image/*" capture="environment" class="sr" id="camIn" tabindex="-1" aria-hidden="true">
         <label class="btn">Choisir dans l'album<input type="file" accept="image/*" class="sr" id="albIn"></label>
       </div>
-      <label class="toggle">Détourer automatiquement<input type="checkbox" name="detour" ${detourDefault?'checked':''}></label>
-      <div id="cutTools" class="cut-tools"></div>
+      <details class="adv"><summary>Détourage (avancé)</summary>
+        <label class="toggle">Détourer automatiquement<input type="checkbox" name="detour" ${detourDefault?'checked':''}></label>
+        <div id="cutTools" class="cut-tools"></div>
+      </details>
       <label class="field"><span>Nom</span><input type="text" name="name" value="${esc(p.name)}" placeholder="Chemise en lin bleue" autocomplete="off"></label>
       <fieldset><legend class="legend">Catégorie</legend><div class="chips">
-        ${CATS.map(c => `<label class="chip"><input type="radio" name="cat" value="${c.id}" ${p.category===c.id?'checked':''}><span>${c.label}</span></label>`).join('')}
+        ${CAT_GROUPS.map(([g, ids]) => `<div class="cat-group"><span class="cat-g">${g}</span><div class="chips">${ids.map(id => CATS.find(c => c.id === id)).filter(Boolean).map(c => `<label class="chip"><input type="radio" name="cat" value="${c.id}" ${p.category===c.id?'checked':''}><span>${c.label}</span></label>`).join('')}</div></div>`).join('')}
       </div></fieldset>
       <label class="toggle">Au sale<input type="checkbox" name="dirty" ${p.dirty?'checked':''}></label>
       ${existing?'<button class="linkish del-link" type="button" id="del">Supprimer définitivement</button>':''}
@@ -2078,7 +2238,7 @@ function pieceSheet(existing){
     const cat = form.querySelector('input[name=cat]:checked');
     if(!cat){ toast('Choisis une catégorie.'); return false; }
     p.name = name; p.category = cat.value; p.dirty = form.dirty.checked;
-    store.savePiece(p); toast(existing ? 'Pièce mise à jour.' : 'Pièce ajoutée.');
+    store.savePiece(p); toast(existing ? tx('Pièce mise à jour.', 'Pièce mise à jour ✔️') : tx('Pièce ajoutée.', 'Pièce rangée dans la penderie 👕'));
   }, form => {
     const drop = form.querySelector('#drop'), tools = form.querySelector('#cutTools'), save = form.querySelector('#save');
     const paint = (busyText) => {
@@ -2104,7 +2264,7 @@ function pieceSheet(existing){
         toast('Détourage intelligent indisponible pour l\'instant : méthode simple utilisée.');
       }
       if(!cut){ label('Détourage…'); cut = cutout(img, guideKey(p.photo)); }
-      if(cut){ p.photo.cut = await metaWithLines(p.photo, cut); toast('Pièce détourée.'); }
+      if(cut){ p.photo.cut = await metaWithLines(p.photo, cut); toast(tx('Pièce détourée.', 'Détourage réussi ✂️')); }
       else { delete p.photo.cut; toast("Détourage impossible : le fond n'est pas assez uni ou trop proche de la couleur du vêtement."); }
     };
     const useImage = async (img, guideCat) => {
@@ -2209,7 +2369,7 @@ function outfitSheet(existing){
     o.name = name; o.pieceIds = ids;
     o.bands = [...form.querySelectorAll('input[name=band]:checked')].map(i => i.value);
     o.rainOk = form.rainOk.checked;
-    store.saveOutfit(o); toast(existing ? 'Tenue mise à jour.' : 'Tenue créée.');
+    store.saveOutfit(o); toast(existing ? tx('Tenue mise à jour.', 'Tenue mise à jour ✔️') : tx('Tenue créée.', 'Nouvelle tenue, stylé 😎'));
   }, form => {
     const del = form.querySelector('#del');
     if(del) del.addEventListener('click', () => {
@@ -2227,13 +2387,15 @@ document.addEventListener('click', e => {
   switch(el.dataset.act){
     case 'new-piece': pieceSheet(); break;
     case 'export': exportData(); break;
+    case 'settings': settingsSheet(); break;
+    case 'weather-sheet': weatherSheet(); break;
     case 'recut-all': recutAll(); break;
     case 'edit-piece': pieceSheet(S.pieces.get(id)); break;
     case 'new-outfit': outfitSheet(); break;
     case 'edit-outfit': outfitSheet(S.outfits.get(id)); break;
     case 'filter': S.filter = el.dataset.cat; render(); break;
     case 'toggle-dirty': { const p = S.pieces.get(id); if(p) store.savePiece({...p, dirty:!p.dirty}); break; }
-    case 'all-clean': for(const p of S.pieces.values()) if(p.dirty) store.savePiece({...p, dirty:false}); toast('Tout est propre.'); break;
+    case 'all-clean': for(const p of S.pieces.values()) if(p.dirty) store.savePiece({...p, dirty:false}); toast(tx('Tout est propre.', 'Tout est propre ✨')); break;
     case 'band': {
       const w = tomorrowWeather();
       store.saveSettings({manual:{date:tomorrowKey(), band:el.dataset.band, rain: w ? w.rain : false}}); S.alt = 0; break;
@@ -2249,7 +2411,7 @@ document.addEventListener('click', e => {
       const o = S.outfits.get(id); if(!o) break;
       store.saveOutfit({...o, prevWorn:o.lastWorn ?? null, lastWorn:tomorrowKey()});
       store.saveSettings({planned:{date:tomorrowKey(), outfitId:id}});
-      toast(`C'est noté pour ${dayWord()}.`); break;
+      toast(tx(`C'est noté pour ${dayWord()}.`, `Validé pour ${dayWord()} 👌`)); break;
     }
     case 'unplan': {
       const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId);
@@ -2267,7 +2429,7 @@ document.addEventListener('click', e => {
     case 'shuffle-ok': {
       const w = tomorrowWeather(), n = [...S.outfits.values()].filter(o => /^Tenue au hasard/.test(o.name || '')).length + 1;
       store.saveOutfit({id:uid('o'), name:`Tenue au hasard ${n}`, pieceIds:S.shuffle, bands: w ? [w.band] : [], rainOk: !!(w && w.rain), createdAt:Date.now(), sizeAdj:{...(S.shuffleAdj || {})}});
-      S.shuffle = null; toast('Tenue enregistrée dans Tenues (tu peux la renommer).'); render(); break;
+      S.shuffle = null; toast(tx('Tenue enregistrée dans Tenues (tu peux la renommer).', 'Adjugé ! Rangée dans Tenues 🎲')); render(); break;
     }
     case 'adjust': S.adjustKey = S.adjustKey === el.dataset.key ? null : el.dataset.key; render(); break;
     case 'size': {
@@ -2284,7 +2446,7 @@ document.addEventListener('click', e => {
     case 'dirty-planned': {
       const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId); if(!o) break;
       (o.pieceIds||[]).forEach(pid => { const p = S.pieces.get(pid); if(p && !p.dirty) store.savePiece({...p, dirty:true}); });
-      toast('Pièces mises au sale.'); break;
+      toast(tx('Pièces mises au sale.', 'Direction la machine 🧺')); break;
     }
   }
 });

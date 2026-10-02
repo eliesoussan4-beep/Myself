@@ -175,7 +175,8 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .photo-drop{cursor:default}
 .checker{background-color:var(--sunk);background-image:conic-gradient(var(--line) 25%,transparent 0 50%,var(--line) 0 75%,transparent 0);background-size:18px 18px}
 .cut-tools{margin:-8px 0 12px}
-.sil-wrap{background:var(--sunk);border-radius:16px;padding:16px 12px}
+.sil-wrap{background:var(--sunk);border-radius:16px;padding:16px 12px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;box-sizing:content-box;height:var(--silh, 58vh)}
+.sil-wrap .sil{flex:none}
 .sil{position:relative;margin:0 auto;container-type:inline-size}
 .sil .legs{position:absolute;border:0;background:none;padding:0;cursor:pointer}
 .sil .legs svg{display:block}
@@ -222,10 +223,18 @@ fieldset{border:0;margin:0 0 16px;padding:0}
 .rt-row .chip-btn[aria-pressed="true"]{background:#fff;color:#111}
 .rt-hint{margin:0;font-size:13px;color:rgba(255,255,255,.7)}
 .cut-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px -16px 0;padding:0 16px 4px;scroll-padding:0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.carousel{display:flex;align-items:stretch;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px -16px 0;padding:0 calc((100vw - min(58vw, 300px)) / 2) 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .carousel::-webkit-scrollbar{display:none}
-.carousel .slide{flex:0 0 calc(100% - 24px);scroll-snap-align:start;margin-top:0}
-.carousel .slide:only-child{flex-basis:100%}
+.carousel .slide{flex:0 0 min(58vw, 300px);scroll-snap-align:center;margin-top:0;padding:12px;transition:opacity .25s,transform .25s;opacity:.55;transform:scale(.94)}
+.carousel .slide.center{opacity:1;transform:none}
+.carousel .slide h2{font-size:18px}
+.carousel .slide .why{font-size:12px;margin-bottom:8px}
+.carousel .slide .best{font-size:11px;padding:2px 7px}
+.carousel .slide .btn{font-size:14px;padding:9px 10px}
+.carousel .slide .chip-btn{font-size:12px;padding:5px 9px}
+.carousel .slide .sil-wrap{padding:8px 6px}
+.carousel .slide{--silh:30vh;height:calc(var(--silh) + 204px);box-sizing:border-box}
+.shuffle-card{--silh:30vh}
 .best{font-size:12px;font-weight:600;color:var(--denim);background:var(--denim-soft);border-radius:99px;padding:3px 9px;white-space:nowrap}
 .dots{display:flex;justify-content:center;gap:6px;margin:12px 0 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:width .2s,background .2s}
@@ -253,20 +262,20 @@ details.adv[open] summary{color:var(--ink)}
 .set-h{font-size:16px;margin:4px 0 8px}
 .home-pad{height:14px}
 .back{border:0;background:none;color:var(--denim);font-weight:600;font-size:15px;padding:14px 0 0;cursor:pointer}
-.wx{border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:14px 16px;margin:0 0 14px}
-.wx-open{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:0;background:none;padding:0;cursor:pointer;color:var(--ink)}
-.wx-days{display:flex;gap:6px;margin-top:12px}
-.wx-days .chip-btn{flex:1;justify-content:center}
+.wx{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:14px 12px 14px 16px;margin:0 0 14px}
+.wx-open{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;text-align:left;border:0;background:none;padding:0;cursor:pointer;color:var(--ink)}
+.wx-days{display:flex;flex-direction:column;gap:6px;flex:none}
+.wx-days .chip-btn{justify-content:center;min-width:104px;padding:8px 10px}
 .wd-head{display:flex;align-items:center;gap:12px;margin:0 0 10px}
 .wd-big{font-size:46px;line-height:1}
 .wd-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
 .wd-ico{width:24px;text-align:center}
 .wd-l{flex:1;color:var(--muted)}
 .wd-v{font-weight:600}
-.wx-day{font-size:14px;color:var(--muted);font-weight:500;text-transform:none}
+.wx-day{font-size:17px;color:var(--ink);font-weight:600;text-transform:none}
 .wx-main{display:flex;align-items:baseline;gap:12px;margin:2px 0}
-.wx-ico{font-size:52px;line-height:1;align-self:center}
-.wx-temp{font-family:var(--display);font-size:60px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.wx-ico{font-size:44px;line-height:1;align-self:center}
+.wx-temp{font-family:var(--display);font-size:52px;font-weight:800;line-height:1;letter-spacing:-.03em}
 .wx-word{font-size:44px}
 .wx-min{font-size:22px;color:var(--muted);font-weight:600}
 .wx-sub{font-size:14px;color:var(--muted)}
@@ -281,6 +290,52 @@ details.adv[open] summary{color:var(--ink)}
 .city-btn{display:flex;flex-direction:column;align-items:flex-start;text-align:left;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:10px 12px;color:var(--ink);cursor:pointer}
 .city-btn span{font-size:13px;color:var(--muted)}
 #cityIn{width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:11px 12px;font-size:16px}
+.locks{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;margin:4px -2px 8px;padding:0 2px 2px;scrollbar-width:none}
+.locks::-webkit-scrollbar{display:none}
+.lock{flex:none;white-space:nowrap}
+.lock{border:1px solid var(--line);background:var(--sunk);border-radius:99px;padding:6px 11px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.lock.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
+:root{--today:#e8962e;--today-soft:#fff1dc;--tomorrow:#7b5cd6;--tomorrow-soft:#efe9ff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--today:#f0a648;--today-soft:#3b2c15;--tomorrow:#a58cf0;--tomorrow-soft:#2a2342}}
+:root[data-theme="dark"]{--today:#f0a648;--today-soft:#3b2c15;--tomorrow:#a58cf0;--tomorrow-soft:#2a2342}
+.slide.chosen-today{background:var(--today-soft);border:2px solid var(--today)}
+.slide.chosen-tomorrow{background:var(--tomorrow-soft);border:2px solid var(--tomorrow)}
+.badge-today{background:var(--today);color:#fff}
+.badge-tomorrow{background:var(--tomorrow);color:#fff}
+.day-actions .btn.on-today{background:var(--today);border-color:var(--today);color:#fff}
+.day-actions .btn.on-tomorrow{background:var(--tomorrow);border-color:var(--tomorrow);color:#fff}
+.laundry-btn{flex:none;padding:9px 8px}
+.toggle-ph{visibility:hidden}
+.look-head h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.look-head .best{flex:none}
+.carousel .look-head{flex-wrap:nowrap;align-items:center}
+.carousel .slide{display:flex;flex-direction:column}
+.carousel .slide .day-actions{margin-top:auto;padding-top:10px}
+.carousel .slide .why{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em}
+.day-actions{flex-wrap:nowrap;gap:6px}
+.day-actions .btn{font-size:12.5px;padding:9px 4px;min-width:0;white-space:nowrap}
+.carousel.pair{padding:0 calc((100vw - min(58vw, 300px)) / 2) 4px;margin-bottom:14px}
+.carousel.pair .slide{scroll-snap-align:center}
+.carousel.pair .slide{opacity:1;transform:none}
+.side-card{overflow-y:auto}
+.side-h{font-size:14px;margin:4px 0 8px;color:var(--muted);text-transform:none}
+.side-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.side-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:6px 8px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.side-row.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
+.side-row.dirty{background:var(--today-soft);border-color:var(--today)}
+.sr-thumb{width:30px;height:36px;flex:none;border-radius:6px;background:var(--surface);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.sr-thumb img{width:100%;height:100%;object-fit:contain}
+.sr-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-check{width:20px;text-align:center}
+.side-tomorrow .side-row.dirty{background:var(--tomorrow-soft);border-color:var(--tomorrow)}
+.worn-btn{width:100%;margin:0 0 10px;font-size:15px;background:var(--today-soft);border-color:var(--today)}
+.worn-done{display:flex;justify-content:space-between;gap:10px;width:100%;margin:0 0 10px;padding:10px 14px;border:1px dashed var(--line);border-radius:12px;background:none;color:var(--muted);font-size:13px;cursor:pointer;text-align:left}
+.worn-done b{color:var(--ink)}
+.w-select{width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:11px 12px;font-size:15px;color:var(--ink)}
+.feels{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.feel{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:8px 2px;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;line-height:1.15;text-align:center}
+.feel .fe{font-size:24px}
+.feel.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -315,7 +370,7 @@ details.adv[open] summary{color:var(--ink)}
 /* Ton de l'app : tx(sobre, ludique). La version sobre est l'ancien texte, gardé tel quel.
    Réglages → « Ton de l'app » permet de revenir au sobre à tout moment. */
 const tx = (sobre, fun) => ((typeof S !== 'undefined' && S.settings && S.settings.tone === 'sobre') ? sobre : fun);
-const APP_VERSION = 38;
+const APP_VERSION = 43;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -384,7 +439,9 @@ const todayKey = () => dayKey(new Date());
    Le sélecteur Aujourd'hui / Demain permet de forcer l'un ou l'autre. */
 const SWITCH_HOUR = 12;
 const dayOffset = () => (S.dayChoice ?? 0);
-const dayWord = () => dayOffset() === 0 ? "aujourd'hui" : 'demain';
+const dayWord = () => dayOffset() === 0 ? "aujourd'hui" : dayOffset() === 1 ? 'demain' : new Date(Date.now() + 2 * 864e5).toLocaleDateString('fr-FR', {weekday:'long'});
+const keyIn = n => { const d = new Date(); d.setDate(d.getDate() + n); return dayKey(d); };
+const plansOf = () => { const pl = {...(S.settings.plans || {})}; const old = S.settings.planned; if(old && old.date && !pl[old.date]) pl[old.date] = old.outfitId; return pl; };
 const tomorrowDate = () => { const d = new Date(); d.setDate(d.getDate() + dayOffset()); return d; };
 const tomorrowKey = () => dayKey(tomorrowDate());
 function daysSince(key){
@@ -1321,6 +1378,33 @@ async function refreshWeather(){
 }
 
 /* ---------- Suggestion ---------- */
+/* ---------- Journal du porté ----------
+   Chaque soir (ou quand tu veux), tu dis ce que tu as porté et si tu as eu froid ou chaud.
+   L'app garde la météo du jour avec. Ensuite, pour chaque tenue (ou à défaut chaque pièce),
+   elle estime la température où tu es bien : porté à 12° avec « j'ai eu froid » ⇒ plutôt faite
+   pour ~18° ; « parfait » ⇒ ~12°. Les propositions privilégient ce qui colle à la température du jour. */
+const FEELS = [['froid', '🥶', "J'ai eu froid", -2], ['frais', '😬', 'Un peu froid', -1], ['parfait', '🙂', 'Parfait', 0], ['tiede', '😅', 'Un peu chaud', 1], ['chaud', '🥵', "J'ai eu chaud", 2]];
+const feelVal = id => (FEELS.find(f => f[0] === id) || [0, 0, 0, 0])[3];
+const logsOf = () => S.settings.wearLog || [];
+const dayTemp = w => w ? (w.feelMax != null ? (w.feelMax + w.feelMin) / 2 * 0.5 + (w.max + w.min) / 2 * 0.5 : (w.max + w.min) / 2) : null;
+function comfortTemp(pieceIds){
+  // température « idéale » estimée d'après les retours : tenue identique d'abord, sinon pièces en commun
+  // la chaleur vient surtout des hauts : on compare les hauts entre eux (le pantalon et les chaussures changent peu)
+  const topsOf = ids => ids.filter(id => { const p = S.pieces.get(id); return p && (LAYER[p.category] in LAYER_RANK); });
+  const logs = logsOf().filter(l => l.temp != null && l.feel), set = new Set(pieceIds), tops = new Set(topsOf(pieceIds));
+  const est = l => l.temp - feelVal(l.feel) * 4;
+  const same = logs.filter(l => l.pieceIds.length === set.size && l.pieceIds.every(id => set.has(id)));
+  if(same.length) return {t: same.reduce((a, l) => a + est(l), 0) / same.length, n: same.length, exact: true};
+  let wsum = 0, tsum = 0;
+  for(const l of logs){
+    const lt = topsOf(l.pieceIds); if(!lt.length || !tops.size) continue;
+    const common = lt.filter(id => tops.has(id)).length; if(!common) continue;
+    const wgt = common / Math.max(tops.size, lt.length);
+    if(wgt < 0.5) continue;
+    wsum += wgt; tsum += wgt * est(l);
+  }
+  return wsum ? {t: tsum / wsum, n: wsum, exact: false} : null;
+}
 function rankOutfits(w){
   const bi = w ? BANDS.findIndex(b => b.id === w.band) : -1;
   const all = [...S.outfits.values()].map(o => {
@@ -1334,6 +1418,13 @@ function rankOutfits(w){
       else if(ob.some(i => Math.abs(i - bi) === 1)) score += 3;
       else if(ob.length) score -= 4;
       if(w.rain){ if(o.rainOk){ score += 3; why.push('ok sous la pluie'); } else score -= 5; }
+    }
+    // tes retours (froid / chaud) priment sur les catégories de temps
+    const T = dayTemp(w), ct = T != null ? comfortTemp(o.pieceIds || []) : null;
+    if(ct){
+      const gap = T - ct.t;
+      score += Math.max(-10, 9 - Math.abs(gap) * 1.3) * Math.min(1.5, 0.6 + ct.n * 0.3);
+      why.unshift(Math.abs(gap) <= 3 ? `d'après tes retours, idéale vers ${Math.round(ct.t)}°` : gap > 0 ? `d'après tes retours, un peu chaude pour ${Math.round(T)}°` : `d'après tes retours, un peu légère pour ${Math.round(T)}°`);
     }
     const d = daysSince(o.lastWorn);
     if(d === null){ score += 7; why.push('jamais portée'); }
@@ -1361,13 +1452,16 @@ function render(){
   app.innerHTML = sw + body;
   const car = document.getElementById('carousel');
   if(car){
-    const step = () => { const sl = car.querySelector('.slide'); return sl ? sl.offsetWidth + 12 : car.clientWidth; };
+    const step = () => { const sl = car.querySelector('.slide'); return sl ? sl.offsetWidth + 10 : car.clientWidth; };
+    const mark = n => car.querySelectorAll('.slide').forEach((el, k) => el.classList.toggle('center', k === n));
+    mark(+car.dataset.start || 0);
     car.scrollLeft = (+car.dataset.start || 0) * step();
     let raf = 0;
     car.addEventListener('scroll', () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const n = Math.round(car.scrollLeft / step());
+        mark(n);
         if(n !== S.alt){ S.alt = n; document.querySelectorAll('.dots .dot').forEach((d, k) => d.classList.toggle('on', k === n)); }
       });
     }, {passive:true});
@@ -1453,7 +1547,7 @@ function legsSVG(a, W, H, legs){
   }).join('');
   return `<svg viewBox="0 0 ${w.toFixed(1)} ${h.toFixed(1)}" preserveAspectRatio="none" width="100%" height="100%">${parts}</svg>`;
 }
-const HEADS = ['😎','🙂','😄','🤓','🥸','😏','🤠','😴','🤩','😁','🥶','🤪','😇','🧐','😌'];
+const HEADS = ['😎','🙂','😄','🤓','😏','🙃','🤩','😁','🥶','🤪','🧐','😌','😜','😋','🥸'];   // visages ronds seulement
 function silhouette(pcsIn, openMode){
   // largeur du pantalon de la tenue : sert d'étalon pour les hauts
   const pantsP = pcsIn.find(p => LAYER[p.category] === 'bottom' && p.category !== 'short' && p.photo && p.photo.cut);
@@ -1613,7 +1707,7 @@ function silhouette(pcsIn, openMode){
     return `<img src="${esc(it.p.photo.cut.dataUrl)}" alt="${esc(it.p.name)}" style="left:${((it.x-minX)/TW*100).toFixed(2)}%;top:${((it.y-minY)/TH*100).toFixed(2)}%;width:${(it.w/TW*100).toFixed(2)}%;height:${(it.h/TH*100).toFixed(2)}%;${clip}${rot}">`;
   }).join('');
   const acc = pcs.filter(p => L(p) === 'acc');
-  return `<div class="sil-wrap"><div class="sil" style="aspect-ratio:${TW.toFixed(4)}/${TH.toFixed(4)};width:min(100%, calc(58vh * ${ratio.toFixed(4)}))">${imgs}</div>
+  return `<div class="sil-wrap"><div class="sil" style="aspect-ratio:${TW.toFixed(4)}/${TH.toFixed(4)};width:min(100%, calc(var(--silh, 58vh) * ${ratio.toFixed(4)}))">${imgs}</div>
     ${acc.length ? `<div class="strip" style="justify-content:center">${acc.map(p => `<div class="th">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="${esc(p.name)}">`:ICON.hanger}</div>`).join('')}</div>` : ''}</div>`;
 }
 
@@ -1633,10 +1727,12 @@ function lookView(pcs, opts){
     const fem = opener && ['chemise','veste'].includes(opener.category);
     const toggle = opener ? `<div class="band-row" style="margin:0 0 10px" role="group" aria-label="Porter la ${esc(nm)}">
       ${[['open', fem ? 'Ouverte' : 'Ouvert'], ['closed', fem ? 'Fermée' : 'Fermé']].map(([m, l]) =>
-        `<button type="button" class="chip-btn" data-act="openmode" data-mode="${m}" aria-pressed="${mode === m}">${l}</button>`).join('')}</div>` : '';
+        `<button type="button" class="chip-btn" data-act="openmode" data-mode="${m}" aria-pressed="${mode === m}">${l}</button>`).join('')}</div>` : '<div class="band-row toggle-ph" aria-hidden="true" style="margin:0 0 10px"><span class="chip-btn">·</span></div>';
     // Réglage de la taille de chaque pièce dans la tenue (mémorisé sur la pièce, donc valable partout)
     const key = pcs.map(p => p.id).join('|');
     const sized = pcs.filter(p => p.photo && p.photo.cut && LAYER[p.category] !== 'acc');
+    if(opts && opts.bare) return '<div class="band-row toggle-ph" aria-hidden="true" style="margin:0 0 10px"><span class="chip-btn">·</span></div>' + sil;   // même hauteur que les propositions
+    if(opts && opts.controls) return toggle;
     if(!(opts && opts.adjust)) return toggle + sil;
     const panel = S.adjustKey === key ? `<div class="adjust">
       ${sized.map(p => `<div class="adj-row"><span class="adj-name">${esc(p.name)}</span>
@@ -1646,6 +1742,7 @@ function lookView(pcs, opts){
       <button type="button" class="btn" data-act="size-reset" style="margin-top:8px;width:100%">Tout remettre à 100 %</button>
       <p class="hint" style="margin:8px 0 0">Ces tailles ne valent que pour cette tenue au hasard (et la suivent si tu la valides).</p></div>` : '';
     const adjBtn = `<button type="button" class="linkish" data-act="adjust" data-key="${esc(key)}">${S.adjustKey === key ? 'Terminer le réglage des tailles' : 'Ajuster les tailles'}</button>`;
+    if(opts && opts.adjustOnly) return adjBtn + panel;
     return toggle + sil + adjBtn + panel;
   }
   const missing = pcs.filter(p => LAYER[p.category] !== 'acc' && !(p.photo && p.photo.cut)).length;
@@ -1655,7 +1752,7 @@ function lookView(pcs, opts){
 /* ---------- Tenue au hasard ----------
    Compose une tenue plausible avec des pièces propres, selon la météo du jour choisi :
    un haut de base, un bas, des chaussures, et des couches en plus quand il fait frais ou froid. */
-function randomOutfit(){
+function randomOutfit(locked){
   const clean = [...S.pieces.values()].filter(p => !p.dirty && p.photo && p.photo.cut);
   const of = (...cats) => clean.filter(p => cats.includes(p.category));
   const pick = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
@@ -1691,21 +1788,115 @@ function randomOutfit(){
     const o = pick(of('manteau', 'veste')); if(o && band !== 'chaud') ids.push(o.id);
   }
   const shoes = pick(of('chaussures')); if(shoes) ids.push(shoes.id);
+  // pièces verrouillées : elles restent, et remplacent ce qui occupait la même place (haut, bas, couche…)
+  if(locked && locked.size){
+    const slot = id => { const p = S.pieces.get(id); return p ? (LAYER[p.category] || 'acc') : 'acc'; };
+    const lockedIds = [...locked].filter(id => S.pieces.has(id));
+    const taken = new Set(lockedIds.map(slot));
+    return [...lockedIds, ...ids.filter(id => !locked.has(id) && !taken.has(slot(id)))];
+  }
   return ids;
 }
+function pairRow(a, b, extra){ return `<div class="carousel pair ${extra || ''}">${a}${b}</div>`; }
 function shuffleUI(){
   if(S.pieces.size < 2) return '';
   if(!S.shuffle) return `<button type="button" class="btn shuffle-btn" data-act="shuffle">${tx('🎲 Tenue au hasard', '🎲 Surprends-moi')}</button>`;
-  const pcs = S.shuffle.map(id => S.pieces.get(id)).filter(Boolean);
-  return `<article class="look-card shuffle-card">
-    <div class="look-head"><h2>Tenue au hasard</h2><span class="best">🎲</span></div>
-    <p class="why">${esc(pcs.map(p => p.name).join(' · '))}</p>
-    ${lookView(withAdj(pcs, S.shuffleAdj), {adjust:true})}
-    <div class="look-actions">
-      <button class="btn primary grow" type="button" data-act="shuffle-ok">Valider</button>
-      <button class="btn" type="button" data-act="shuffle">Relancer</button>
-      <button class="btn" type="button" data-act="shuffle-cancel">Annuler</button>
-    </div></article>`;
+  const pcs = withAdj(S.shuffle.map(id => S.pieces.get(id)).filter(Boolean), S.shuffleAdj);
+  const left = `<article class="look-card slide shuffle-card">
+      <div class="look-head"><h2>${tx('Tenue au hasard', 'Surprise !')}</h2><span class="best">🎲</span></div>
+      <p class="why">${esc(pcs.map(p => p.name).join(' · '))}</p>
+      ${lookView(pcs, {bare:true})}
+      <div class="look-actions day-actions"><button class="btn primary grow" type="button" data-act="shuffle">🎲 Relancer</button></div>
+    </article>`;
+  const ctrl = lookView(pcs, {controls:true});
+  const right = `<article class="look-card slide side-card">
+      <div class="look-actions" style="margin:0 0 12px">
+        <button class="btn primary grow" type="button" data-act="shuffle-ok">Valider</button>
+        <button class="btn grow" type="button" data-act="shuffle-cancel">Annuler</button>
+      </div>
+      <h3 class="side-h">${tx('Garder en relançant', 'Je garde 🔒')}</h3>
+      <div class="side-list">${pcs.map(p => { const on = S.shuffleLocks && S.shuffleLocks.has(p.id);
+        return `<button type="button" class="side-row${on ? ' on' : ''}" data-act="lock" data-id="${esc(p.id)}" aria-pressed="${!!on}"><span class="sr-ico">${on ? '🔒' : '🔓'}</span><span class="sr-name">${esc(p.name)}</span></button>`; }).join('')}</div>
+      ${ctrl && !ctrl.includes('toggle-ph') ? `<h3 class="side-h">Porter</h3>${ctrl}` : ''}
+      ${lookView(pcs, {adjust:true, adjustOnly:true})}
+    </article>`;
+  return pairRow(left, right, 'shuffle-pair');
+}
+/* Tenues prévues (aujourd'hui, demain) : la tenue + une carte pour cocher ce qui part au sale */
+function wornUI(){
+  if(!S.pieces.size) return '';
+  const k = keyIn(0), log = logsOf().find(l => l.date === k);
+  if(log){
+    const f = FEELS.find(x => x[0] === log.feel);
+    return `<button type="button" class="worn-done" data-act="worn"><span>📝 ${tx('Noté pour aujourd\'hui', 'Journée notée')} : <b>${esc(log.label)}</b></span><span>${f ? f[1] + ' ' + f[2] : ''}</span></button>`;
+  }
+  return `<button type="button" class="btn worn-btn" data-act="worn">📝 ${tx("Qu'as-tu porté aujourd'hui ?", "Qu'as-tu porté aujourd'hui ? Dis-moi tout")}</button>`;
+}
+function wornSheet(){
+  const k = keyIn(0), plans = plansOf(), prev = logsOf().find(l => l.date === k);
+  const plannedO = S.outfits.get(plans[k]);
+  let chosen = new Set(prev ? prev.pieceIds : plannedO ? plannedO.pieceIds : []);
+  let feel = prev ? prev.feel : null;
+  const w = S.weatherDays[k];
+  const groups = CAT_GROUPS.map(([g, cats]) => [g, [...S.pieces.values()].filter(p => cats.includes(p.category))]).filter(([, l]) => l.length);
+  openSheet(`<form class="sheet" novalidate>
+    <div class="sheet-scroll">
+      <h2>${tx("Ce que tu as porté", "Aujourd'hui, t'avais quoi ?")}</h2>
+      <p class="hint" style="margin:-6px 0 12px">${w ? `${esc(cityOf().name)} · ${w.min}° → ${w.max}°${w.feelMin != null ? ` (ressenti ${w.feelMin}° → ${w.feelMax}°)` : ''} · ☔ ${w.rainProb} %` : 'Météo du jour indisponible : ton retour sera enregistré sans température.'}</p>
+      ${plannedO ? `<button type="button" class="btn" data-w="planned" style="width:100%;margin-bottom:10px">✓ ${tx('La tenue prévue', 'Ce que j\'avais prévu')} : ${esc(plannedO.name)}</button>` : ''}
+      <label class="field"><span>Ou une de tes tenues</span><select id="wornOutfit" class="w-select"><option value="">—</option>${[...S.outfits.values()].map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>
+      <span class="legend">Pièces portées</span>
+      ${groups.map(([g, list]) => `<div class="cat-group"><span class="cat-g">${g}</span><div class="picker">${list.map(p => `<label class="pick"><input type="checkbox" name="wp" value="${esc(p.id)}" ${chosen.has(p.id) ? 'checked' : ''}><span class="box"><span class="ph">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}</div></div>`).join('')}
+      <span class="legend" style="margin-top:14px">Et alors ?</span>
+      <div class="feels">${FEELS.map(([id, e, l]) => `<button type="button" class="feel${feel === id ? ' on' : ''}" data-feel="${id}" aria-pressed="${feel === id}"><span class="fe">${e}</span><span>${l}</span></button>`).join('')}</div>
+    </div>
+    <div class="sheet-actions">
+      ${prev ? '<button class="btn danger" type="button" data-w="del">Effacer</button>' : ''}
+      <button class="btn grow" type="button" data-close>Annuler</button>
+      <button class="btn primary grow" type="submit">Enregistrer</button>
+    </div></form>`, form => {
+    const ids = [...form.querySelectorAll('input[name=wp]:checked')].map(i => i.value);
+    if(!ids.length){ toast('Coche au moins une pièce.'); return false; }
+    if(!feel){ toast('Dis-moi si tu as eu froid, chaud ou si c\'était parfait.'); return false; }
+    const match = [...S.outfits.values()].find(o => o.pieceIds.length === ids.length && o.pieceIds.every(id => ids.includes(id)));
+    const entry = {date:k, pieceIds:ids, outfitId: match ? match.id : null, label: match ? match.name : ids.map(id => S.pieces.get(id).name).slice(0, 3).join(', ') + (ids.length > 3 ? '…' : ''),
+      feel, temp:dayTemp(w), weather: w ? {min:w.min, max:w.max, feelMin:w.feelMin, feelMax:w.feelMax, rainProb:w.rainProb, code:w.code, city:cityOf().name} : null};
+    store.saveSettings({wearLog:[...logsOf().filter(l => l.date !== k), entry].slice(-400)});
+    if(match) store.saveOutfit({...match, lastWorn:k});
+    toast(tx('Merci, c\'est noté.', feel === 'parfait' ? 'Noté, parfait 👌' : 'Noté, je m\'en souviendrai 🧠'));
+  }, form => {
+    const sync = idsArr => form.querySelectorAll('input[name=wp]').forEach(i => i.checked = idsArr.includes(i.value));
+    form.querySelector('#wornOutfit').addEventListener('change', e => { const o = S.outfits.get(e.target.value); if(o) sync(o.pieceIds); });
+    form.addEventListener('click', e => {
+      const f = e.target.closest('[data-feel]');
+      if(f){ feel = f.dataset.feel; form.querySelectorAll('[data-feel]').forEach(b => { b.classList.toggle('on', b === f); b.setAttribute('aria-pressed', b === f); }); return; }
+      const a = e.target.closest('[data-w]'); if(!a) return;
+      if(a.dataset.w === 'planned' && plannedO) sync(plannedO.pieceIds);
+      if(a.dataset.w === 'del'){ store.saveSettings({wearLog:logsOf().filter(l => l.date !== k)}); sheet.close(); toast('Effacé.'); }
+    });
+  });
+}
+function plannedUI(){
+  const plans = plansOf(), out = [];
+  [[0, 'today', '☀️ Aujourd\'hui'], [1, 'tomorrow', '🌙 Demain']].forEach(([n, kind, label]) => {
+    const o = S.outfits.get(plans[keyIn(n)]); if(!o) return;
+    const pcs = withAdj((o.pieceIds || []).map(id => S.pieces.get(id)).filter(Boolean), o.sizeAdj);
+    const left = `<article class="look-card slide chosen-${kind}">
+        <div class="look-head"><h2>${esc(o.name)}</h2><span class="best badge-${kind}">${label}</span></div>
+        <p class="why">${n === 0 ? tx("Ta tenue d'aujourd'hui.", 'Ta tenue du jour 😎') : tx('Ta tenue de demain.', 'Déjà prête pour demain 👌')}</p>
+        ${lookView(pcs, {bare:true})}
+        <div class="look-actions day-actions"><button class="btn grow" type="button" data-act="plan" data-id="${esc(o.id)}" data-day="${n}">${tx('Retirer', 'Changer d\'avis')}</button></div>
+      </article>`;
+    const ctrl = lookView(pcs, {controls:true});
+    const right = `<article class="look-card slide side-card side-${kind}">
+        <h3 class="side-h">${tx('Au sale ?', 'Au sale ? 🧺')}</h3>
+        <div class="side-list">${pcs.map(p => `<button type="button" class="side-row${p.dirty ? ' dirty' : ''}" data-act="toggle-dirty" data-id="${esc(p.id)}" aria-pressed="${!!p.dirty}">
+          <span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(p.name)}</span><span class="sr-check">${p.dirty ? '🧺' : ''}</span></button>`).join('')}</div>
+        ${ctrl && !ctrl.includes('toggle-ph') ? `<h3 class="side-h">Porter</h3>${ctrl}` : ''}
+      </article>`;
+    out.push(pairRow(left, right, 'plan-pair'));
+  });
+  return out.join('');
 }
 
 const WMO = c => c == null ? null :
@@ -1745,8 +1936,10 @@ function homeTop(){
         <span class="wx-main"><span class="wx-ico">${weatherIcon(w)}</span>${main}</span>
         <span class="wx-sub">${sub}</span>
       </button>
-      <div class="wx-days">${[0, 1, 2].map(n => `<button type="button" class="chip-btn" data-act="day" data-off="${n}" aria-pressed="${off === n}">${dayLabel(n)}</button>`).join('')}</div>
+      <div class="wx-days" role="group" aria-label="Jour">${[0, 1, 2].map(n => `<button type="button" class="chip-btn" data-act="day" data-off="${n}" aria-pressed="${off === n}">${dayLabel(n)}</button>`).join('')}</div>
     </div>
+    ${plannedUI()}
+    ${wornUI()}
     ${shuffleUI()}
     <nav class="home-nav" aria-label="Rubriques">
       <button type="button" data-section="tenues"><span class="hn-ico">👔</span>Tenues<small>${S.outfits.size}</small></button>
@@ -1759,30 +1952,33 @@ function renderDemain(){
   if(!S.pieces.size) return top + `<div class="empty"><h3>${tx('Commence par tes pièces', 'Penderie vide 👀')}</h3><p>${tx('Prends en photo tes vêtements un par un, puis assemble-les en tenues.', 'Prends tes fringues en photo une par une, je m\'occupe du reste.')}</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
   if(!S.outfits.size) return top + `<div class="empty"><h3>${tx('Aucune tenue pour l\'instant', 'Pas encore de tenue 🤷')}</h3><p>${tx('Assemble tes pièces en tenues : c\'est parmi elles que je choisirai.', 'Assemble quelques pièces, et chaque matin je te dirai quoi mettre.')}</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
 
-  const planned = S.settings.planned && S.settings.planned.date === tomorrowKey() ? S.outfits.get(S.settings.planned.outfitId) : null;
-  if(planned){
-    const pcs = (planned.pieceIds||[]).map(id => S.pieces.get(id)).filter(Boolean);
-    const anyClean = pcs.some(p => !p.dirty);
-    return top + `<article class="look-card">
-      <div class="look-head"><h2>${esc(planned.name)}</h2><span class="planned">Prévue</span></div>
-      <p class="why">C'est la tenue que tu as choisie pour ${dayWord()}.</p>
-      ${lookView(withAdj(pcs, planned.sizeAdj))}
-      <div class="look-actions">
-        ${anyClean ? `<button class="btn grow" type="button" data-act="dirty-planned">Mettre au sale après</button>` : `<span class="muted" style="align-self:center;flex:1">Pièces déjà au sale</span>`}
-        <button class="btn" type="button" data-act="unplan">Changer</button>
-      </div></article>`;
-  }
-
   const {ok, blocked} = rankOutfits(w);
   if(!ok.length) return top + `<div class="empty"><h3>${tx('Tout est au sale', 'Tout est au sale 🧺')}</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
-  const list = ok.slice(0, 12);
+  // La tenue prévue pour le jour affiché passe en premier, surlignée ; les autres restent proposées
+  const plans = plansOf(), kDay = tomorrowKey(), kToday = keyIn(0), kTomorrow = keyIn(1);
+  const plannedId = plans[kDay];
+  let list = ok.slice(0, 12);
+  list = list.filter(x => x.o.id !== plans[kToday] && x.o.id !== plans[kTomorrow]);
+  if(!list.length) return top;
+  const firstFree = list.findIndex(x => x.o.id !== plans[kToday] && x.o.id !== plans[kTomorrow]);
   const cur = Math.min(S.alt, list.length - 1);
-  const slides = list.map((x, n) => `<article class="look-card slide" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
-      <div class="look-head"><h2>${esc(x.o.name)}</h2>${n === 0 ? `<span class="best">${tx('Meilleur choix', '⭐ Mon préféré')}</span>` : ''}</div>
-      <p class="why">${esc(sentence(x.why))}</p>
+  const slides = list.map((x, n) => {
+    const isToday = plans[kToday] === x.o.id, isTomorrow = plans[kTomorrow] === x.o.id;
+    const kind = isToday ? 'today' : isTomorrow ? 'tomorrow' : '';
+    const badge = isToday ? `<span class="best badge-today">☀️ ${tx("Aujourd'hui", "Aujourd'hui")}</span>` : isTomorrow ? `<span class="best badge-tomorrow">🌙 Demain</span>`
+      : n === firstFree ? `<span class="best">${tx('Meilleur choix', '⭐ Mon préféré')}</span>` : '';
+    const anyClean = x.pcs.some(p => !p.dirty);
+    const why = isToday && isTomorrow ? tx("Prévue aujourd'hui et demain.", "Aujourd'hui ET demain, assumé 😏") : isToday ? tx("Ta tenue d'aujourd'hui.", "Ta tenue du jour 😎") : isTomorrow ? tx('Ta tenue de demain.', 'Déjà prête pour demain 👌') : sentence(x.why);
+    return `<article class="look-card slide${kind ? ' chosen-' + kind : ''}" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
+      <div class="look-head"><h2>${esc(x.o.name)}</h2>${badge}</div>
+      <p class="why">${esc(why)}</p>
       ${lookView(withAdj(x.pcs, x.o.sizeAdj))}
-      <div class="look-actions"><button class="btn primary grow" type="button" data-act="plan" data-id="${esc(x.o.id)}">${tx('Je la porte ' + dayWord(), 'Je mets ça ' + dayWord() + ' 👍')}</button></div>
-    </article>`).join('');
+      <div class="look-actions day-actions">
+        <button class="btn grow${isToday ? ' on-today' : ''}" type="button" data-act="plan" data-id="${esc(x.o.id)}" data-day="0" aria-pressed="${isToday}">Aujourd'hui</button>
+        <button class="btn grow${isTomorrow ? ' on-tomorrow' : ''}" type="button" data-act="plan" data-id="${esc(x.o.id)}" data-day="1" aria-pressed="${isTomorrow}">Demain</button>
+        ${isToday && anyClean ? `<button class="btn laundry-btn" type="button" data-act="dirty-planned" data-id="${esc(x.o.id)}" aria-label="Mettre au sale après la journée" title="Au sale après la journée">🧺</button>` : ''}
+      </div>
+    </article>`; }).join('');
   const nav = list.length > 1 ? `<div class="dots" aria-hidden="true">${list.map((_, n) => `<span class="dot${n === cur ? ' on' : ''}"></span>`).join('')}</div>
     <p class="hint swipe-hint">${tx(`Fais glisser pour voir les ${list.length} tenues possibles.`, `Glisse pour voir les ${list.length} options 👉`)}</p>` : '';
   return top + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
@@ -2394,6 +2590,7 @@ document.addEventListener('click', e => {
     case 'new-piece': pieceSheet(); break;
     case 'export': exportData(); break;
     case 'settings': settingsSheet(); break;
+    case 'worn': wornSheet(); break;
     case 'weather-sheet': weatherSheet(); fetchWeather().then(() => { if(sheet.open && sheet.querySelector('#cityIn') && !sheet.querySelector('#cityIn').value) weatherSheet(); }); break;
     case 'recut-all': recutAll(); break;
     case 'edit-piece': pieceSheet(S.pieces.get(id)); break;
@@ -2415,27 +2612,38 @@ document.addEventListener('click', e => {
     case 'another': S.alt++; render(); break;
     case 'plan': {
       const o = S.outfits.get(id); if(!o) break;
-      store.saveOutfit({...o, prevWorn:o.lastWorn ?? null, lastWorn:tomorrowKey()});
-      store.saveSettings({planned:{date:tomorrowKey(), outfitId:id}});
-      toast(tx(`C'est noté pour ${dayWord()}.`, `Validé pour ${dayWord()} 👌`)); break;
+      const n = +el.dataset.day || 0, k = keyIn(n), plans = plansOf(), label = n === 0 ? "aujourd'hui" : 'demain';
+      if(dayOffset() === n) S.alt = 0;   // la tenue choisie revient au début du carrousel
+      delete plans[undefined];
+      if(plans[k] === id){
+        // retoucher le même bouton : on annule
+        delete plans[k];
+        if(o.lastWorn === k) store.saveOutfit({...o, lastWorn:o.prevWorn ?? null});
+        store.saveSettings({plans, planned:null}); render(); toast(tx(`Plus rien de prévu ${label}.`, `Annulé pour ${label} 🙃`)); break;
+      }
+      const prev = plans[k] && S.outfits.get(plans[k]);
+      if(prev && prev.lastWorn === k) store.saveOutfit({...prev, lastWorn:prev.prevWorn ?? null});
+      plans[k] = id;
+      for(const key of Object.keys(plans)) if(key < keyIn(0)) delete plans[key];   // on oublie les jours passés
+      store.saveOutfit({...S.outfits.get(id), prevWorn:o.lastWorn ?? null, lastWorn:k});
+      store.saveSettings({plans, planned:null});
+      render(); toast(tx(`C'est noté pour ${label}.`, `Validé pour ${label} 👌`)); break;
     }
-    case 'unplan': {
-      const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId);
-      if(o && o.lastWorn === tomorrowKey()) store.saveOutfit({...o, lastWorn:o.prevWorn ?? null});
-      store.saveSettings({planned:null}); S.alt = 0; break;
-    }
+
     case 'openmode': store.saveSettings({openMode: el.dataset.mode}); break;
     case 'head': S.headShift = (S.headShift || 0) + 1; render(); break;
     case 'shuffle': {
-      const ids = randomOutfit();
+      const ids = randomOutfit(S.shuffle ? S.shuffleLocks : null);
+      if(!S.shuffle) S.shuffleLocks = new Set();
       if(!ids){ toast("Pas assez de pièces propres pour composer une tenue (il faut au moins un haut et un bas)."); break; }
       S.shuffle = ids; S.shuffleAdj = {}; S.adjustKey = null; render(); break;
     }
-    case 'shuffle-cancel': S.shuffle = null; render(); break;
+    case 'shuffle-cancel': S.shuffle = null; S.shuffleLocks = new Set(); render(); break;
+    case 'lock': { S.shuffleLocks = S.shuffleLocks || new Set(); if(S.shuffleLocks.has(id)) S.shuffleLocks.delete(id); else S.shuffleLocks.add(id); render(); break; }
     case 'shuffle-ok': {
       const w = tomorrowWeather(), n = [...S.outfits.values()].filter(o => /^Tenue au hasard/.test(o.name || '')).length + 1;
       store.saveOutfit({id:uid('o'), name:`Tenue au hasard ${n}`, pieceIds:S.shuffle, bands: w ? [w.band] : [], rainOk: !!(w && w.rain), createdAt:Date.now(), sizeAdj:{...(S.shuffleAdj || {})}});
-      S.shuffle = null; toast(tx('Tenue enregistrée dans Tenues (tu peux la renommer).', 'Adjugé ! Rangée dans Tenues 🎲')); render(); break;
+      S.shuffle = null; S.shuffleLocks = new Set(); toast(tx('Tenue enregistrée dans Tenues (tu peux la renommer).', 'Adjugé ! Rangée dans Tenues 🎲')); render(); break;
     }
     case 'adjust': S.adjustKey = S.adjustKey === el.dataset.key ? null : el.dataset.key; render(); break;
     case 'size': {
@@ -2450,7 +2658,7 @@ document.addEventListener('click', e => {
     }
     case 'legs': S.legShift = (S.legShift || 0) + 1; render(); break;
     case 'dirty-planned': {
-      const pl = S.settings.planned; const o = pl && S.outfits.get(pl.outfitId); if(!o) break;
+      const o = S.outfits.get(id || plansOf()[keyIn(0)]); if(!o) break;
       (o.pieceIds||[]).forEach(pid => { const p = S.pieces.get(pid); if(p && !p.dirty) store.savePiece({...p, dirty:true}); });
       toast(tx('Pièces mises au sale.', 'Direction la machine 🧺')); break;
     }

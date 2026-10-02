@@ -253,7 +253,16 @@ details.adv[open] summary{color:var(--ink)}
 .set-h{font-size:16px;margin:4px 0 8px}
 .home-pad{height:14px}
 .back{border:0;background:none;color:var(--denim);font-weight:600;font-size:15px;padding:14px 0 0;cursor:pointer}
-.wx{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:16px 18px;margin:0 0 14px;cursor:pointer;color:var(--ink)}
+.wx{border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:14px 16px;margin:0 0 14px}
+.wx-open{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:0;background:none;padding:0;cursor:pointer;color:var(--ink)}
+.wx-days{display:flex;gap:6px;margin-top:12px}
+.wx-days .chip-btn{flex:1;justify-content:center}
+.wd-head{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+.wd-big{font-size:46px;line-height:1}
+.wd-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+.wd-ico{width:24px;text-align:center}
+.wd-l{flex:1;color:var(--muted)}
+.wd-v{font-weight:600}
 .wx-day{font-size:14px;color:var(--muted);font-weight:500;text-transform:none}
 .wx-main{display:flex;align-items:baseline;gap:12px;margin:2px 0}
 .wx-ico{font-size:52px;line-height:1;align-self:center}
@@ -306,7 +315,7 @@ details.adv[open] summary{color:var(--ink)}
 /* Ton de l'app : tx(sobre, ludique). La version sobre est l'ancien texte, gardé tel quel.
    Réglages → « Ton de l'app » permet de revenir au sobre à tout moment. */
 const tx = (sobre, fun) => ((typeof S !== 'undefined' && S.settings && S.settings.tone === 'sobre') ? sobre : fun);
-const APP_VERSION = 37;
+const APP_VERSION = 38;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -1275,8 +1284,7 @@ function packCut(c, id, alpha){
 const PARIS = {lat:48.8566, lon:2.3522};
 S.weatherState = 'loading'; // loading | ok | blocked
 function tomorrowWeather(){
-  const k = tomorrowKey(), m = S.settings.manual;
-  if(m && m.date === k) return {band:m.band, rain:!!m.rain, source:'manual'};
+  const k = tomorrowKey();
   const a = S.weatherDays[k];
   if(a) return {band:bandFor(a.max), rain:a.rain, source:'auto', ...a};
   return null;
@@ -1284,7 +1292,7 @@ function tomorrowWeather(){
 const cityOf = () => S.settings.city || {name:'Paris', lat:PARIS.lat, lon:PARIS.lon};
 async function fetchWeather(){
   const C = cityOf();
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${C.lat}&longitude=${C.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=auto&forecast_days=2`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${C.lat}&longitude=${C.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,wind_gusts_10m_max,uv_index_max,sunrise,sunset&timezone=auto&forecast_days=3`;
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
   try{
     const r = await fetch(url, {signal:ctrl.signal});
@@ -1293,7 +1301,11 @@ async function fetchWeather(){
     S.weatherDays = {};
     d.time.forEach((day, i) => {
       const prob = d.precipitation_probability_max[i] ?? 0, mm = d.precipitation_sum[i] ?? 0;
-      S.weatherDays[day] = {date:day, max:Math.round(d.temperature_2m_max[i]), min:Math.round(d.temperature_2m_min[i]), rainProb:prob, rainMm:Math.round(mm*10)/10, rain: prob >= 50 || mm >= 1};
+      const v = (k2, f = x => x) => (d[k2] && d[k2][i] != null ? f(d[k2][i]) : null);
+      S.weatherDays[day] = {date:day, max:Math.round(d.temperature_2m_max[i]), min:Math.round(d.temperature_2m_min[i]), rainProb:prob, rainMm:Math.round(mm*10)/10, rain: prob >= 50 || mm >= 1,
+        code:v('weather_code'), feelMax:v('apparent_temperature_max', Math.round), feelMin:v('apparent_temperature_min', Math.round),
+        wind:v('wind_speed_10m_max', Math.round), gust:v('wind_gusts_10m_max', Math.round), uv:v('uv_index_max', x => Math.round(x * 10) / 10),
+        sunrise:v('sunrise', x => x.slice(11, 16)), sunset:v('sunset', x => x.slice(11, 16))};
     });
     S.weatherState = 'ok';
   }catch(e){ S.weatherState = 'blocked'; }
@@ -1696,32 +1708,45 @@ function shuffleUI(){
     </div></article>`;
 }
 
+const WMO = c => c == null ? null :
+  c === 0 ? ['☀️', 'Ciel dégagé'] : c === 1 ? ['🌤️', 'Plutôt ensoleillé'] : c === 2 ? ['⛅', 'Partiellement nuageux'] : c === 3 ? ['☁️', 'Couvert'] :
+  c <= 48 ? ['🌫️', 'Brouillard'] : c <= 55 ? ['🌦️', 'Bruine'] : c <= 57 ? ['🌧️', 'Bruine verglaçante'] :
+  c === 61 ? ['🌧️', 'Pluie faible'] : c === 63 ? ['🌧️', 'Pluie modérée'] : c === 65 ? ['🌧️', 'Forte pluie'] : c <= 67 ? ['🌧️', 'Pluie verglaçante'] :
+  c <= 75 ? ['🌨️', 'Neige'] : c === 77 ? ['🌨️', 'Grains de neige'] : c <= 82 ? ['🌦️', 'Averses'] : c <= 86 ? ['🌨️', 'Averses de neige'] :
+  c === 95 ? ['⛈️', 'Orage'] : ['⛈️', 'Orage avec grêle'];
 function weatherIcon(w){
+  if(w && w.code != null && WMO(w.code)) return WMO(w.code)[0];
   if(!w) return '❔';
   if(w.rain) return '🌧️';
   return {froid:'🥶', frais:'🌥️', doux:'⛅', chaud:'☀️'}[w.band] || '⛅';
+}
+function dayLabel(off){
+  if(off === 0) return "Aujourd'hui";
+  const d = new Date(); d.setDate(d.getDate() + off);
+  const t = d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric'});
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 function homeTop(){
   const w = tomorrowWeather(), off = dayOffset();
   const dateStr = tomorrowDate().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   let main, sub;
-  if(w && w.source === 'auto'){
+  if(w){
+    const desc = WMO(w.code);
     main = `<span class="wx-temp">${w.max}°</span><span class="wx-min">${w.min}°</span>`;
-    sub = `${esc(cityOf().name)} · ${w.rain ? `pluie ${w.rainProb} %` : `pas de pluie (${w.rainProb} %)`}`;
-  } else if(w){
-    const b = BANDS.find(x => x.id === w.band);
-    main = `<span class="wx-temp wx-word">${esc(b.label)}</span><span class="wx-min">${esc(b.hint)}</span>`;
-    sub = `Réglée à la main · ${w.rain ? 'avec de la pluie' : 'sans pluie'}`;
+    sub = `${esc(cityOf().name)}${desc ? ' · ' + desc[1] : ''} · ☔ ${w.rainProb} %`;
   } else {
     main = `<span class="wx-temp wx-word">${S.weatherState === 'loading' ? '…' : '?'}</span>`;
-    sub = S.weatherState === 'loading' ? `Météo de ${esc(cityOf().name)} en cours…` : 'Touche pour choisir la météo';
+    sub = S.weatherState === 'loading' ? `Météo de ${esc(cityOf().name)} en cours…` : 'Météo indisponible pour l\'instant';
   }
   const dirty = [...S.pieces.values()].filter(p => p.dirty).length;
-  return `<button type="button" class="wx" data-act="weather-sheet" aria-label="Météo, toucher pour la modifier">
-      <span class="wx-day">${off === 0 ? "Aujourd'hui" : 'Demain'} · ${esc(dateStr)}</span>
-      <span class="wx-main"><span class="wx-ico">${weatherIcon(w)}</span>${main}</span>
-      <span class="wx-sub">${sub}</span>
-    </button>
+  return `<div class="wx">
+      <button type="button" class="wx-open" data-act="weather-sheet" aria-label="Détails de la météo">
+        <span class="wx-day">${esc(dateStr.charAt(0).toUpperCase() + dateStr.slice(1))}</span>
+        <span class="wx-main"><span class="wx-ico">${weatherIcon(w)}</span>${main}</span>
+        <span class="wx-sub">${sub}</span>
+      </button>
+      <div class="wx-days">${[0, 1, 2].map(n => `<button type="button" class="chip-btn" data-act="day" data-off="${n}" aria-pressed="${off === n}">${dayLabel(n)}</button>`).join('')}</div>
+    </div>
     ${shuffleUI()}
     <nav class="home-nav" aria-label="Rubriques">
       <button type="button" data-section="tenues"><span class="hn-ico">👔</span>Tenues<small>${S.outfits.size}</small></button>
@@ -1816,26 +1841,27 @@ async function findCities(q){
   }
 }
 const IS_TEST_COPY = !!document.getElementById('seed') || /claude/.test(location.hostname);
-function weatherSheet(results){
-  const off = dayOffset(), k = tomorrowKey(), w = tomorrowWeather(), auto = S.weatherDays[k], m = S.settings.manual && S.settings.manual.date === k ? S.settings.manual : null;
-  const C = cityOf();
-  const autoLine = auto ? `${esc(C.name)} : ${auto.min}° à ${auto.max}°, ${auto.rain ? `pluie ${auto.rainProb} %` : `pas de pluie (${auto.rainProb} %)`}`
-    : S.weatherState === 'loading' ? 'Chargement…' : IS_TEST_COPY ? 'Bloquée dans la version de test sur claude.ai (elle marche sur ton téléphone). Règle-la à la main ci-dessous.' : 'Le service météo ne répond pas (connexion ?). Touche « Actualiser » ou règle à la main.';
+function weatherSheet(){
+  const w = tomorrowWeather(), C = cityOf(), desc = w && WMO(w.code);
+  const dateStr = tomorrowDate().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  const row = (ico, label, val) => val == null || val === '' ? '' : `<div class="wd-row"><span class="wd-ico">${ico}</span><span class="wd-l">${label}</span><span class="wd-v">${val}</span></div>`;
+  const detail = w ? `<div class="wd-head"><span class="wd-big">${weatherIcon(w)}</span><div><b>${esc(desc ? desc[1] : '')}</b><br><span class="muted">${esc(C.name)} · ${esc(dateStr)}</span></div></div>
+      ${row('🌡️', 'Températures', `${w.min}° → ${w.max}°`)}
+      ${row('🤲', 'Ressenti', w.feelMin != null ? `${w.feelMin}° → ${w.feelMax}°` : null)}
+      ${row('☔', 'Risque de pluie', `${w.rainProb} %`)}
+      ${row('💧', 'Quantité de pluie', `${String(w.rainMm).replace('.', ',')} mm`)}
+      ${row('💨', 'Vent', w.wind != null ? `${w.wind} km/h${w.gust ? ` (rafales ${w.gust})` : ''}` : null)}
+      ${row('🕶️', 'UV max', w.uv != null ? String(w.uv).replace('.', ',') : null)}
+      ${row('🌅', 'Soleil', w.sunrise ? `${w.sunrise} → ${w.sunset}` : null)}`
+    : `<p class="wx-auto">${S.weatherState === 'loading' ? 'Chargement…' : IS_TEST_COPY ? 'Bloquée dans la version de test sur claude.ai (elle marche sur ton téléphone).' : 'Le service météo ne répond pas pour l\'instant (connexion ?).'}</p>`;
   openSheet(`<form class="sheet" novalidate>
     <div class="sheet-scroll">
       <h2>Météo</h2>
-      <div class="chips" style="margin-bottom:16px"><button type="button" class="chip-btn" data-wday="0" aria-pressed="${off === 0}">Aujourd'hui</button><button type="button" class="chip-btn" data-wday="1" aria-pressed="${off === 1}">Demain</button></div>
-      <h3 class="set-h">Automatique</h3>
-      <p class="wx-auto">${autoLine}${m ? ' <span class="muted">(remplacée par ton choix)</span>' : ''}</p>
-      <div class="band-row" style="margin:6px 0 12px"><button type="button" class="chip-btn" data-w="refresh">Actualiser</button>${m ? '<button type="button" class="chip-btn" data-w="auto">Revenir à l\'automatique</button>' : ''}</div>
-      <div class="field"><span>Ville : <b>${esc(C.name)}</b></span>
+      <div class="wd">${detail}</div>
+      <div class="field" style="margin-top:16px"><span>Ville : <b>${esc(C.name)}</b></span>
         <input type="search" id="cityIn" placeholder="Tape une autre ville…" autocomplete="off" enterkeyhint="search">
         <div id="cityRes" class="city-res" aria-live="polite"></div>
-        <button type="button" class="linkish" data-w="here">📍 Utiliser ma position</button>
       </div>
-      <h3 class="set-h" style="margin-top:14px">À la main</h3>
-      <div class="band-row">${BANDS.map(b => `<button type="button" class="chip-btn" data-band="${b.id}" aria-pressed="${!!(m && m.band === b.id)}">${b.label} <small>${b.hint}</small></button>`).join('')}
-        <button type="button" class="chip-btn" data-w="rain" aria-pressed="${!!(m ? m.rain : (w && w.rain))}">Pluie</button></div>
     </div>
     <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>OK</button></div></form>`, () => false, form => {
     let found = [];
@@ -1854,34 +1880,14 @@ function weatherSheet(results){
     input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 350); });
     input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); clearTimeout(timer); search(); input.blur(); } });
     const useCity = async c => {
-      store.saveSettings({city:c, manual:null}); S.weatherDays = {}; S.weatherState = 'loading';
+      store.saveSettings({city:c}); S.weatherDays = {}; S.weatherState = 'loading';
       toast(`Météo de ${c.name}…`); weatherSheet(); await fetchWeather();
       toast(S.weatherState === 'ok' ? `Météo de ${c.name} chargée.` : 'Ville enregistrée, mais la météo ne répond pas pour l\'instant.');
       if(sheet.open) weatherSheet();
     };
     form.addEventListener('click', async e => {
-      const d = e.target.closest('[data-wday]');
-      if(d){ S.dayChoice = +d.dataset.wday; S.alt = 0; render(); weatherSheet(); return; }
-      const b = e.target.closest('[data-band]');
-      if(b){ store.saveSettings({manual:{date:tomorrowKey(), band:b.dataset.band, rain: !!(tomorrowWeather() && tomorrowWeather().rain)}}); S.alt = 0; weatherSheet(); return; }
       const c = e.target.closest('[data-city]');
-      if(c){ const r = found[+c.dataset.city]; if(r) await useCity({name:r.name, lat:r.latitude, lon:r.longitude}); return; }
-      const a = e.target.closest('[data-w]'); if(!a) return;
-      if(a.dataset.w === 'rain'){ const cw = tomorrowWeather(); store.saveSettings({manual:{date:tomorrowKey(), band: cw ? cw.band : 'doux', rain: !(cw && cw.rain)}}); weatherSheet(); }
-      if(a.dataset.w === 'auto'){ store.saveSettings({manual:null}); weatherSheet(); }
-      if(a.dataset.w === 'refresh'){ await refreshWeather(); weatherSheet(); }
-      if(a.dataset.w === 'here'){
-        if(!navigator.geolocation){ toast('Position indisponible sur ce téléphone.'); return; }
-        toast('Recherche de ta position…');
-        navigator.geolocation.getCurrentPosition(async pos => {
-          let name = 'Ma position';
-          try{
-            const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${pos.coords.latitude.toFixed(2)},${pos.coords.longitude.toFixed(2)}&count=1&language=fr`);
-            const j = await r.json(); if(j.results && j.results[0]) name = j.results[0].name;
-          }catch(err){}
-          useCity({name, lat:+pos.coords.latitude.toFixed(3), lon:+pos.coords.longitude.toFixed(3)});
-        }, () => toast('Position refusée : autorise-la dans Chrome ou tape ta ville.'), {timeout:10000, maximumAge:600000});
-      }
+      if(c){ const r = found[+c.dataset.city]; if(r) await useCity({name:r.name, lat:r.latitude, lon:r.longitude}); }
     });
     form.addEventListener('submit', e => e.preventDefault());
   });
@@ -2388,7 +2394,7 @@ document.addEventListener('click', e => {
     case 'new-piece': pieceSheet(); break;
     case 'export': exportData(); break;
     case 'settings': settingsSheet(); break;
-    case 'weather-sheet': weatherSheet(); break;
+    case 'weather-sheet': weatherSheet(); fetchWeather().then(() => { if(sheet.open && sheet.querySelector('#cityIn') && !sheet.querySelector('#cityIn').value) weatherSheet(); }); break;
     case 'recut-all': recutAll(); break;
     case 'edit-piece': pieceSheet(S.pieces.get(id)); break;
     case 'new-outfit': outfitSheet(); break;

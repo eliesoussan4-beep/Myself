@@ -124,7 +124,11 @@ h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
 .outfit .meta{font-size:13px;color:var(--muted);margin-top:2px}
 .o-body{display:flex;align-items:stretch;gap:10px;margin-top:10px}
 .o-body .strip{margin-top:0}
-.o-core{flex:1;min-width:0;flex-wrap:wrap}
+.o-core{flex:1;min-width:0;flex-wrap:nowrap;overflow:hidden}
+.outfit .row h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.outfit .row .muted{flex:none;white-space:nowrap}
+.outfit .o-body{min-height:70px}
+.o-core .th{flex:1 1 0;min-width:0;max-width:56px}
 .o-sep{width:1px;background:var(--line);flex:none}
 .o-extra{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .o-line{display:flex;flex-direction:column;gap:3px}
@@ -132,12 +136,14 @@ h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
 .o-line .strip{flex-wrap:nowrap;overflow:hidden}
 .outfit .o-line .th{width:34px;height:40px;flex:none}
 .o-none{font-size:12px;color:var(--muted);font-style:italic}
-.o-acc{flex-wrap:wrap;gap:6px;align-content:flex-start;max-height:76px;overflow:hidden}
+.o-acc{flex-wrap:nowrap;gap:5px;overflow:hidden;align-items:flex-start}
+.o-acc .acc{flex:1 1 0;min-width:0;max-width:46px}
+.o-acc .more{flex:none;align-self:center;font-size:12px;font-weight:600;color:var(--muted)}
 .acc{border-top:3px solid var(--line);border-radius:3px 3px 9px 9px;padding-top:2px}
 .acc-manteau{border-top-color:#5b6fd6}
 .acc-veste{border-top-color:#1f9e8a}
 .acc-chaussures{border-top-color:#e08a1e}
-.outfit .acc .th{width:44px;height:54px}
+.outfit .acc .th{width:100%;height:54px}
 .thermal-line{margin:-4px 0 6px;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .strip{display:flex;gap:6px;margin-top:10px;overflow:hidden}
 .strip .th{width:56px;height:70px;border-radius:9px;background:var(--sunk);flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
@@ -458,6 +464,42 @@ details.adv[open] summary{color:var(--ink)}
 .frow-body{background:var(--sunk);border-radius:0 0 12px 12px;padding:4px 14px 12px}
 .frow-body .toggle{background:var(--surface);margin-bottom:8px}
 .toggle.frow{margin-bottom:8px}
+.pick .l .brand{display:block;font-size:10.5px;color:var(--muted);font-weight:500}
+.lock-row{display:flex;gap:4px;align-items:stretch}
+.lock-row .side-row{flex:1;min-width:0}
+.lock-row .miss-x{width:30px;font-size:16px;border-radius:9px}
+.photo-drop.compact{aspect-ratio:auto;height:24vh;max-height:220px;margin-left:auto;margin-right:auto}
+.btn.danger-solid{background:var(--warn);border-color:var(--warn);color:#fff}
+.confirm-box{border:0;border-radius:18px;padding:0;max-width:340px;width:calc(100% - 48px);background:var(--surface);color:var(--ink);position:fixed;inset:0;margin:auto;height:fit-content;max-height:none;transform:none;animation:none}
+.confirm-box::backdrop{background:rgba(0,0,0,.45)}
+.cb-inner{padding:20px}
+.cb-inner h3{font-size:18px;margin:0 0 8px}
+.cb-inner p{margin:0 0 18px;color:var(--muted);font-size:14px}
+.cb-actions{display:flex;gap:8px}
+.ov-h{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 8px}
+.ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ov-tile{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:500}
+.ov-ph{aspect-ratio:4/5;background:var(--sunk);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ov-ph img{width:100%;height:100%;object-fit:contain}
+.sr-thumbs{display:flex;gap:2px;flex:none}
+.quick{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:start;gap:0;margin:0 -6px 16px}
+.quick .q{display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:none;padding:0;cursor:pointer;color:var(--ink);flex:1;min-width:0}
+.q-ico{position:relative;width:42px;height:42px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
+.q-ico svg{width:20px;height:20px}
+.q-ico.accent{background:var(--denim-soft);color:var(--denim)}
+.q-l{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:-.02em;max-width:100%;hyphens:none;padding:0 1px}
+.q-num{font-size:17px;font-weight:700;color:var(--today);background:var(--today-soft)}
+.q-off .q-num{color:var(--muted);background:var(--surface)}
+.q-l{line-height:1.15;text-align:center}
+.q-sep{width:1px;align-self:stretch;margin:6px 2px 18px;background:var(--line);flex:none}
+.q-dot{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--today);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+details.fold{margin:0 0 6px}
+details.fold > .frow{margin:0}
+details.fold[open] > .frow{border-radius:12px 12px 0 0}
+.fold-body{background:var(--sunk);border-radius:0 0 12px 12px;padding:6px 10px 10px}
+.seg-mini{display:flex;gap:4px}
+.seg-mini .chip-btn{font-size:12px;padding:5px 9px}
+.foot-link{display:block;margin:22px auto 6px;font-size:12px;color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -491,8 +533,8 @@ details.adv[open] summary{color:var(--ink)}
 /* ---------- Constantes ---------- */
 /* Ton de l'app : tx(sobre, ludique). La version sobre est l'ancien texte, gardé tel quel.
    Réglages → « Ton de l'app » permet de revenir au sobre à tout moment. */
-const tx = (sobre, fun) => ((typeof S !== 'undefined' && S.settings && S.settings.tone === 'sobre') ? sobre : fun);
-const APP_VERSION = 66;
+const tx = (sobre, fun) => fun;   // ton ludique, toujours
+const APP_VERSION = 76;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -542,6 +584,24 @@ const BANDS = [
   {id:'doux', label:'Doux', hint:'18–24°', words:'un temps doux'},
   {id:'chaud', label:'Chaud', hint:'25°+', words:'la chaleur'},
 ];
+const CAT_SHORT = {tshirt:'T-shirt', tshirt_ml:'T-shirt ML', chemise:'Chemise', pull:'Pull', sweat:'Sweat', sweat_capuche:'Sweat capuche', gilet:'Gilet', gilet_capuche:'Gilet capuche', veste:'Veste', manteau:'Manteau', pantalon:'Pantalon', short:'Short', chaussures:'Chaussures', sous_pull:'Sous-pull', collant:'Collant', accessoire:'Accessoire'};
+/* nom d'une pièce tel qu'affiché : la catégorie + le nom que tu lui donnes (« T-shirt Blanc »), sans doublon */
+function pname(p){
+  if(!p) return '';
+  const c = CAT_SHORT[p.category] || '', n = (p.name || '').trim();
+  if(!c) return n; if(!n) return c;
+  // si tu as déjà écrit la catégorie au début du nom (même avec une faute : « Patalon », « T shirt »), on ne la répète pas
+  const norm = x => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+  const head = norm(c.split(' ')[0]), start = norm(n).slice(0, head.length);
+  return lev(start, head) <= (head.length >= 5 ? 2 : 0) ? n : `${c} ${n}`;
+}
+function lev(a, b){
+  const d = Array.from({length:a.length + 1}, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for(let j = 1; j <= b.length; j++) d[0][j] = j;
+  for(let i = 1; i <= a.length; i++) for(let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+const plabel = p => p ? pname(p) + (p.brand ? ` · ${p.brand}` : '') : '';
 const catLabel = id => id === 'bas' ? 'Pantalon' : (CATS.find(c=>c.id===id)||{label:'À classer'}).label;
 const catOrder = id => (CATS.find(c=>c.id===(id==='bas'?'pantalon':id))||{order:5.5}).order;
 const bandFor = t => t<10?'froid':t<18?'frais':t<25?'doux':'chaud';
@@ -1545,7 +1605,13 @@ function comfortTemp(pieceIds){
 const isExtraCat = c => c === 'veste' || c === 'manteau' || c === 'chaussures' || c === 'sous_pull' || c === 'collant';
 /* Sous un pull ou un sweat, le t-shirt ne se voit pas : il ne fait pas partie de la tenue,
    il se choisit chaque jour (parmi ceux associés à la tenue, sinon n'importe quel t-shirt propre). */
-const HIDING = new Set(['pull', 'sweat', 'sweat_capuche']), UNDER_CATS = new Set(['tshirt', 'tshirt_ml']);
+/* Le t-shirt sous un pull, un sweat ou une chemise ne fait pas partie de l'identité de la tenue :
+   « chemise + pantalon » est UNE tenue, quel que soit le t-shirt dessous.
+   - pull / sweat : le t-shirt est caché, l'app le choisit (parmi ceux portés avec ce bas) ;
+   - chemise : il se voit quand elle est ouverte, donc ce sont les t-shirts que tu as associés à la tenue
+     (cochés avec la chemise dans l'éditeur), et tu peux le changer dans la carte du jour. */
+const HIDING = new Set(['pull', 'sweat', 'sweat_capuche', 'chemise']), UNDER_CATS = new Set(['tshirt', 'tshirt_ml']);
+const isShirtOnly = ids => baseIds(ids).some(id => S.pieces.get(id).category === 'chemise') && !baseIds(ids).some(id => ['pull', 'sweat', 'sweat_capuche'].includes(S.pieces.get(id).category));
 const baseIds = ids => (ids || []).filter(id => { const p = S.pieces.get(id); return p && !isExtraCat(p.category); });
 const hidesUnder = ids => baseIds(ids).some(id => HIDING.has(S.pieces.get(id).category));
 const coreIds = ids => { const b = baseIds(ids); return hidesUnder(b) ? b.filter(id => !UNDER_CATS.has(S.pieces.get(id).category)) : b; };   // ce qui se voit
@@ -1617,10 +1683,11 @@ function idealTemp(ids){
 }
 /* t-shirts qu'on peut mettre sous le pull / sweat d'une tenue : ceux que tu portes déjà avec ce bas */
 function underCandidates(o){
+  if(isShirtOnly(o.pieceIds)) return (o.under || []).map(id => S.pieces.get(id)).filter(p => p && !p.dirty);   // chemise : tes t-shirts associés
   const bottoms = baseIds(o.pieceIds).filter(id => LAYER[S.pieces.get(id).category] === 'bottom');
   const ids = new Set(o.under || []);
   for(const x of S.outfits.values()) if(x.id !== o.id && baseIds(x.pieceIds).some(id => bottoms.includes(id)))
-    baseIds(x.pieceIds).forEach(id => { if(UNDER_CATS.has(S.pieces.get(id).category)) ids.add(id); });
+    [...baseIds(x.pieceIds), ...(x.under || []).filter(id => S.pieces.has(id))].forEach(id => { if(UNDER_CATS.has(S.pieces.get(id).category)) ids.add(id); });   // y compris les t-shirts sous une chemise
   const own = [...ids].map(id => S.pieces.get(id)).filter(p => p && !p.dirty);
   return own.length ? own : [...S.pieces.values()].filter(p => !p.dirty && UNDER_CATS.has(p.category));
 }
@@ -1631,7 +1698,8 @@ function chooseExtras(o, w){
   const band = w && w.band, rain = !!(w && w.rain);
   const outers = clean.filter(p => p.category === 'veste' || p.category === 'manteau');
   // t-shirt dessous (seulement si la tenue a un pull / sweat qui le cache)
-  const unders = o && hidesUnder(o.pieceIds) ? lru(underCandidates(o)) : [];
+  const shirtOnly = o && isShirtOnly(o.pieceIds) && !underCandidates(o).length;   // chemise sans t-shirt associé : portée seule
+  const unders = o && hidesUnder(o.pieceIds) ? [...(shirtOnly ? [null] : []), ...lru(underCandidates(o))] : [];   // sous une chemise : « sans t-shirt » est possible
   let under = unders[0] || null;
   const need = band === 'froid' ? 'manteau' : band === 'frais' ? 'veste' : (rain && band !== 'chaud') ? 'veste' : null;
   let outer = null;
@@ -1654,7 +1722,8 @@ function chooseExtras(o, w){
   let thermal = [];
   if(T != null && T < 10 && o){   // sous-vêtements chauds : seulement quand il fait vraiment froid
     const base = [...coreIds(o.pieceIds), under && under.id, outer && outer.id].filter(Boolean);
-    const sp = lru([...S.pieces.values()].filter(p => !p.dirty && p.category === 'sous_pull'))[0];
+    const covered = longCover([...coreIds(o.pieceIds), under && under.id]);
+    const sp = covered ? lru([...S.pieces.values()].filter(p => !p.dirty && p.category === 'sous_pull'))[0] : null;
     const co = lru([...S.pieces.values()].filter(p => !p.dirty && p.category === 'collant'))[0];
     let best = Math.abs(T - idealTemp(base).t);
     for(const combo of [[sp], [co], [sp, co]]){
@@ -1666,17 +1735,43 @@ function chooseExtras(o, w){
   return {outer: outer ? outer.id : null, shoes: shoe ? shoe.id : null, under: under ? under.id : null, thermal};
 }
 function extrasFor(o, w){ const ov = (S.cardExtras || {})[o.id]; return ov ? {...chooseExtras(o, w), ...ov} : chooseExtras(o, w); }
-const withExtras = (core, ex) => [...core, ...[ex.under, ex.outer, ex.shoes, ...(ex.thermal || [])].filter(Boolean).map(id => S.pieces.get(id)).filter(Boolean)];
+/* une manche longue qui couvre le sous-pull : t-shirt manches longues, chemise, pull, sweat, gilet (pas la veste ni le manteau, qu'on enlève) */
+const LONG_COVER = new Set(['tshirt_ml', 'chemise', 'pull', 'sweat', 'sweat_capuche', 'gilet', 'gilet_capuche']);
+const longCover = ids => ids.filter(Boolean).some(id => LONG_COVER.has((S.pieces.get(id) || {}).category));
+const underList = u => Array.isArray(u) ? u.filter(Boolean) : (u ? [u] : []);
+const withExtras = (core, ex) => [...core, ...[...underList(ex.under), ex.outer, ex.shoes, ...(ex.thermal || [])].filter(Boolean).map(id => S.pieces.get(id)).filter(Boolean)];
 /* Tenue prévue un jour donné : la tenue + la veste et les chaussures choisies ce jour-là */
 const planExtrasOf = k => ((S.settings.planExtras || {})[k]) || null;
-function planPieceIds(k){
-  const o = S.outfits.get(plansOf()[k]); if(!o) return [];
+function planParts(k){
+  const o = S.outfits.get(plansOf()[k]); if(!o) return null;
   const ex = planExtrasOf(k) || chooseExtras(o, S.weatherDays[k] ? {band:bandFor(S.weatherDays[k].max), rain:S.weatherDays[k].rain} : null);
-  const core = ex.core && ex.core.every(id => S.pieces.has(id)) ? ex.core : coreIds(o.pieceIds);
-  return [...core, ex.under, ex.outer, ex.shoes, ...(ex.thermal || [])].filter(id => id && S.pieces.has(id));
+  const stored = ex.core && ex.core.every(id => S.pieces.has(id)) ? ex.core : o.pieceIds;
+  // un t-shirt enregistré dans la tenue avant qu'il passe « dessous » est traité comme le t-shirt dessous
+  const core = coreIds(stored), legacyUnder = hiddenIds(stored)[0] || null;
+  // dessous = liste de couches. Choix manuel (underSet) prioritaire ; sinon le t-shirt choisi + les sous-vêtements chauds proposés
+  let under = [];
+  if(hidesUnder(core)){
+    if(ex.underSet) under = underList(ex.under);
+    else under = [...underList(ex.under).length ? underList(ex.under) : underList(legacyUnder), ...(ex.thermal || []).filter(id => (S.pieces.get(id) || {}).category === 'sous_pull')];
+  }
+  const thermal = (ex.thermal || []).filter(id => !under.includes(id));
+  return {...ex, core, under:[...new Set(under)], thermal};
+}
+function planPieceIds(k){
+  const x = planParts(k); if(!x) return [];
+  return [...new Set([...x.core, ...underList(x.under), x.outer, x.shoes, ...(x.thermal || [])].filter(id => id && S.pieces.has(id)))];
 }
 /* Anciennes tenues : on sort la veste, le manteau et les chaussures (gardés comme préférences) */
 function migrateOutfits(){
+  for(const o of [...S.outfits.values()]){
+    if(!hidesUnder(o.pieceIds) && (o.under || []).length){
+      const tees = o.under.filter(id => S.pieces.has(id));
+      tees.forEach((id, i) => {
+        if(i === 0) store.saveOutfit({...o, pieceIds:[...o.pieceIds, id], under:[]});
+        else store.saveOutfit({...o, id:uid('o'), name:`${o.name} (${pname(S.pieces.get(id))})`, pieceIds:[...o.pieceIds, id], under:[], createdAt:Date.now() + i});
+      });
+    }
+  }
   for(const o of [...S.outfits.values()]){
     const core = coreIds(o.pieceIds), hid = hiddenIds(o.pieceIds), extra = (o.pieceIds || []).filter(id => !core.includes(id) && !hid.includes(id));
     if((extra.length || hid.length) && core.length) store.saveOutfit({...o, pieceIds:core, allowed:[...new Set([...allowedOf(o), ...extra])], under:[...new Set([...(o.under || []), ...hid])]});
@@ -1713,8 +1808,8 @@ function extrasRow(id, ex, scope, dayK){
   const attrs = kind => `data-act="extra" data-kind="${kind}" data-id="${esc(id)}" data-scope="${scope}"${dayK ? ` data-k="${dayK}"` : ''}`;
   const underChip = wide => showUnder ? `<button type="button" class="extra-chip${wide ? ' wide' : ''}" ${attrs('under')} title="Changer le t-shirt en dessous"><span class="ex-l">Dessous</span><span class="ex-v">${un ? esc(un.name) : 'Aucun t-shirt'}</span></button>` : '';
   return `<div class="extras-row">
-      ${hasOuter ? `<button type="button" class="extra-chip" ${attrs('outer')} title="Changer de veste / manteau"><span class="ex-l">Haut</span><span class="ex-v">${o ? esc(o.name) : 'Sans veste'}</span></button>` : (underChip(false) || '<span></span>')}
-      ${hasShoes ? `<button type="button" class="extra-chip" ${attrs('shoes')} title="Changer de chaussures"><span class="ex-l">Chaussures</span><span class="ex-v">${sh ? esc(sh.name) : ''}</span></button>` : '<span></span>'}
+      ${hasOuter ? `<button type="button" class="extra-chip" ${attrs('outer')} title="Changer de veste / manteau"><span class="ex-l">Haut</span><span class="ex-v">${o ? esc(plabel(o)) : 'Sans veste'}</span></button>` : (underChip(false) || '<span></span>')}
+      ${hasShoes ? `<button type="button" class="extra-chip" ${attrs('shoes')} title="Changer de chaussures"><span class="ex-l">Chaussures</span><span class="ex-v">${sh ? esc(plabel(sh)) : ''}</span></button>` : '<span></span>'}
       ${hasOuter ? underChip(true) : ''}
     </div>${th.length ? `<p class="thermal-line">+ ${esc(th.map(p => p.name).join(' · '))}</p>` : ''}`;
 }
@@ -1984,7 +2079,7 @@ function silhouette(pcsIn, openMode, cardKey){
     items.push({legs:true, animal, legList:legs, x:it.x, y:top, w:sc.w, h:Math.max(0.05, bottom - top), z:0.5});
   }
   // Tête emoji, pour rire : au-dessus du col, ou dans la capuche si le haut extérieur en a une
-  if(torso.length && S.settings.heads !== false){
+  if(torso.length){
     const hooded = [...torso].reverse().find(p => hoodOf(p) > 0);
     const outerTop = torso[torso.length - 1];
     let hs = 0.95 * pw, hx = 0, hy = -hs * 0.88;   // une vraie tête : environ la largeur de la taille
@@ -2057,7 +2152,7 @@ function lookView(pcs, opts){
     if(opts && opts.controls) return toggle;
     if(!(opts && opts.adjust)) return toggle + sil;
     const panel = S.adjustKey === key ? `<div class="adjust">
-      ${sized.map(p => `<div class="adj-row"><span class="adj-name">${esc(p.name)}</span>
+      ${sized.map(p => `<div class="adj-row"><span class="adj-name">${esc(plabel(p))}</span>
         <button type="button" class="adj-btn" data-act="size" data-id="${esc(p.id)}" data-d="-1" aria-label="Plus petit">−</button>
         <span class="adj-val">${Math.round((p.sizeAdj || 1) * 100)} %</span>
         <button type="button" class="adj-btn" data-act="size" data-id="${esc(p.id)}" data-d="1" aria-label="Plus grand">+</button></div>`).join('')}
@@ -2133,11 +2228,12 @@ function randomOutfitOnce(locked){
 function pairRow(a, b, extra){ return `<div class="carousel pair ${extra || ''}">${a}${b}</div>`; }
 function shuffleUI(){
   if(S.pieces.size < 2) return '';
-  if(!S.shuffle) return `<div class="action-row"><button type="button" class="shuffle-btn" data-act="shuffle">${SVG.shuffle}<span>Aléatoire</span></button><button type="button" class="shuffle-btn" data-act="new-outfit">${SVG.plus}<span>Tenue</span></button><button type="button" class="shuffle-btn" data-act="quick-piece">${SVG.camera}<span>Pièce</span></button></div>`;
+  if(!S.shuffle) return '';
+  if(false) return `<div class="action-row"><button type="button" class="shuffle-btn" data-act="shuffle">${SVG.shuffle}<span>Aléatoire</span></button><button type="button" class="shuffle-btn" data-act="new-outfit">${SVG.plus}<span>Tenue</span></button><button type="button" class="shuffle-btn" data-act="quick-piece">${SVG.camera}<span>Pièce</span></button></div>`;
   const pcs = withAdj(S.shuffle.map(id => S.pieces.get(id)).filter(Boolean), S.shuffleAdj);
   const left = `<article class="look-card slide shuffle-card">
       <div class="look-head"><h2>Tenue aléatoire</h2></div>
-      <p class="why">${S.shuffleDup ? tx('Déjà dans tes tenues : pas d\'autre combinaison possible.', 'Celle-là, tu l\'as déjà… pas d\'autre combinaison possible.') : esc(pcs.map(p => p.name).join(' · '))}</p>
+      <p class="why">${S.shuffleDup ? tx('Déjà dans tes tenues : pas d\'autre combinaison possible.', 'Celle-là, tu l\'as déjà… pas d\'autre combinaison possible.') : ''}</p>
       ${lookView(pcs, {bare:true})}
       <div class="look-actions day-actions"><button class="btn primary grow relaunch" type="button" data-act="shuffle">${SVG.shuffle}<span>Relancer</span></button></div>
     </article>`;
@@ -2162,7 +2258,7 @@ function shuffleUI(){
       </div>
       <h3 class="side-h">${tx('Garder en relançant', 'Je garde 🔒')}</h3>
       <div class="side-list">${pcs.map(p => { const on = S.shuffleLocks && S.shuffleLocks.has(p.id);
-        return `<button type="button" class="side-row${on ? ' on' : ''}" data-act="lock" data-id="${esc(p.id)}" aria-pressed="${!!on}"><span class="sr-ico">${on ? '🔒' : '🔓'}</span><span class="sr-name">${esc(p.name)}</span></button>`; }).join('')}</div>
+        return `<div class="lock-row"><button type="button" class="side-row${on ? ' on' : ''}" data-act="lock" data-id="${esc(p.id)}" aria-pressed="${!!on}"><span class="sr-ico">${on ? '🔒' : '🔓'}</span><span class="sr-name">${esc(plabel(p))}</span></button><button type="button" class="miss-x" data-act="shuffle-del" data-id="${esc(p.id)}" aria-label="Retirer cette pièce">×</button></div>`; }).join('')}</div>
       ${ctrl && !ctrl.includes('toggle-ph') ? `<h3 class="side-h">Porter</h3>${ctrl}` : ''}
       ${lookView(pcs, {adjust:true, adjustOnly:true})}
     </article>`;
@@ -2242,7 +2338,7 @@ function wornSheet(k, full){
       ${plannedO ? `<button type="button" class="btn" data-w="planned" style="width:100%;margin-bottom:10px">✓ ${tx('La tenue prévue', 'Ce que j\'avais prévu')} : ${esc(plannedO.name)}</button>` : ''}
       <label class="field"><span>Ou une de tes tenues</span><select id="wornOutfit" class="w-select"><option value="">—</option>${[...S.outfits.values()].map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>
       <span class="legend">Pièces portées</span>
-      ${groups.map(([g, list]) => `<div class="cat-group"><span class="cat-g">${g}</span><div class="picker">${list.map(p => `<label class="pick"><input type="checkbox" name="wp" value="${esc(p.id)}" ${chosen.has(p.id) ? 'checked' : ''}><span class="box"><span class="ph">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}</div></div>`).join('')}
+      ${groups.map(([g, list]) => `<div class="cat-group"><span class="cat-g">${g}</span><div class="picker">${list.map(p => `<label class="pick"><input type="checkbox" name="wp" value="${esc(p.id)}" ${chosen.has(p.id) ? 'checked' : ''}><span class="box"><span class="ph">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</span><span class="l">${esc(plabel(p))}</span></span></label>`).join('')}</div></div>`).join('')}
       <span class="legend" style="margin-top:14px">Et alors ?</span>
       <div class="feels">${FEELS.map(([id, e, l]) => `<button type="button" class="feel${feel === id ? ' on' : ''}" data-feel="${id}" aria-pressed="${feel === id}"><span class="fe">${e}</span><span>${l}</span></button>`).join('')}</div>
     </div>
@@ -2276,7 +2372,7 @@ function plannedUI(){
   const plans = plansOf(), out = [];
   [[0, 'today', '☀️'], [1, 'tomorrow', '🌙']].forEach(([n, kind, label]) => {   // badge réduit à l'icône : la carte est étroite
     const o = S.outfits.get(plans[keyIn(n)]); if(!o) return;
-    const pk = keyIn(n), pex = planExtrasOf(pk) || chooseExtras(o, tomorrowWeather());
+    const pk = keyIn(n), pex = planParts(pk) || chooseExtras(o, tomorrowWeather());
     const pcs = withAdj(planPieceIds(pk).map(id => S.pieces.get(id)).filter(Boolean), o.sizeAdj);
     if(!(S.planOpen || {})[pk]){
       const vis = pcs.filter(p => !['sous_pull', 'collant'].includes(p.category) && !(hidesUnder(o.pieceIds) && UNDER_CATS.has(p.category)))
@@ -2298,12 +2394,12 @@ function plannedUI(){
     const right = `<article class="look-card slide side-card side-${kind}">
         <h3 class="side-h">${n === 0 ? tx('Au sale ?', 'Au sale ? 🧺') : 'Au programme'}</h3>
         <div class="side-list">${pcs.map(p => n === 0 ? `<button type="button" class="side-row${p.dirty ? ' dirty' : ''}" data-act="toggle-dirty" data-id="${esc(p.id)}" aria-pressed="${!!p.dirty}">
-          <span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(p.name)}</span><span class="sr-check">${p.dirty ? '🧺' : ''}</span></button>`
-          : `<div class="side-row static"><span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(p.name)}</span></div>`).join('')}</div>
+          <span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(plabel(p))}</span><span class="sr-check">${p.dirty ? '🧺' : ''}</span></button>`
+          : `<button type="button" class="side-row" data-act="edit-piece" data-id="${esc(p.id)}"><span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(plabel(p))}</span></button>`).join('')}</div>
         ${ctrl && !ctrl.includes('toggle-ph') ? `<h3 class="side-h">Porter</h3>${ctrl}` : ''}
-        ${hidesUnder(o.pieceIds) ? (() => { const un = S.pieces.get(pex.under);
+        ${hidesUnder(o.pieceIds) ? (() => { const uns = underList(pex.under).map(id => S.pieces.get(id)).filter(Boolean);
           return `<h3 class="side-h">Dessous</h3><button type="button" class="side-row under-row" data-act="under-pick" data-id="${esc(o.id)}" data-k="${pk}">
-            <span class="sr-thumb">${un && thumbSrc(un) ? `<img src="${esc(thumbSrc(un))}" alt="">` : ''}</span><span class="sr-name">${un ? esc(un.name) : 'Aucun t-shirt'}</span><span class="sr-check">›</span></button>`; })() : ''}
+            <span class="sr-thumbs">${uns.slice(0, 3).map(u => `<span class="sr-thumb">${thumbSrc(u) ? `<img src="${esc(thumbSrc(u))}" alt="">` : ''}</span>`).join('')}</span><span class="sr-name">${uns.length ? esc(uns.map(plabel).join(' + ')) : 'Rien dessous'}</span><span class="sr-check">›</span></button>`; })() : ''}
         <div class="feel-zone">
         ${n === 0 ? (() => { const lg = logsOf().find(l => l.date === keyIn(0)); return `<h3 class="side-h">${tx('Ressenti', 'Et alors ? 🌡️')}</h3>
           <div class="feels-mini">${FEELS.map(([id, e, l]) => `<button type="button" class="feel-mini${lg && lg.feel === id ? ' on' : ''}" data-act="feel" data-feel="${id}" aria-label="${l}" title="${l}" aria-pressed="${!!(lg && lg.feel === id)}">${e}</button>`).join('')}</div>`; })() : ''}
@@ -2351,16 +2447,20 @@ function homeTop(){
         <span class="wx-main"><span class="wx-ico">${weatherIcon(w)}</span>${main}</span>
         <span class="wx-sub">${sub}</span>
       </button>
-      <div class="wx-days" role="group" aria-label="Jour">${[0, 1, 2].map(n => `<button type="button" class="chip-btn" data-act="day" data-off="${n}" aria-pressed="${off === n}">${dayLabel(n)}</button>`).join('')}${(() => { const m = missedDays().length; return m ? `<button type="button" class="wx-missed" data-act="missed" aria-label="${m} journée${m > 1 ? 's' : ''} à noter">📝 ${m} à noter</button>` : ''; })()}</div>
+      <div class="wx-days" role="group" aria-label="Jour">${[0, 1, 2].map(n => `<button type="button" class="chip-btn" data-act="day" data-off="${n}" aria-pressed="${off === n}">${dayLabel(n)}</button>`).join('')}</div>
     </div>
-    <nav class="home-nav" aria-label="Rubriques">
-      <button type="button" data-act="outfits-sheet"><span class="hn-ico">${SVG.outfits}</span><span>Tenues</span></button>
-      <button type="button" data-act="pieces-sheet"><span class="hn-ico">${SVG.pieces}</span><span>Pièces</span></button>
-      <button type="button" data-act="laundry"><span class="hn-ico">${SVG.laundry}</span><span>Linge</span>${dirty ? `<small class="hn-dot">${dirty}</small>` : ''}</button>
+    <nav class="quick" aria-label="Raccourcis">
+      <button type="button" class="q" data-act="outfits-sheet"><span class="q-ico">${SVG.outfits}</span><span class="q-l">Tenues</span></button>
+      <button type="button" class="q" data-act="pieces-sheet"><span class="q-ico">${SVG.pieces}</span><span class="q-l">Vêtements</span></button>
+      <button type="button" class="q" data-act="new-outfit"><span class="q-ico">${SVG.plus}</span><span class="q-l">Nouvelle tenue</span></button>
+      <button type="button" class="q" data-act="quick-piece"><span class="q-ico">${SVG.camera}</span><span class="q-l">Nouveau vêtement</span></button>
+      <button type="button" class="q" data-act="shuffle"><span class="q-ico">${SVG.shuffle}</span><span class="q-l">Aléatoire</span></button>
+      ${(() => { const m = missedDays().length; return `<button type="button" class="q" data-act="missed"><span class="q-ico">${SVG.note}${m ? `<span class="q-dot">${m}</span>` : ''}</span><span class="q-l">À noter</span></button>`; })()}
+      <button type="button" class="q" data-act="laundry"><span class="q-ico">${SVG.laundry}${dirty ? `<span class="q-dot">${dirty}</span>` : ''}</span><span class="q-l">Linge sale</span></button>
     </nav>
+    ${shuffleUI()}
     ${plannedUI()}
-    ${wornUI()}
-    ${shuffleUI()}`;
+    ${wornUI()}`;
 }
 function renderDemain(){
   const top = homeTop(), w = tomorrowWeather();
@@ -2384,7 +2484,7 @@ function renderDemain(){
       : n === firstFree ? `<span class="best" title="${tx('Meilleur choix', 'Mon préféré')}">⭐</span>` : '';   // carte étroite : l'étoile suffit
     const anyClean = x.pcs.some(p => !p.dirty);
     const why = isToday && isTomorrow ? tx("Prévue aujourd'hui et demain.", "Aujourd'hui ET demain, assumé 😏") : isToday ? tx("Ta tenue d'aujourd'hui.", "Ta tenue du jour 😎") : isTomorrow ? tx('Ta tenue de demain.', 'Déjà prête pour demain 👌') : sentence(x.why);
-    return `<article class="look-card slide${kind ? ' chosen-' + kind : ''}" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
+    return `<article data-act="edit-outfit" data-id="${esc(x.o.id)}" class="look-card slide${kind ? ' chosen-' + kind : ''}" aria-roledescription="tenue" aria-label="Tenue ${n+1} sur ${list.length}">
       <div class="look-head"><h2>${esc(x.o.name)}</h2>${badge}</div>
       <p class="why">${esc(why)}</p>
       ${extrasRow(x.o.id, x.ex, 'card')}
@@ -2396,17 +2496,18 @@ function renderDemain(){
       </div>
     </article>`; }).join('');
   const nav = list.length > 1 ? `<div class="dots" aria-hidden="true">${list.map((_, n) => `<span class="dot${n === cur ? ' on' : ''}"></span>`).join('')}</div>
-    <p class="hint swipe-hint">${tx(`Fais glisser pour voir les ${list.length} tenues possibles.`, `Glisse pour voir les ${list.length} options 👉`)}</p>` : '';
+    ` : '';
   return top + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
-    ${blocked.length?`<p class="hint" style="margin-top:12px">${blocked.length} tenue${blocked.length>1?'s':''} écartée${blocked.length>1?'s':''} à cause du linge sale.</p>`:''}`;
+    <button type="button" class="linkish foot-link" data-act="settings">Sauvegarde · version ${APP_VERSION}</button>`;
 }
 
 function renderTenues(){
   const list = [...S.outfits.values()].sort((a,b) => (a.name||'').localeCompare(b.name||'', 'fr'));
-  const head = `<div class="page-head"><h1>Tenues</h1></div>`;
+  const hideDirty = S.hideDirtyOutfits !== false;   // par défaut : seulement les tenues disponibles
+  const head = `<div class="page-head"><h1>Tenues</h1><button type="button" class="chip-btn" data-act="toggle-dirty-outfits" aria-pressed="${hideDirty}">${hideDirty ? 'Disponibles' : 'Toutes'}</button></div>`;
   if(!list.length) return head + `<div class="empty"><h3>${tx('Aucune tenue', 'Aucune tenue… pour l\'instant 😏')}</h3><p>${S.pieces.size?'Choisis quelques pièces qui vont bien ensemble.':"Ajoute d'abord des pièces dans l'onglet Pièces."}</p>${S.pieces.size?'<button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button>':'<button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button>'}</div>`;
   const th = p => `<div class="th ${p.dirty ? 'dirty' : ''}">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</div>`;
-  return head + `<div class="outfits">${list.map(o => {
+  const card = o => {
     const core = coreIds(o.pieceIds).map(id => S.pieces.get(id)).filter(Boolean).sort((a, b) => catOrder(a.category) - catOrder(b.category));
     const extra = allowedOf(o).map(id => S.pieces.get(id)).filter(Boolean);
     const outs = extra.filter(p => p.category === 'veste' || p.category === 'manteau'), shoes = extra.filter(p => p.category === 'chaussures');
@@ -2417,11 +2518,24 @@ function renderTenues(){
         <div class="strip o-core">${core.map(th).join('')}</div>
         ${outs.length || shoes.length ? '<div class="o-sep" aria-hidden="true"></div>' : ''}
         <div class="o-extra">
-          <div class="strip o-acc">${[...outs, ...shoes].map(p => `<div class="acc acc-${p.category}">${th(p)}</div>`).join('')}</div>
+          <div class="strip o-acc">${(() => { const all = [...outs, ...shoes], shown = all.length > 3 ? all.slice(0, 2) : all;
+            return shown.map(p => `<div class="acc acc-${p.category}">${th(p)}</div>`).join('') + (all.length > shown.length ? `<span class="more">+${all.length - shown.length}</span>` : ''); })()}</div>
         </div>
       </div>
       ${dirty ? `<div class="warnline">${dirty} pièce${dirty > 1 ? 's' : ''} au sale</div>` : ''}
-    </button>`;}).join('')}</div>`;
+    </button>`;};
+  // rangées par type de haut (le plus extérieur de la tenue), puis les plus portées d'abord
+  const mainTop = o => { const tops = coreIds(o.pieceIds).map(id => S.pieces.get(id)).filter(p => p && LAYER[p.category] in LAYER_RANK); return tops.sort((a, b) => (TOP_RANK[b.category] ?? 0) - (TOP_RANK[a.category] ?? 0))[0]; };
+  const isShort = o => coreIds(o.pieceIds).some(id => (S.pieces.get(id) || {}).category === 'short');
+  const groupOf = o => { if(isShort(o)) return ['short', 'En short']; const t = mainTop(o); if(!t) return ['autre', 'Autres'];
+    const c = t.category; return [c.replace('_capuche', '').replace('tshirt_ml', 'tshirt'), {tshirt:'T-shirts', chemise:'Chemises', pull:'Pulls', sweat:'Sweats', gilet:'Gilets'}[c.replace('_capuche', '').replace('tshirt_ml', 'tshirt')] || catLabel(c)]; };
+  const ORDER = ['tshirt', 'chemise', 'pull', 'sweat', 'gilet', 'short', 'autre'];
+  const groups = new Map();
+  for(const o of list){
+    if(hideDirty && coreIds(o.pieceIds).some(id => (S.pieces.get(id) || {}).dirty)) continue;   // au sale : masquée
+    const [k, l] = groupOf(o); if(!groups.has(k)) groups.set(k, {l, list:[]}); groups.get(k).list.push(o); }
+  return head + [...groups.entries()].sort((a, b) => ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]))
+    .map(([, g]) => `<h3 class="cat-title">${esc(g.l)} <span>${g.list.length}</span></h3><div class="outfits">${g.list.sort((a, b) => outfitWearCount(b) - outfitWearCount(a) || (a.name || '').localeCompare(b.name || '', 'fr')).map(card).join('')}</div>`).join('');
 }
 /* nombre de jours où la tenue a été portée : journées notées avec elle + jours passés où elle était prévue */
 function outfitWearCount(o){
@@ -2435,13 +2549,13 @@ function pieceCard(p, act){
   const n = wearCount(p.id);
   return `<button class="piece ${p.dirty?'is-dirty':''}" type="button" data-act="${act}" data-id="${esc(p.id)}">
     <div class="ph">${pieceVisual(p)}${p.dirty?'<span class="badge">Au sale</span>':''}</div>
-    <div class="nm">${esc(p.name)}</div><div class="ct">${esc(catLabel(p.category))} · portée ${n}×</div></button>`;
+    <div class="nm">${esc(pname(p))}</div><div class="ct">${p.brand ? `<b>${esc(p.brand)}</b> · ` : ''}portée ${n}×</div></button>`;
 }
 function groupCard(g, list){
   const p = list[0], n = list.reduce((a, q) => a + wearCount(q.id), 0), dirty = list.filter(q => q.dirty).length;
   return `<button class="piece" type="button" data-act="group" data-id="${esc(g)}">
     <div class="ph">${pieceVisual(p)}<span class="badge count">×${list.length}</span>${dirty ? `<span class="badge" style="top:auto;bottom:6px">${dirty} au sale</span>` : ''}</div>
-    <div class="nm">${esc(p.name)}</div><div class="ct">${list.length} variantes · portées ${n}×</div></button>`;
+    <div class="nm">${esc(pname(p))}</div><div class="ct">${list.length} variantes · portées ${n}×</div></button>`;
 }
 
 /* ---------- Usure : combien de fois chaque pièce a été portée ---------- */
@@ -2452,7 +2566,7 @@ function wornDates(pid){
   for(const [k, oid] of Object.entries(plans)){   // jours passés prévus : la tenue + ce qui avait été choisi avec (sans recalcul)
     const o = S.outfits.get(oid); if(k >= today || !o) continue;
     const ex = planExtrasOf(k) || {};
-    if((ex.core || coreIds(o.pieceIds)).includes(pid) || ex.outer === pid || ex.shoes === pid || ex.under === pid || (ex.thermal || []).includes(pid)) dates.add(k);
+    if((ex.core || coreIds(o.pieceIds)).includes(pid) || ex.outer === pid || ex.shoes === pid || underList(ex.under).includes(pid) || (ex.thermal || []).includes(pid)) dates.add(k);
   }
   return [...dates].sort();
 }
@@ -2497,7 +2611,8 @@ const FILTER_TREE = [
 const nodeCats = n => n.cats || (n.children || []).flatMap(nodeCats);
 function renderPieces(){
   const all = [...S.pieces.values()];
-  const head = `<div class="page-head"><h1>Pièces</h1><div class="head-actions"><button class="btn icon-btn" type="button" data-act="settings" aria-label="Réglages">⚙️</button></div></div>`;
+  const dv = S.dirtyView || 'all';
+  const head = `<div class="page-head"><h1>Vêtements</h1><div class="seg-mini">${[['all', 'Tous'], ['clean', 'Propres'], ['dirty', 'Au sale']].map(([v, l]) => `<button type="button" class="chip-btn" data-act="dirty-view" data-v="${v}" aria-pressed="${dv === v}">${l}</button>`).join('')}</div></div>`;
   if(!all.length) return head + `<div class="empty"><h3>${tx('Ta penderie est vide', 'Rien dans la penderie 🫥')}</h3><p>Photographie une pièce sur un fond uni : c'est cette photo qui apparaîtra dans tes tenues.</p><button class="btn primary" type="button" data-act="new-piece">Prendre une photo</button></div>`;
   // filtres du plus général au plus précis : Hauts › T-shirts › Manches longues
   const path = S.fpath || [], has = n => all.some(p => nodeCats(n).includes(p.category));
@@ -2511,7 +2626,7 @@ function renderPieces(){
   }
   const filters = rows.join('');
   const allowedCats = sel ? nodeCats(sel) : null;
-  const shown = all.filter(p => S.filter === 'sleep' || !allowedCats || allowedCats.includes(p.category))
+  const shown = all.filter(p => (S.filter === 'sleep' || !allowedCats || allowedCats.includes(p.category)) && (dv === 'all' || (dv === 'dirty' ? p.dirty : !p.dirty)))
     .sort((a,b) => catOrder(a.category) - catOrder(b.category) || (a.name||'').localeCompare(b.name||'', 'fr'));
   // une seule tuile par groupe de variantes
   const seen = new Map();
@@ -2597,19 +2712,68 @@ function weatherSheet(){
 }
 function underSheet(k, oid){
   const o = S.outfits.get(oid); if(!o) return;
-  const cur = (planExtrasOf(k) || chooseExtras(o, tomorrowWeather())).under;
-  const list = underCandidates(o).sort((a, b) => pieceOrder(a.category) - pieceOrder(b.category) || (a.name || '').localeCompare(b.name || '', 'fr'));
+  const cur = new Set(underList((planParts(k) || chooseExtras(o, tomorrowWeather())).under));
+  const tees = underCandidates(o), warm = [...S.pieces.values()].filter(p => !p.dirty && p.category === 'sous_pull');
+  const sortP = l => l.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr'));
+  const pick = p => `<label class="pick"><input type="checkbox" name="un" data-cat="${p.category}" value="${esc(p.id)}" ${cur.has(p.id) ? 'checked' : ''}><span class="box"><span class="ph">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</span><span class="l">${esc(plabel(p))}</span></span></label>`;
+  const sec = (t, l) => l.length ? `<span class="cat-g" style="margin-top:10px">${t}</span><div class="picker">${sortP(l).map(pick).join('')}</div>` : '';
+  const save = ids => {
+    const base = planParts(k) || chooseExtras(o, tomorrowWeather());
+    store.saveSettings({planExtras:{...(S.settings.planExtras || {}), [k]: {...base, core:coreIds(base.core || o.pieceIds), under:ids, underSet:true,
+      thermal:(base.thermal || []).filter(id => (S.pieces.get(id) || {}).category !== 'sous_pull')}}});
+  };
   openSheet(`<form class="sheet" novalidate><div class="sheet-scroll">
-      <h2>${tx('Le t-shirt dessous', 'Qu\'est-ce que tu mets dessous ?')}</h2>
-      <div class="picker">${list.map(p => `<label class="pick"><input type="radio" name="un" value="${esc(p.id)}" ${p.id === cur ? 'checked' : ''}><span class="box"><span class="ph">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}
-        <label class="pick"><input type="radio" name="un" value="" ${!cur ? 'checked' : ''}><span class="box"><span class="ph" style="font-size:13px;color:var(--muted)">Rien</span><span class="l">Aucun t-shirt</span></span></label></div>
-    </div><div class="sheet-actions"><button class="btn grow" type="button" data-close>Annuler</button></div></form>`, () => false, form => {
+      <h2>${tx('Dessous', 'Qu\'est-ce que tu mets dessous ?')}</h2>
+      <p class="hint" style="margin:-6px 0 4px">Une couche de chaque type au plus. Le sous-pull doit être couvert par une manche longue.</p>
+      ${sec('T-shirt manches courtes', tees.filter(p => p.category === 'tshirt'))}
+      ${sec('T-shirt manches longues', tees.filter(p => p.category === 'tshirt_ml'))}
+      ${sec('Sous-pull', warm)}
+      <button type="button" class="btn" id="unNone" style="width:100%;margin-top:14px">Rien dessous</button>
+    </div><div class="sheet-actions"><button class="btn grow" type="button" data-close>Annuler</button><button class="btn primary grow" type="submit">OK</button></div></form>`, form => {
+    const ids = [...form.querySelectorAll('input[name=un]:checked')].map(i => i.value);
+    if(ids.some(id => S.pieces.get(id).category === 'sous_pull') && !longCover([...coreIds(o.pieceIds), ...ids])){
+      toast('Le sous-pull se verrait : ajoute un t-shirt manches longues, ou porte-le sous un pull, un sweat ou une chemise.'); return false;
+    }
+    save(ids);
+  }, form => {
+    // une seule couche par type : cocher en décoche l'autre du même type
     form.addEventListener('change', e => {
-      if(e.target.name !== 'un') return;
-      const base = planExtrasOf(k) || chooseExtras(o, tomorrowWeather());
-      store.saveSettings({planExtras:{...(S.settings.planExtras || {}), [k]: {...base, under: e.target.value || null}}});
-      sheet.close();
+      const i = e.target.closest('input[name=un]'); if(!i || !i.checked) return;
+      form.querySelectorAll(`input[name=un][data-cat="${i.dataset.cat}"]`).forEach(x => { if(x !== i) x.checked = false; });
     });
+    form.querySelector('#unNone').addEventListener('click', () => { save([]); sheet.close(); toast('Rien dessous.'); });
+  });
+}
+function confirmBox(title, text, okLabel, onOk){
+  let d = document.getElementById('confirmBox');
+  if(!d){ d = document.createElement('dialog'); d.id = 'confirmBox'; d.className = 'confirm-box'; document.body.appendChild(d); }
+  d.innerHTML = `<form method="dialog" class="cb-inner"><h3>${esc(title)}</h3><p>${esc(text)}</p>
+    <div class="cb-actions"><button class="btn grow" value="no">Annuler</button><button class="btn danger-solid grow" value="ok">${esc(okLabel)}</button></div></form>`;
+  d.onclose = () => { if(d.returnValue === 'ok') onOk(); };
+  d.returnValue = ''; d.showModal();
+}
+/* fiche d'une tenue : d'abord ce qui la compose ; « Modifier » ouvre l'éditeur complet */
+function outfitView(o){
+  if(!o) return;
+  const P = ids => (ids || []).map(id => S.pieces.get(id)).filter(Boolean);
+  const core = P(coreIds(o.pieceIds)).sort((a, b) => pieceOrder(a.category) - pieceOrder(b.category));
+  const unders = isShirtOnly(o.pieceIds) || hidesUnder(o.pieceIds) ? P(o.under) : [];
+  const extra = P(allowedOf(o)), outs = extra.filter(p => p.category === 'veste' || p.category === 'manteau'), shoes = extra.filter(p => p.category === 'chaussures');
+  const tile = p => `<div class="ov-tile"><div class="ov-ph">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ICON.hanger}</div><span>${esc(plabel(p))}</span></div>`;
+  const sec = (t, l) => l.length ? `<h3 class="ov-h">${t}</h3><div class="ov-grid">${l.map(tile).join('')}</div>` : '';
+  const n = outfitWearCount(o);
+  openSheet(`<form class="sheet" novalidate><div class="sheet-scroll">
+      <h2>${esc(o.name)}</h2>
+      <p class="hint" style="margin:-6px 0 12px">${n ? `Portée ${n} fois` : 'Jamais portée'}</p>
+      ${sec('La tenue', core)}
+      ${sec(isShirtOnly(o.pieceIds) ? 'T-shirts sous la chemise' : 'T-shirts dessous', unders)}
+      ${sec('Vestes et manteaux', outs)}
+      ${sec('Chaussures', shoes)}
+      <button type="button" class="btn danger-solid" id="ovDel" style="width:100%;margin-top:18px">Supprimer la tenue</button>
+    </div>
+    <div class="sheet-actions"><button class="btn grow" type="button" data-close>Fermer</button><button class="btn primary grow" type="button" id="ovEdit">Modifier</button></div></form>`, () => false, form => {
+    form.querySelector('#ovEdit').addEventListener('click', () => outfitSheet(o));
+    form.querySelector('#ovDel').addEventListener('click', () => confirmBox('Supprimer la tenue ?', `« ${o.name} » sera supprimée. Les pièces restent dans ta penderie.`, 'Supprimer', () => { store.deleteOutfit(o.id); sheet.close(); toast('Tenue supprimée.'); }));
   });
 }
 function outfitsSheet(){
@@ -2618,7 +2782,8 @@ function outfitsSheet(){
     <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Fermer</button></div></form>`, () => false, form => {
     form.addEventListener('click', e => {
       const a = e.target.closest('[data-act]'); if(!a) return;
-      if(a.dataset.act === 'edit-outfit') outfitSheet(S.outfits.get(a.dataset.id));
+      if(a.dataset.act === 'edit-outfit') outfitView(S.outfits.get(a.dataset.id));
+      if(a.dataset.act === 'toggle-dirty-outfits'){ S.hideDirtyOutfits = S.hideDirtyOutfits === false; outfitsSheet(); }
       if(a.dataset.act === 'new-outfit') outfitSheet();
       if(a.dataset.act === 'new-piece'){ sheet.close(); pieceSheet(); }
     });
@@ -2628,7 +2793,7 @@ function laundrySheet(){
   const list = [...S.pieces.values()].filter(p => p.dirty).sort((a, b) => catOrder(a.category) - catOrder(b.category));
   openSheet(`<form class="sheet" novalidate><div class="sheet-scroll">
       <h2>${tx('Au sale', 'Au sale 🧺')}</h2>
-      ${list.length ? `<p class="hint" style="margin:-6px 0 10px">Décoche ce qui est propre.</p><div class="side-list laundry-list">${list.map(p => `<label class="side-row lrow"><span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(p.name)}</span><input type="checkbox" data-id="${esc(p.id)}" checked></label>`).join('')}</div>`
+      ${list.length ? `<p class="hint" style="margin:-6px 0 10px">Décoche ce qui est propre.</p><div class="side-list laundry-list">${list.map(p => `<label class="side-row lrow"><span class="sr-thumb">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="">` : ''}</span><span class="sr-name">${esc(plabel(p))}</span><input type="checkbox" data-id="${esc(p.id)}" checked></label>`).join('')}</div>`
         : `<p class="hint">${tx('Rien au sale.', 'Rien au sale, tout est propre ✨')}</p>`}
     </div><div class="sheet-actions">${list.length > 1 ? '<button class="btn grow" type="button" data-all>Tout est propre</button>' : ''}<button class="btn primary grow" type="button" data-close>OK</button></div></form>`, () => false, form => {
     form.addEventListener('change', e => { const i = e.target.closest('input[data-id]'); if(!i) return; const p = S.pieces.get(i.dataset.id); if(p) store.savePiece({...p, dirty:i.checked}); });
@@ -2655,30 +2820,24 @@ function piecesSheet(){
       else if(act === 'edit-piece') pieceSheet(S.pieces.get(a.dataset.id));
       else if(act === 'group') groupSheet(a.dataset.id);
       else if(act === 'settings') settingsSheet();
+      else if(act === 'dirty-view'){ S.dirtyView = a.dataset.v; piecesSheet(); }
       else if(act === 'new-piece'){ sheet.close(); quickAddPiece(); }
     });
   });
 }
 function settingsSheet(){
-  const tone = S.settings.tone === 'sobre' ? 'sobre' : 'fun', heads = S.settings.heads !== false;
   openSheet(`<form class="sheet" novalidate>
     <div class="sheet-scroll">
-      <h2>Réglages</h2>
-      <h3 class="set-h">Ton de l'app</h3>
-      <div class="chips"><button type="button" class="chip-btn" data-set="tone" data-v="fun" aria-pressed="${tone === 'fun'}">Ludique 😄</button><button type="button" class="chip-btn" data-set="tone" data-v="sobre" aria-pressed="${tone === 'sobre'}">Sobre</button></div>
-      <label class="toggle" style="margin-top:12px">Têtes emoji sur les tenues<input type="checkbox" id="headsT" ${heads ? 'checked' : ''}></label>
+      <h2>Sauvegarde</h2>
       ${backupBlock()}
       <p class="version" style="margin-top:16px">Version ${APP_VERSION}</p>
     </div>
     <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Fermer</button></div></form>`, () => false, form => {
     form.addEventListener('click', e => {
-      const b = e.target.closest('[data-set]');
-      if(b){ store.saveSettings({[b.dataset.set]: b.dataset.v}); form.querySelectorAll(`[data-set="${b.dataset.set}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); return; }
       const a = e.target.closest('[data-act]'); if(!a) return;
       if(a.dataset.act === 'export') exportData();
       if(a.dataset.act === 'recut-all'){ sheet.close(); recutAll(); }
     });
-    form.querySelector('#headsT').addEventListener('change', e => store.saveSettings({heads: e.target.checked}));
   });
 }
 function backupBlock(){
@@ -2984,8 +3143,8 @@ function pieceSheet(existing, preset, shot){
   const detourDefault = S.settings.detour !== false;
   const html = `<form class="sheet" novalidate>
     <div class="sheet-scroll">
-      <h2>${existing?'Modifier la pièce':'Nouvelle pièce'}</h2>
-      <div class="photo-drop" id="drop"></div>
+      <h2>${existing?'Modifier le vêtement':'Nouveau vêtement'}</h2>
+      <div class="photo-drop${existing ? ' compact' : ''}" id="drop"></div>
       ${(() => { if(!existing) return ''; const n = wearCount(p.id), last = lastWornPiece(p.id), m = isTop(p) ? warmModel() : null;
         const warm = m && m.w[p.id] != null ? `${m.w[p.id] >= 0 ? '+' : ''}${String(Math.round(m.w[p.id] * 10) / 10).replace('.', ',')}°` : null;
         return `<div class="stats">
@@ -3005,7 +3164,9 @@ function pieceSheet(existing, preset, shot){
           ${existing ? '<div class="cut-tools"><button type="button" class="linkish" data-photo="cam">Reprendre la photo</button> <button type="button" class="linkish" data-photo="alb">Choisir dans l\'album</button></div>' : ''}
         </div>
       </details>
-      <label class="frow"><span class="fl">Nom</span><input type="text" name="name" value="${esc(p.name)}" placeholder="Chemise en lin bleue" autocomplete="off"></label>
+      <label class="frow"><span class="fl">Marque</span><input type="text" name="brand" value="${esc(p.brand || '')}" placeholder="Uniqlo, Carhartt…" autocomplete="off" list="brands"></label>
+      <datalist id="brands">${[...new Set([...S.pieces.values()].map(q => q.brand).filter(Boolean))].sort().map(b => `<option value="${esc(b)}">`).join('')}</datalist>
+      <label class="frow"><span class="fl">Nom</span><input type="text" name="name" value="${esc(p.name)}" placeholder="Blanc, rayé bleu…" autocomplete="off"></label>
       <label class="frow"><span class="fl">Variante de</span><select name="group"></select></label>
       <details class="frow-d" ${p.category ? '' : 'open'} id="catBox"><summary class="frow"><span class="fl">Catégorie</span><span class="fv" id="catVal">${p.category ? esc(catLabel(p.category)) : 'à choisir'}</span></summary>
         <div class="frow-body">
@@ -3013,7 +3174,7 @@ function pieceSheet(existing, preset, shot){
         </div>
       </details>
       ${existing ? `<label class="toggle frow"><span class="fl">Au sale</span><input type="checkbox" name="dirty" ${p.dirty?'checked':''}></label>` : ''}
-      ${existing?'<button class="linkish del-link" type="button" id="del">Supprimer définitivement</button>':''}
+      ${existing?'<button class="btn danger-solid" type="button" id="del" style="width:100%;margin-top:10px">Supprimer définitivement</button>':''}
     </div>
     <div class="sheet-actions">
       <button class="btn grow" type="button" data-close>Annuler</button>
@@ -3025,6 +3186,7 @@ function pieceSheet(existing, preset, shot){
     if(!name){ form.name.focus(); toast('Donne un nom à la pièce.'); return false; }
     const cat = form.querySelector('input[name=cat]:checked');
     if(!cat){ toast('Choisis une catégorie.'); return false; }
+    p.brand = (form.brand.value || '').trim() || undefined;
     p.name = name; p.category = cat.value; p.dirty = form.dirty ? form.dirty.checked : false;
     if(!existing) store.saveSettings({lastCat:p.category});
     const g = form.group.value;
@@ -3076,7 +3238,7 @@ function pieceSheet(existing, preset, shot){
       const opts = [...S.pieces.values()].filter(q => q.id !== p.id && q.category === cat && (q.group || q.id) !== p.id)
         .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr'))
         .filter(q => { const g = q.group || q.id; if(seen.has(g)) return false; seen.add(g); return true; });
-      sel.innerHTML = `<option value="">Aucune</option>` + opts.map(q => `<option value="${esc(q.group || q.id)}">${esc(q.name)}</option>`).join('');
+      sel.innerHTML = `<option value="">Aucune</option>` + opts.map(q => `<option value="${esc(q.group || q.id)}">${esc(plabel(q))}</option>`).join('');
       sel.value = opts.some(q => (q.group || q.id) === keep) ? keep : '';
     };
     fillGroups(p.category || (shot && shot.cat) || '');
@@ -3148,7 +3310,7 @@ function pieceSheet(existing, preset, shot){
     const del = form.querySelector('#del');
     if(del) del.addEventListener('click', () => {
       const n = [...S.outfits.values()].filter(o => (o.pieceIds||[]).includes(p.id)).length;
-      if(confirm(`Supprimer « ${p.name} » ?${n?` Elle sera retirée de ${n} tenue${n>1?'s':''}.`:''}`)){ store.deletePiece(p.id); sheet.close(); toast('Pièce supprimée.'); }
+      confirmBox('Supprimer le vêtement ?', `« ${plabel(p)} » sera supprimé${n ? ` et retiré de ${n} tenue${n > 1 ? 's' : ''}` : ''}.`, 'Supprimer', () => { store.deletePiece(p.id); sheet.close(); toast('Vêtement supprimé.'); });
     });
   });
 }
@@ -3163,20 +3325,23 @@ function outfitSheet(existing, preset){
       <h2>${existing ? 'Modifier la tenue' : fromShuffle ? tx('Enregistrer la tenue aléatoire', 'On la garde ? Dernières retouches') : 'Nouvelle tenue'}</h2>
       <label class="field"><span>Nom</span><input type="text" name="name" value="${esc(o.name)}" placeholder="Bureau décontracté" autocomplete="off"></label>
       ${fromShuffle ? `<p class="hint" style="margin:-6px 0 12px">${esc(o.pieceIds.map(id => (S.pieces.get(id) || {}).name).filter(Boolean).join(' + '))}</p>` : ''}
-      <fieldset ${fromShuffle ? 'hidden' : ''}><legend class="legend">Le haut et le bas</legend>
-        ${(() => { const byCat = new Map(); for(const p of pieces){ if(!byCat.has(p.category)) byCat.set(p.category, []); byCat.get(p.category).push(p); }
-          return [...byCat.entries()].sort((a, b) => pieceOrder(a[0]) - pieceOrder(b[0])).map(([c, list]) => `<span class="cat-g" style="margin-top:10px">${esc(catLabel(c))}</span><div class="picker">
-            ${list.map(p => `<label class="pick"><input type="checkbox" name="pc" value="${esc(p.id)}" ${o.pieceIds.includes(p.id) || (o.under || []).includes(p.id)?'checked':''}><span class="box"><span class="ph">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}</div>`).join(''); })()}
-      </fieldset>
-      ${[['veste', 'Les vestes qui vont avec', 'Proposées quand il fait frais ou qu\'il pleut.'], ['manteau', 'Les manteaux qui vont avec', 'Proposés quand il fait froid.'], ['chaussures', 'Les chaussures qui vont avec', 'Proposées chaque jour.']].map(([cat, title, hint]) => {
-        const list = [...S.pieces.values()].filter(p => p.category === cat).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr'));
-        if(!list.length) return '';
-        const allowed = o.allowed || [];
-        return `<fieldset><legend class="legend">${title}</legend><p class="hint" style="margin:-2px 0 8px">${hint} Aucune cochée : rien de proposé.</p><div class="picker">
-          ${list.map(p => `<label class="pick"><input type="checkbox" name="ex" value="${esc(p.id)}" ${allowed.includes(p.id)?'checked':''}><span class="box"><span class="ph">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</span><span class="l">${esc(p.name)}</span></span></label>`).join('')}
-        </div></fieldset>`; }).join('')}
+      ${(() => {
+        const pick = (p, name, on) => `<label class="pick"><input type="checkbox" name="${name}" value="${esc(p.id)}" ${on ? 'checked' : ''}><span class="box"><span class="ph">${thumbSrc(p)?`<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">`:ICON.hanger}</span><span class="l">${esc(p.name || catLabel(p.category))}${p.brand ? `<small class="brand">${esc(p.brand)}</small>` : ''}</span></span></label>`;
+        // chaque sous-catégorie est repliée : tu l'ouvres pour voir ses vêtements
+        const fold = (c, list, name, isOn) => { const n = list.filter(isOn).length;
+          return `<details class="fold"><summary class="frow"><span class="fl">${esc(catLabel(c))}</span><span class="fv" data-count>${n ? `${n} coché${n > 1 ? 's' : ''}` : list.length}</span></summary><div class="picker fold-body">${list.map(p => pick(p, name, isOn(p))).join('')}</div></details>`; };
+        const byCat = cats => { const m = new Map(); for(const p of pieces) if(cats.includes(LAYER[p.category])){ if(!m.has(p.category)) m.set(p.category, []); m.get(p.category).push(p); } return [...m.entries()].sort((a, b) => pieceOrder(a[0]) - pieceOrder(b[0])); };
+        const onCore = p => o.pieceIds.includes(p.id) || (o.under || []).includes(p.id);
+        const hautCats = byCat(['under', 'mid', 'outer']), basCats = byCat(['bottom']);
+        const extra = (cat, title) => { const list = [...S.pieces.values()].filter(p => p.category === cat).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr')); return list.length ? fold(cat, list, 'ex', p => (o.allowed || []).includes(p.id)).replace(esc(catLabel(cat)), title) : ''; };
+        return `<div ${fromShuffle ? 'hidden' : ''}>
+          ${hautCats.length ? `<h3 class="ov-h">Haut</h3>${hautCats.map(([c, l]) => fold(c, l, 'pc', onCore)).join('')}` : ''}
+          ${basCats.length ? `<h3 class="ov-h">Bas</h3>${basCats.map(([c, l]) => fold(c, l, 'pc', onCore)).join('')}` : ''}
+        </div>
+        <h3 class="ov-h">Vestes, manteaux et chaussures qui vont avec</h3>
+        ${extra('veste', 'Vestes')}${extra('manteau', 'Manteaux')}${extra('chaussures', 'Chaussures')}`; })()}
 
-      ${existing?'<button class="linkish del-link" type="button" id="del">Supprimer définitivement</button>':''}
+      ${existing?'<button class="btn danger-solid" type="button" id="del" style="width:100%;margin-top:10px">Supprimer définitivement</button>':''}
     </div>
     <div class="sheet-actions">
       <button class="btn grow" type="button" data-close>Annuler</button>
@@ -3202,10 +3367,12 @@ function outfitSheet(existing, preset){
     if(fromShuffle){ S.shuffle = null; S.shuffleLocks = new Set(); S.shuffleWx = null; render(); }
     toast(existing ? tx('Tenue mise à jour.', 'Tenue mise à jour ✔️') : tx('Tenue créée.', 'Nouvelle tenue, stylé 😎'));
   }, form => {
+    // le compteur « N cochés » de chaque sous-catégorie se met à jour
+    form.addEventListener('change', e => { const d = e.target.closest('details.fold'); if(!d) return; const all = d.querySelectorAll('input[type=checkbox]'), n = [...all].filter(i => i.checked).length; d.querySelector('[data-count]').textContent = n ? `${n} coché${n > 1 ? 's' : ''}` : all.length; });
     if(fromShuffle) setTimeout(() => { form.name.focus(); form.name.select(); }, 60);
     const del = form.querySelector('#del');
     if(del) del.addEventListener('click', () => {
-      if(confirm(`Supprimer la tenue « ${o.name} » ? Les pièces restent dans ta penderie.`)){ store.deleteOutfit(o.id); sheet.close(); toast('Tenue supprimée.'); }
+      confirmBox('Supprimer la tenue ?', `« ${o.name} » sera supprimée. Les pièces restent dans ta penderie.`, 'Supprimer', () => { store.deleteOutfit(o.id); sheet.close(); toast('Tenue supprimée.'); });
     });
   });
 }
@@ -3227,7 +3394,7 @@ document.addEventListener('click', e => {
     case 'plan-toggle': S.planOpen = {...(S.planOpen || {}), [el.dataset.k]: !(S.planOpen || {})[el.dataset.k]}; render(); break;
     case 'outfits-sheet': outfitsSheet(); break;
     case 'worn': wornSheet(el.dataset.date); break;
-    case 'missed': missedSheet(); break;
+    case 'missed': if(missedDays().length) missedSheet(); else toast(tx('Rien à noter.', 'Rien à noter, tout est à jour 👌')); break;
     case 'feel': {
       // ressenti noté depuis la 2e carte de la tenue du jour
       const k = keyIn(0), o = S.outfits.get(plansOf()[k]); if(!o) break;
@@ -3245,7 +3412,7 @@ document.addEventListener('click', e => {
     case 'fpath': { const d = +el.dataset.depth, p = (S.fpath || []).slice(0, d); if(el.dataset.id) p.push(el.dataset.id); S.fpath = p; S.filter = 'all'; render(); break; }
     case 'group': groupSheet(id); break;
     case 'new-outfit': outfitSheet(); break;
-    case 'edit-outfit': outfitSheet(S.outfits.get(id)); break;
+    case 'edit-outfit': outfitView(S.outfits.get(id)); break;
     case 'filter': S.filter = el.dataset.cat; render(); break;
     case 'toggle-dirty': { const p = S.pieces.get(id); if(p) store.savePiece({...p, dirty:!p.dirty}); break; }
     case 'all-clean': for(const p of S.pieces.values()) if(p.dirty) store.savePiece({...p, dirty:false}); toast(tx('Tout est propre.', 'Tout est propre ✨')); break;
@@ -3307,6 +3474,7 @@ document.addEventListener('click', e => {
       if(!ids){ toast("Pas assez de pièces propres pour composer une tenue (il faut au moins un haut et un bas)."); break; }
       S.shuffle = ids; S.shuffleAdj = {}; S.adjustKey = null; render(); break;
     }
+    case 'shuffle-del': if(S.shuffle && S.shuffle.length > 1){ S.shuffle = S.shuffle.filter(x => x !== id); if(S.shuffleLocks) S.shuffleLocks.delete(id); render(); } break;
     case 'shuffle-cancel': S.shuffle = null; S.shuffleLocks = new Set(); S.shuffleWx = null; render(); break;
     case 'lock': { S.shuffleLocks = S.shuffleLocks || new Set(); if(S.shuffleLocks.has(id)) S.shuffleLocks.delete(id); else S.shuffleLocks.add(id); render(); break; }
     case 'shuffle-ok': {

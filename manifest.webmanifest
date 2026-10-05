@@ -1,7 +1,7 @@
 {
   "name": "Mon quotidien",
   "short_name": "Quotidien",
-  "description": "Ma garde-robe et la tenue de demain selon la météo de Paris",
+  "description": "Mon quotidien : pour l’instant, ma garde-robe et mes tenues selon la météo",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

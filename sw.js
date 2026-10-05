@@ -1,5 +1,5 @@
 // Service worker : l'app s'ouvre sans réseau et prend toujours la dernière version en ligne
-const CACHE = 'quotidien-v15';
+const CACHE = 'quotidien-v16';   // v16 : nouvelle icône
 const IA_CACHE = 'quotidien-ia-1';   // modèle du détourage intelligent : téléchargé une fois, gardé
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 

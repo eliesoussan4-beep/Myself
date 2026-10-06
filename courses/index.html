@@ -213,6 +213,10 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .pcard.closed .pfold .chev{transform:none}
 .pcard.closed{padding-bottom:10px}
 
+.nolines{background:var(--today-soft);border-radius:12px;padding:12px 14px;margin:0 0 12px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.nolines span{color:var(--muted)}
+.rawtxt{white-space:pre-wrap;font:12px/1.35 ui-monospace,Menlo,monospace;background:var(--surface);border-radius:10px;padding:10px;margin:10px 0 0;max-height:40vh;overflow:auto;color:var(--ink)}
+
 /* Popups */
 dialog{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(560px,100%);max-width:100%;max-height:92vh;max-height:92dvh;border-radius:22px 22px 0 0;margin:auto auto 0;overflow:hidden}
 @media (min-width:600px){dialog{border-radius:22px;margin:auto}}
@@ -290,7 +294,7 @@ dialog[open].sheet-d{animation:up .22s ease-out}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
-const APP_VERSION = 11;
+const APP_VERSION = 12;
 const DEMO = false;
 const DB_NAME = 'courses';
 const DAY = 864e5;
@@ -713,7 +717,7 @@ function firstGrapheme(s){
 /* ---------- Lecture du ticket (texte → lignes) ---------- */
 const STORE_RX = /(CARREFOUR|LECLERC|LIDL|AUCHAN|INTERMARCHE|MONOPRIX|MONOP|FRANPRIX|CASINO|SUPER U|HYPER U|SYSTEME U|MAGASINS U|U EXPRESS|ALDI|PICARD|BIOCOOP|LEADER PRICE|NETTO|GRAND FRAIS|MATCH|CORA|SIMPLY|NATURALIA|G20|SPAR|PROXI|VIVAL|COCCINELLE|NORMA|ACTION|DIA)/;
 const SKIP_RX = /(\bTVA\b|\bCB\b|CARTE|SIRET|\bTEL\b|MERCI|TICKET|CAISS|NB ARTICLE|ARTICLES|RENDU|ESPECE|REMISE|FIDELIT|SOUS ?TOTAL|\bBON\b|AVANTAGE|CLIENT|\bHT\b|\bTTC\b|\bDATE\b|HEURE|EMPORTE|TRANSACTION|PAIEMENT|DEBIT|CREDIT|SANS CONTACT|AUTORIS|MONTANT|VISA|MASTERCARD|CAGNOTTE|ECONOMIS|POINTS|A PAYER|TOTAL|EUROS?\s*$|^EUR\b)/;
-const PRICE_END = /(-?\d+\s?[,.]\s?\d{2})\s*(?:€|EUR|E)?\s*[A-Z0-9]?\s*$/;
+const PRICE_END = /(-?\d+\s?[,.]\s?\d{2})(?:\d(?!\d))?\s*(?:€|EUR|E)?\s*[^\s\d]?\s*$/;
 function parseTicket(text){
   const lines = String(text || '').split(/\r?\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(l => l.length > 1);
   const N = lines.map(norm);
@@ -736,7 +740,7 @@ function parseTicket(text){
   const qtyLine = /^(\d{1,3})\s*[xX*]\s*(\d+[,.]\d{2})\s*(?:€|EUR)?(?:\s*(\d+[,.]\d{2}))?/;
   const weightLine = /(\d+[,.]\d{3})\s*KG/;
   for(let i = 0; i < end; i++){
-    let l = lines[i].replace(/(\d)\s?[,.]\s?(\d{2})\b/g, '$1,$2'); const n = norm(l);
+    let l = lines[i].replace(/(\d[,.]\d)[oO](?!\w)/g, '$10').replace(/(^|\s)[oO]([,.]\d\d)(?!\d)/g, '$10$2').replace(/(\d)\s?[,.]\s?(\d{2})\b/g, '$1,$2'); const n = norm(l);
     const letters = (n.match(/[A-Z]/g) || []).length;
     let qm = l.match(qtyLine);
     if(!qm){ const q2 = l.match(/^(\d+[,.]\d{2})\s*(?:€|EUR)?\s*[xX*]\s*(\d{1,3})\b/); if(q2) qm = [q2[0], q2[2], q2[1]]; }
@@ -1195,12 +1199,13 @@ function openTickets(){
     return h;
   };
   openSheet(`<div class="sheet-scroll"><div class="page-head"><h1>Tickets</h1></div><div id="res">${body()}</div></div>
-    <div class="sheet-actions"><button class="btn grow" type="button" data-act="scan">📸 Scanner</button><button class="btn primary grow" type="button" data-close>Fermer</button></div>`, {
+    <div class="sheet-actions"><button class="btn grow" type="button" data-act="scan">📸 Photo</button><button class="btn grow" type="button" data-act="gal">🖼️ Galerie</button><button class="btn primary grow" type="button" data-close>Fermer</button></div>`, {
     onClick: (e, d) => {
       const b = e.target.closest('[data-act]'); if(!b) return;
       if(b.dataset.act === 'fold'){ const r = b.dataset.r; open.has(r) ? open.delete(r) : open.add(r); d.querySelector('#res').innerHTML = body(); }
       else if(b.dataset.act === 'open') openTicket(S.tickets.get(b.dataset.id), () => { d.querySelector('#res').innerHTML = body(); });
       else if(b.dataset.act === 'scan'){ d.close(); openCam(); }
+      else if(b.dataset.act === 'gal'){ d.close(); openCam(true); }
     }});
 }
 function openTicket(t, refresh){
@@ -1230,46 +1235,22 @@ function openTicket(t, refresh){
     }});
 }
 
-/* ---------- Appareil photo ---------- */
-let camStream = null;
-function stopCam(){ if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } }
-function openCam(){
-  let d = $('#cam'); if(d) d.remove();
-  d = document.createElement('dialog'); d.id = 'cam';
-  d.innerHTML = `<div class="cam">
-    <div class="cam-top"><button class="cam-x" type="button" data-act="x" aria-label="Fermer">✕</button><span class="cam-title">Ticket</span></div>
-    <div class="cam-box"><video playsinline muted autoplay></video><div class="cam-guide"></div></div>
-    <p class="cam-tip">Cadre le ticket en entier 🧾</p>
-    <div class="cam-bottom">
-      <label class="cam-side" aria-label="Choisir une photo">${SVG.image}<input type="file" accept="image/*"></label>
-      <button class="cam-shot" type="button" data-act="shot" aria-label="Prendre la photo" disabled></button>
-      <span class="cam-spacer"></span>
-    </div></div>`;
-  document.body.appendChild(d);
-  const video = d.querySelector('video'), shot = d.querySelector('.cam-shot');
-  const fail = () => {
-    stopCam(); shot.disabled = true;
-    d.querySelector('.cam-box').innerHTML = `<div class="cam-err"><span>Appareil photo indisponible 😕</span><label class="btn primary file-btn">Choisir une photo<input type="file" accept="image/*"></label></div>`;
-  };
-  d.addEventListener('close', () => { stopCam(); d.remove(); });
-  d.addEventListener('click', e => {
-    const b = e.target.closest('[data-act]'); if(!b) return;
-    if(b.dataset.act === 'x') d.close();
-    else if(b.dataset.act === 'shot' && video.videoWidth){
-      const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
-      c.getContext('2d').drawImage(video, 0, 0); d.close(); scanImage(c);
-    }
+/* ---------- Appareil photo ----------
+   On passe par l'appareil photo du téléphone (mise au point, pleine résolution),
+   bien plus net que le flux vidéo d'une page web. */
+function openCam(fromGallery = false){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; if(!fromGallery) inp.setAttribute('capture', 'environment');
+  inp.style.display = 'none'; document.body.appendChild(inp);
+  inp.addEventListener('change', () => {
+    const f = inp.files && inp.files[0]; inp.remove(); if(!f) return;
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(img.src); scanImage(img); };
+    img.onerror = () => toast('Photo illisible 😕');
+    img.src = URL.createObjectURL(f);
   });
-  d.addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0]; if(!f) return;
-    const img = new Image(); img.onload = () => { URL.revokeObjectURL(img.src); d.close(); scanImage(img); };
-    img.onerror = () => toast('Photo illisible 😕'); img.src = URL.createObjectURL(f);
-  });
-  d.showModal();
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ fail(); return; }
-  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}, width:{ideal:1920}, height:{ideal:2560}}, audio:false})
-    .then(s => { if(!d.isConnected){ s.getTracks().forEach(t => t.stop()); return; } camStream = s; video.srcObject = s; video.onloadedmetadata = () => { shot.disabled = false; }; })
-    .catch(fail);
+  inp.click();
+  setTimeout(() => { if(inp.isConnected && !(inp.files && inp.files.length)) inp.remove(); }, 120000);
 }
 
 /* ---------- Lecture (OCR sur le téléphone) ---------- */
@@ -1305,9 +1286,16 @@ async function ocr(canvas, onProgress){
   };
   onProgress('load', 0);
   const w = await withTimeout(getWorker(), 120000);
-  const {data} = await withTimeout(w.recognize(canvas), 120000);
+  let {data} = await withTimeout(w.recognize(canvas), 120000);
+  let text = data.text;
+  if(parseTicket(text).items.length < 2){
+    await w.setParameters({tessedit_pageseg_mode:'4'});
+    const r2 = await withTimeout(w.recognize(canvas), 120000);
+    await w.setParameters({tessedit_pageseg_mode:'6'});
+    if(parseTicket(r2.data.text).items.length > parseTicket(text).items.length) text = r2.data.text;
+  }
   progCb = null;
-  return data.text;
+  return text;
 }
 
 /* ---------- Récap du ticket ---------- */
@@ -1329,13 +1317,13 @@ async function scanImage(src){
   try{
     const c = prep(src);
     text = await ocr(c, (phase, p) => { R.phase = phase; R.prog = p; const el = d.querySelector('.reading'); if(el) el.outerHTML = readingHtml(R); });
-  }catch(e){ console.warn(e); }
+  }catch(e){ console.warn(e); R.err = (e && e.message) || String(e); }
     if(text != null){
     const P = parseTicket(text);
     R.store = P.store || ''; if(P.date) R.date = isoDay(P.date); R.total = P.total != null ? fmt2(P.total) : '';
     R.lines = P.items.map(resolveLine);
-    if(!R.lines.length) toast('Aucune ligne reconnue 😕 Ajoute-les à la main.');
-  } else toast('Lecture impossible 😕 Ajoute les produits à la main.');
+    R.text = text;
+  }
   R.loading = false;
   if(d.isConnected) d._render();
 }
@@ -1355,6 +1343,10 @@ function openRecap(R){
   const okN = () => R.lines.filter(L => L.state !== 'ignored' && L.pid).length;
   const html = () => R.loading ? `<div class="sheet-scroll"><h2>Ticket 🧾</h2>${readingHtml(R)}</div><div class="sheet-actions"><button class="btn grow" type="button" data-close>Annuler</button></div>`
     : `<div class="sheet-scroll"><h2>Ticket${R.store ? ' ' + esc(R.store) : ''} 🧾</h2>
+      ${R.lines.length ? '' : `<div class="nolines"><b>${R.text != null ? 'Aucun produit trouvé sur la photo 😕' : 'Lecture impossible 😕'}</b>
+        <span>${R.text != null ? 'Rapproche-toi, ticket bien à plat et éclairé, puis réessaie.' : 'Le moteur de lecture ne s’est pas chargé' + (R.err ? ` (${esc(R.err)})` : '') + '. Vérifie la connexion pour le premier scan.'}</span>
+        <div style="display:flex;gap:8px;margin-top:8px"><button type="button" class="btn grow" data-act="retake">📸 Reprendre</button>${R.text ? '<button type="button" class="btn grow" data-act="rawtxt">Texte lu</button>' : ''}</div>
+        ${R.showRaw ? `<pre class="rawtxt">${esc(R.text || '')}</pre>` : ''}</div>`}
       ${R.lines.map(lineHtml).join('')}
       <button type="button" class="addline" data-act="addl">＋ Ajouter un produit</button>
       <label class="frow"><span class="fl">Date</span><input type="date" name="date" value="${R.date}"></label>
@@ -1374,6 +1366,8 @@ function openRecap(R){
       else if(a === 'unign'){ L.state = L.pid ? 'ok' : 'unknown'; L.userIgn = false; if(L.auto){ L.auto = false; L.unignore = true; L.qty = guessQty(L, null); } rerender(); }
       else if(a === 'pick') openPicker(L.raw, L, p => { L.pid = p.id; L.state = 'ok'; L.qty = guessQty(L, p); rerender(); });
       else if(a === 'addl') openPicker('', null, p => { R.lines.push({raw: '', count: 1, pid: p.id, qty: packOf(p), state: 'ok', manual: true}); rerender(); });
+      else if(a === 'retake'){ d.close(); openCam(); }
+      else if(a === 'rawtxt'){ R.showRaw = !R.showRaw; rerender(); }
       else if(a === 'cancel'){ if(!R.lines.length || await confirmBox('Abandonner ce ticket ?', '', 'Abandonner')) d.close(); }
       else if(a === 'ok') validateRecap(R, d);
     }});

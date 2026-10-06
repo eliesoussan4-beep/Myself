@@ -1,5 +1,5 @@
 // Service worker de la partie « Courses » — ne touche qu'aux caches qui commencent par « courses- »
-const CACHE = 'courses-v11';          // à changer à chaque mise à jour importante
+const CACHE = 'courses-v12';          // à changer à chaque mise à jour importante
 const CDN_CACHE = 'courses-cdn-v1';  // lecture des tickets (~5 Mo), gardée d'une version à l'autre
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 

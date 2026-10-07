@@ -336,7 +336,7 @@ dialog[open].sheet-d{animation:up .22s ease-out}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
-const APP_VERSION = 22;
+const APP_VERSION = 24;
 const DEMO = false;
 const DB_NAME = 'courses';
 const DAY = 864e5;
@@ -555,7 +555,7 @@ function migrate5(){
 const KW = [
   ['boissons', 'EAU JUS SODA COCA BIERE VIN SIROP CRISTAL EVIAN VOLVIC LIMONAD ORANGINA ICE'],
   ['fl', 'BANAN POMME POIRE TOMAT SALAD CAROT OIGNON AIL CITRON ORANGE FRAISE RAISIN AVOCA COURGET POIVRON CONCOMB PDT PATATE CHAMPI KIWI MELON CLEMENT LEGUM FRUIT ECHALOT BROCO EPINAR HARICOT ENDIV POIREAU CERISE PECHE MANGUE ANANAS'],
-  ['frais', 'LAIT YAOURT YAOU YOP BEURRE FROMAG CREME OEUF EMMENT COMTE MOZZA SKYR JAMBON LARDON KNACKI DESSERT CAMEMB RACLET BRIE FETA GRUYER RAPE FRAICH PATE FEUIL'],
+  ['frais', 'LAIT YAOURT YAOU YOP BEURRE FROMAG CREME OEUF EMMENT COMTE MOZZA SKYR JAMBON LARDON KNACKI DESSERT CAMEMB RACLET BRIE FETA GRUYER RAPE FRAICH'],
   ['viande', 'POULET STEAK BOEUF PORC VEAU DINDE SAUMON CABILL POISSON VIANDE HACHE SAUCIS ESCALOP FILET MERGUEZ CREVET BURGER NUGGET CORDON CANARD AGNEAU'],
   ['pain', 'PAIN BAGUET BRIOCH CROISS VIENNOI'],
   ['surgeles', 'SURG GLACE FRITE'],
@@ -720,6 +720,24 @@ const EMOJI = [
 ];
 /* Marques passées dans le langage courant : emoji + rayon */
 const BRANDS = [
+  // Expressions composées : le mot principal l'emporte (« pain au lait » est du pain, pas du lait)
+  [/\bPAINS? AU LAIT|\bPAINS? AU CHOC|\bCHOCOLATINE|\bPAINS? AUX RAISINS|\bCROISSANT|\bVIENNOIS|\bCHAUSSON/, '🥐', 'pain'],
+  [/\bPAINS? D EPICE|\bPAINS? DE MIE|\bBRIOCHE|\bPAINS? (?:A |POUR )?(?:BURGER|HAMBURGER|HOT DOG)|\bPAINS? DE CAMPAGNE|\bPAINS? COMPLET/, '🍞', 'pain'],
+  [/\bCHOCOLAT (?:AU LAIT|NOIR|BLANC|PATISSIER)|\bTABLETTE DE CHOC|\bPATE A TARTINER/, '🍫', 'epicerie'],
+  [/\bRIZ AU LAIT|\bSEMOULE AU LAIT|\bCREME (?:DESSERT|BRULEE|CARAMEL|AU CHOC|ANGLAISE)|\bFLAN\b|\bILE FLOTTANTE/, '🍮', 'frais'],
+  [/\bCREME GLACEE|\bGLACES?\b|\bSORBET|\bBATONNET GLACE/, '🍨', 'surgeles'],
+  [/\bPETITS? BEURRES?|\bBISCUITS?\b|\bSABLES?\b|\bGAUFRETTE/, '🍪', 'epicerie'],
+  [/\bBEURRE DE CACAHU|\bCACAHUETE|\bNOIX DE CAJOU/, '🥜', 'epicerie'],
+  [/\bEAU DE JAVEL|\bJAVEL/, '🧴', 'maison'],
+  [/\bLAIT DE COCO|\bCREME DE COCO/, '🥥', 'epicerie'],
+  [/\bCAFE AU LAIT|\bCAPPUCCINO|\bLATTE\b/, '☕', 'epicerie'],
+  [/\bLAIT DE (?:TOILETTE|CORPS)|\bLAIT HYDRAT|\bLAIT DEMAQUILL|\bCREME (?:HYDRAT|SOLAIRE|MAINS|VISAGE)/, '🧴', 'hygiene'],
+  [/\bPATE (?:BRISEE|FEUILLETEE|SABLEE|A PIZZA)/, '🥧', 'frais'],
+  [/\bPATES?\b|\bSPAGHETTI|\bCOQUILLETTE|\bTAGLIATELLE|\bPENNE|\bFUSILLI|\bMACARONI|\bTORTELLINI|\bRAVIOLI/, '🍝', 'epicerie'],
+  [/\bPOMMES? DE TERRE|\bPDT\b/, '🥔', 'fl'],
+  [/\bJUS\b|\bNECTAR\b/, '🧃', 'boissons'],
+  [/\bSAUCE TOMATE|\bCONCENTRE DE TOMATE|\bCOULIS|\bPULPE DE TOMATE|\bTOMATES? PELEES/, '🥫', 'epicerie'],
+  [/\bCHIPS/, '🥔', 'epicerie'],
   [/\bBABYBEL|\bST ?MORET|\bSAINT ?MORET|\bCAPRICE DES DIEUX|\bKIRI\b|\bBOURSIN|\bVACHE QUI RIT|\bCOEUR DE LION|\bLEERDAMMER|\bPRIMEUR|\bCARRE FRAIS|\bPAVE D AFFINOIS|\bTARTARE\b|\bPRESIDENT\b|\bPORT SALUT|\bRONDELE|\bSAINT AGUR|\bBRESSE BLEU|\bCHAUSSEE AUX MOINES/, '🧀', 'frais'],
   [/\bDANETTE|\bLA LAITIERE|\bLIEGEOIS|\bFLAMBY|\bMONT BLANC|\bCREME DESSERT|\bPANNA COTTA|\bTIRAMISU/, '🍮', 'frais'],
   [/\bDANONE|\bACTIVIA|\bPETIT SUISSE|\bPETITS SUISSES|\bPETIT GERVAIS|\bVELOUTE FRUIX|\bTAILLEFINE|\bALSA\b|\bSKYR|\bOIKOS|\bGERVITA/, '🥣', 'frais'],
@@ -1128,8 +1146,8 @@ function openProduct(p, {name = '', onSaved} = {}){
       ${hn ? `<button type="button" class="chip-btn" data-act="fold" data-r="hi" aria-pressed="${open.has('hi')}">🕓 ${hn} achat${hn > 1 ? 's' : ''}</button>` : ''}`;
   };
   const sel = (name, opts, v) => `<select name="${name}">${opts.map(([k, l]) => `<option value="${k}"${v === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
-  const html = `<div class="sheet-scroll">
-    <div class="fhead"><input class="femoji" type="text" name="emoji" value="${esc(emojiOf(P))}" autocomplete="off" aria-label="Emoji"><input class="fname" type="text" name="name" value="${esc(P.name)}" placeholder="Nom du produit" autocomplete="off" aria-label="Nom"></div>
+  const html = `<div class="sheet-scroll"${isNew ? '' : ' tabindex="-1" autofocus style="outline:none"'}>
+    <div class="fhead"><input class="femoji" type="text" name="emoji" value="${esc(emojiOf(P))}" autocomplete="off" aria-label="Emoji"><input class="fname" type="text" name="name" value="${esc(P.name)}" placeholder="Nom du produit" autocomplete="off" aria-label="Nom"${isNew ? ' autofocus' : ''}></div>
     <div class="fgrid">
       <label class="fcase"><span>Rayon</span>${sel('rayon', RAYONS, P.rayon)}</label>
       <label class="fcase"><span>Vendu</span>${sel('unit', UNITS, P.unit === 'kg' ? 'kg' : 'u')}</label>

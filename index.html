@@ -515,6 +515,11 @@ details.fold[open] > .frow{border-radius:12px 12px 0 0}
 :root[data-theme="dark"]{--leg1:#8f887e;--leg2:#6f695f;--rod1:#9aa1aa;--rod2:#5d646d}
 .sil .legs{overflow:visible}
 .leg-e{position:absolute;top:50%;margin-top:-.5em;line-height:1;display:block;pointer-events:none}
+.occ-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -16px 6px;padding:0 16px 2px}
+.occ-row::-webkit-scrollbar{display:none}
+.occ-row .chip-btn{flex:none;font-size:13px;padding:6px 11px}
+.sheet .occ-row{margin:0 0 12px;padding:0}
+.o-occ{font-size:13px;margin-left:4px;letter-spacing:1px}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
@@ -549,7 +554,7 @@ details.fold[open] > .frow{border-radius:12px 12px 0 0}
 /* Ton de l'app : tx(sobre, ludique). La version sobre est l'ancien texte, gardé tel quel.
    Réglages → « Ton de l'app » permet de revenir au sobre à tout moment. */
 const tx = (sobre, fun) => fun;   // ton ludique, toujours
-const APP_VERSION = 90;
+const APP_VERSION = 93;
 const CATS = [
   {id:'manteau', label:'Manteau', order:0},
   {id:'veste', label:'Veste', order:1},
@@ -1700,6 +1705,14 @@ function idealTemp(ids){
   return {t:BASE_T - sum, data};
 }
 /* t-shirts qu'on peut mettre sous le pull / sweat d'une tenue : ceux que tu portes déjà avec ce bas */
+/* Occasions : chaque vêtement peut être marqué pour une ou plusieurs circonstances.
+   Un vêtement sans occasion convient à tout. Une tenue convient à une occasion si toutes ses pièces visibles y conviennent.
+   L'ambiance choisie pour le jour filtre les propositions, la tenue aléatoire, les vestes, chaussures et t-shirts dessous. */
+const OCCASIONS = [{id:'classe', label:'Classe', e:'👔'}, {id:'style', label:'Stylé', e:'😎'}, {id:'chill', label:'Chill', e:'🛋️'}, {id:'sport', label:'Sport', e:'⚽'}, {id:'plage', label:'Plage', e:'🏖️'}];
+const dayOcc = () => { const o = S.settings.occDay; return o && o.date === tomorrowKey() ? o.occ : null; };
+const fitsOcc = (p, occ) => !occ || !p || !(p.occ && p.occ.length) || p.occ.includes(occ);
+const outfitOccs = o => OCCASIONS.filter(x => coreIds(o.pieceIds).every(id => fitsOcc(S.pieces.get(id), x.id)) && coreIds(o.pieceIds).some(id => ((S.pieces.get(id) || {}).occ || []).includes(x.id)));
+const outfitFits = (o, occ) => !occ || coreIds(o.pieceIds).every(id => fitsOcc(S.pieces.get(id), occ));
 function underCandidates(o){
   if(isShirtOnly(o.pieceIds)) return (o.under || []).map(id => S.pieces.get(id)).filter(p => p && !p.dirty);   // chemise : tes t-shirts associés
   const bottoms = baseIds(o.pieceIds).filter(id => LAYER[S.pieces.get(id).category] === 'bottom');
@@ -1707,11 +1720,13 @@ function underCandidates(o){
   for(const x of S.outfits.values()) if(x.id !== o.id && baseIds(x.pieceIds).some(id => bottoms.includes(id)))
     [...baseIds(x.pieceIds), ...(x.under || []).filter(id => S.pieces.has(id))].forEach(id => { if(UNDER_CATS.has(S.pieces.get(id).category)) ids.add(id); });   // y compris les t-shirts sous une chemise
   const own = [...ids].map(id => S.pieces.get(id)).filter(p => p && !p.dirty);
-  return own.length ? own : [...S.pieces.values()].filter(p => !p.dirty && UNDER_CATS.has(p.category));
+  const occ = dayOcc(), mine = own.filter(p => fitsOcc(p, occ));
+  return mine.length ? mine : own.length ? own : [...S.pieces.values()].filter(p => !p.dirty && UNDER_CATS.has(p.category) && fitsOcc(p, occ));
 }
 function chooseExtras(o, w){
   const allowed = new Set(allowedOf(o));
-  const clean = [...S.pieces.values()].filter(p => !p.dirty && allowed.has(p.id));
+  const occ0 = dayOcc(), clean0 = [...S.pieces.values()].filter(p => !p.dirty && allowed.has(p.id)), cleanOcc = clean0.filter(p => fitsOcc(p, occ0));
+  const clean = cleanOcc.length ? cleanOcc : clean0;   // l'occasion du jour d'abord (sinon, faute de mieux, le reste)
   const lru = list => list.slice().sort((a, b) => (lastWornKey(a.id) < lastWornKey(b.id) ? -1 : 1));
   const band = w && w.band, rain = !!(w && w.rain);
   const outers = clean.filter(p => p.category === 'veste' || p.category === 'manteau');
@@ -1833,7 +1848,8 @@ function extrasRow(id, ex, scope, dayK){
 }
 function rankOutfits(w){
   const bi = w ? BANDS.findIndex(b => b.id === w.band) : -1;
-  const all = [...S.outfits.values()].map(o => {
+  const occ = dayOcc();
+  const all = [...S.outfits.values()].filter(o => outfitFits(o, occ)).map(o => {
     const core = resolveCore(o, w), pcs = core.map(id => S.pieces.get(id)).filter(Boolean);
     if(!pcs.length) return null;
     const dirty = pcs.filter(p => p.dirty);
@@ -2274,7 +2290,8 @@ function randomOutfit(locked){
   return ids;
 }
 function randomOutfitOnce(locked){
-  const clean = [...S.pieces.values()].filter(p => !p.dirty && p.photo && p.photo.cut);
+  const occR = S.shuffleOcc !== undefined ? S.shuffleOcc : dayOcc();   // ambiance choisie pour le tirage, sinon celle du jour
+  const clean = [...S.pieces.values()].filter(p => !p.dirty && p.photo && p.photo.cut && fitsOcc(p, occR));
   const of = (...cats) => clean.filter(p => cats.includes(p.category));
   const pick = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
   const chance = x => Math.random() < x;
@@ -2343,12 +2360,9 @@ function shuffleUI(){
         <button class="btn primary grow" type="button" data-act="shuffle-ok">Valider</button>
         <button class="btn grow" type="button" data-act="shuffle-cancel">Annuler</button>
       </div>
-      <h3 class="side-h">Météo du tirage</h3>
-      <div class="wx-pick">
-        <button type="button" class="chip-btn" data-act="sh-wx" data-v="auto" aria-pressed="${!S.shuffleWx}">${tx('Celle du jour', 'Météo du jour')}</button>
-        ${BANDS.map(b => `<button type="button" class="chip-btn" data-act="sh-wx" data-v="${b.id}" aria-pressed="${!!(S.shuffleWx && S.shuffleWx.band === b.id)}">${b.label}</button>`).join('')}
-        <button type="button" class="chip-btn" data-act="sh-wx" data-v="rain" aria-pressed="${!!(S.shuffleWx && S.shuffleWx.rain)}" ${S.shuffleWx ? '' : 'disabled'}>☔ Pluie</button>
-      </div>
+      <h3 class="side-h">Ambiance</h3>
+      <div class="wx-pick">${(() => { const cur = S.shuffleOcc !== undefined ? S.shuffleOcc : dayOcc();
+        return [{id:'', label:'Tout', e:''}, ...OCCASIONS].map(x => `<button type="button" class="chip-btn" data-act="sh-occ" data-occ="${x.id}" aria-pressed="${(cur || '') === x.id}">${x.e ? x.e + ' ' : ''}${x.label}</button>`).join(''); })()}</div>
       <h3 class="side-h">${tx('Garder en relançant', 'Je garde 🔒')}</h3>
       <div class="side-list">${pcs.map(p => { const on = S.shuffleLocks && S.shuffleLocks.has(p.id);
         return `<div class="lock-row"><button type="button" class="side-row${on ? ' on' : ''}" data-act="lock" data-id="${esc(p.id)}" aria-pressed="${!!on}"><span class="sr-ico">${on ? '🔒' : '🔓'}</span><span class="sr-name">${esc(plabel(p))}</span></button><button type="button" class="miss-x" data-act="shuffle-del" data-id="${esc(p.id)}" aria-label="Retirer cette pièce">×</button></div>`; }).join('')}</div>
@@ -2560,14 +2574,16 @@ function renderDemain(){
   if(!S.pieces.size) return top + `<div class="empty"><h3>${tx('Commence par tes pièces', 'Penderie vide 👀')}</h3><p>${tx('Prends en photo tes vêtements un par un, puis assemble-les en tenues.', 'Prends tes fringues en photo une par une, je m\'occupe du reste.')}</p><button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button></div>`;
   if(!S.outfits.size) return top + `<div class="empty"><h3>${tx('Aucune tenue pour l\'instant', 'Pas encore de tenue 🤷')}</h3><p>${tx('Assemble tes pièces en tenues : c\'est parmi elles que je choisirai.', 'Assemble quelques pièces, et chaque matin je te dirai quoi mettre.')}</p><button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button></div>`;
 
+  const occ = dayOcc();
+  const occRow = `<div class="occ-row" role="group" aria-label="Ambiance du jour">${[{id:'', label:'Tout', e:''}, ...OCCASIONS].map(x => `<button type="button" class="chip-btn occ" data-act="day-occ" data-occ="${x.id}" aria-pressed="${(occ || '') === x.id}">${x.e ? x.e + ' ' : ''}${x.label}</button>`).join('')}</div>`;
   const {ok, blocked} = rankOutfits(w);
-  if(!ok.length) return top + `<div class="empty"><h3>${tx('Tout est au sale', 'Tout est au sale 🧺')}</h3><p>Chaque tenue contient au moins une pièce à laver (${blocked.length} tenue${blocked.length>1?'s':''}).</p><button class="btn primary" type="button" data-section="linge">Voir le linge</button></div>`;
+  if(!ok.length) return top + occRow + (occ ? `<div class="empty"><h3>Rien pour cette ambiance</h3><p>Aucune tenue disponible marquée « ${esc(OCCASIONS.find(x => x.id === occ).label)} ». Marque tes vêtements dans leur fiche (case Occasions).</p></div>` : `<div class="empty"><h3>${tx('Tout est au sale', 'Tout est au sale 🧺')}</h3><p>Chaque tenue contient au moins une pièce à laver.</p><button class="btn primary" type="button" data-act="laundry">Linge sale</button></div>`);
   // La tenue prévue pour le jour affiché passe en premier, surlignée ; les autres restent proposées
   const plans = plansOf(), kDay = tomorrowKey(), kToday = keyIn(0), kTomorrow = keyIn(1);
   const plannedId = plans[kDay];
   let list = ok.slice(0, 12);
   list = list.filter(x => x.o.id !== plans[kToday] && x.o.id !== plans[kTomorrow]);
-  if(!list.length) return top;
+  if(!list.length) return top + occRow;
   const firstFree = list.findIndex(x => x.o.id !== plans[kToday] && x.o.id !== plans[kTomorrow]);
   const cur = Math.min(S.alt, list.length - 1);
   const slides = list.map((x, n) => {
@@ -2590,14 +2606,16 @@ function renderDemain(){
     </article>`; }).join('');
   const nav = list.length > 1 ? `<div class="dots" aria-hidden="true">${list.map((_, n) => `<span class="dot${n === cur ? ' on' : ''}"></span>`).join('')}</div>
     ` : '';
-  return top + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
+  return top + occRow + `<div class="carousel" id="carousel" data-start="${cur}">${slides}</div>${nav}
     <button type="button" class="linkish foot-link" data-act="settings">Sauvegarde · version ${APP_VERSION}</button>`;
 }
 
 function renderTenues(){
   const list = [...S.outfits.values()].sort((a,b) => (a.name||'').localeCompare(b.name||'', 'fr'));
   const hideDirty = S.hideDirtyOutfits !== false;   // par défaut : seulement les tenues disponibles
-  const head = `<div class="page-head"><h1>Tenues</h1><button type="button" class="chip-btn" data-act="toggle-dirty-outfits" aria-pressed="${hideDirty}">${hideDirty ? 'Disponibles' : 'Toutes'}</button></div>`;
+  const fo = S.outfitsOcc || '';
+  const head = `<div class="page-head"><h1>Tenues</h1><button type="button" class="chip-btn" data-act="toggle-dirty-outfits" aria-pressed="${hideDirty}">${hideDirty ? 'Disponibles' : 'Toutes'}</button></div>
+    <div class="occ-row">${[{id:'', label:'Tout', e:''}, ...OCCASIONS].map(x => `<button type="button" class="chip-btn occ" data-act="outfits-occ" data-occ="${x.id}" aria-pressed="${fo === x.id}">${x.e ? x.e + ' ' : ''}${x.label}</button>`).join('')}</div>`;
   if(!list.length) return head + `<div class="empty"><h3>${tx('Aucune tenue', 'Aucune tenue… pour l\'instant 😏')}</h3><p>${S.pieces.size?'Choisis quelques pièces qui vont bien ensemble.':"Ajoute d'abord des pièces dans l'onglet Pièces."}</p>${S.pieces.size?'<button class="btn primary" type="button" data-act="new-outfit">Créer une tenue</button>':'<button class="btn primary" type="button" data-act="new-piece">Ajouter une pièce</button>'}</div>`;
   const th = p => `<div class="th ${p.dirty ? 'dirty' : ''}">${thumbSrc(p) ? `<img src="${esc(thumbSrc(p))}" alt="" loading="lazy">` : ICON.hanger}</div>`;
   const card = o => {
@@ -2606,7 +2624,7 @@ function renderTenues(){
     const outs = extra.filter(p => p.category === 'veste' || p.category === 'manteau'), shoes = extra.filter(p => p.category === 'chaussures');
     const dirty = core.filter(p => p.dirty).length, n = outfitWearCount(o);
     return `<button class="outfit" type="button" data-act="edit-outfit" data-id="${esc(o.id)}">
-      <div class="row"><h3>${esc(o.name)}</h3><span class="muted" style="font-size:13px">${n ? `Portée ${n} fois` : 'Jamais portée'}</span></div>
+      <div class="row"><h3>${esc(o.name)}${outfitOccs(o).length ? ` <span class="o-occ">${outfitOccs(o).map(x => x.e).join('')}</span>` : ''}</h3><span class="muted" style="font-size:13px">${n ? `Portée ${n} fois` : 'Jamais portée'}</span></div>
       <div class="o-body">
         <div class="strip o-core">${core.map(th).join('')}</div>
         ${outs.length || shoes.length ? '<div class="o-sep" aria-hidden="true"></div>' : ''}
@@ -2626,6 +2644,7 @@ function renderTenues(){
   const groups = new Map();
   for(const o of list){
     if(hideDirty && coreIds(o.pieceIds).some(id => (S.pieces.get(id) || {}).dirty)) continue;   // au sale : masquée
+    if(fo && !outfitFits(o, fo)) continue;
     const [k, l] = groupOf(o); if(!groups.has(k)) groups.set(k, {l, list:[]}); groups.get(k).list.push(o); }
   return head + [...groups.entries()].sort((a, b) => ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]))
     .map(([, g]) => `<h3 class="cat-title">${esc(g.l)} <span>${g.list.length}</span></h3><div class="outfits">${g.list.sort((a, b) => outfitWearCount(b) - outfitWearCount(a) || (a.name || '').localeCompare(b.name || '', 'fr')).map(card).join('')}</div>`).join('');
@@ -2876,6 +2895,7 @@ function outfitsSheet(){
     form.addEventListener('click', e => {
       const a = e.target.closest('[data-act]'); if(!a) return;
       if(a.dataset.act === 'edit-outfit') outfitView(S.outfits.get(a.dataset.id));
+      if(a.dataset.act === 'outfits-occ'){ S.outfitsOcc = a.dataset.occ; outfitsSheet(); }
       if(a.dataset.act === 'toggle-dirty-outfits'){ S.hideDirtyOutfits = S.hideDirtyOutfits === false; outfitsSheet(); }
       if(a.dataset.act === 'new-outfit') outfitSheet();
       if(a.dataset.act === 'new-piece'){ sheet.close(); pieceSheet(); }
@@ -3269,6 +3289,10 @@ function pieceSheet(existing, preset, shot){
       <datalist id="brands">${[...new Set([...S.pieces.values()].map(q => q.brand).filter(Boolean))].sort().map(b => `<option value="${esc(b)}">`).join('')}</datalist>
       <label class="frow"><span class="fl">Nom</span><input type="text" name="name" value="${esc(p.name)}" placeholder="Blanc, rayé bleu…" autocomplete="off"></label>
       <label class="frow"><span class="fl">Variante de</span><select name="group"></select></label>
+      <details class="frow-d" id="occBox"><summary class="frow"><span class="fl">Occasions</span><span class="fv" id="occVal">${(p.occ || []).length ? esc(OCCASIONS.filter(x => p.occ.includes(x.id)).map(x => x.e + ' ' + x.label).join(' · ')) : 'Toutes'}</span></summary>
+        <div class="frow-body"><div class="chips">${OCCASIONS.map(x => `<label class="chip"><input type="checkbox" name="occ" value="${x.id}" ${(p.occ || []).includes(x.id) ? 'checked' : ''}><span>${x.e} ${x.label}</span></label>`).join('')}</div>
+</div>
+      </details>
       <details class="frow-d" ${p.category ? '' : 'open'} id="catBox"><summary class="frow"><span class="fl">Catégorie</span><span class="fv" id="catVal">${p.category ? esc(catLabel(p.category)) : 'à choisir'}</span></summary>
         <div class="frow-body">
         ${CAT_GROUPS.map(([g, ids]) => `<div class="cat-group"><span class="cat-g">${g}</span><div class="chips">${ids.map(id => CATS.find(c => c.id === id)).filter(Boolean).map(c => `<label class="chip"><input type="radio" name="cat" value="${c.id}" ${p.category===c.id?'checked':''}><span>${c.label}</span></label>`).join('')}</div></div>`).join('')}
@@ -3288,6 +3312,7 @@ function pieceSheet(existing, preset, shot){
     const cat = form.querySelector('input[name=cat]:checked');
     if(!cat){ toast('Choisis une catégorie.'); return false; }
     p.brand = (form.brand.value || '').trim() || undefined;
+    p.occ = [...form.querySelectorAll('input[name=occ]:checked')].map(i => i.value); if(!p.occ.length) delete p.occ;
     p.name = name; p.category = cat.value; p.dirty = form.dirty ? form.dirty.checked : false;
     if(!existing) store.saveSettings({lastCat:p.category});
     const g = form.group.value;
@@ -3343,6 +3368,10 @@ function pieceSheet(existing, preset, shot){
       sel.value = opts.some(q => (q.group || q.id) === keep) ? keep : '';
     };
     fillGroups(p.category || (shot && shot.cat) || '');
+    form.querySelectorAll('input[name=occ]').forEach(i => i.addEventListener('change', () => {
+      const v = [...form.querySelectorAll('input[name=occ]:checked')].map(x => OCCASIONS.find(o => o.id === x.value)).map(o => o.e + ' ' + o.label);
+      form.querySelector('#occVal').textContent = v.length ? v.join(' · ') : 'Toutes';
+    }));
     form.querySelectorAll('input[name=cat]').forEach(r => r.addEventListener('change', () => {
       form.querySelector('#catVal').textContent = catLabel(r.value); form.querySelector('#catBox').open = false;
       fillGroups(r.value);
@@ -3465,7 +3494,7 @@ function outfitSheet(existing, preset){
     o.allowed = [...form.querySelectorAll('input[name=ex]:checked')].map(i => i.value); delete o.prefer;
     delete o.bands; delete o.rainOk;   // le temps se déduit de la chaleur des pièces ; la pluie, des capuches
     store.saveOutfit(o);
-    if(fromShuffle){ S.shuffle = null; S.shuffleLocks = new Set(); S.shuffleWx = null; render(); }
+    if(fromShuffle){ S.shuffle = null; S.shuffleLocks = new Set(); S.shuffleWx = null; S.shuffleOcc = undefined; render(); }
     toast(existing ? tx('Tenue mise à jour.', 'Tenue mise à jour ✔️') : tx('Tenue créée.', 'Nouvelle tenue, stylé 😎'));
   }, form => {
     // le compteur « N cochés » de chaque sous-catégorie se met à jour
@@ -3568,6 +3597,7 @@ document.addEventListener('click', e => {
       }
       break;
     }
+    case 'day-occ': { const v = el.dataset.occ || null; store.saveSettings({occDay: v ? {date:tomorrowKey(), occ:v} : null}); S.alt = 0; break; }
     case 'head': { const k = el.dataset.key, cur = +el.dataset.i; let n = cur; while(n === cur && HEADS.length > 1) n = Math.floor(Math.random() * HEADS.length);
       S.headBy = {...(S.headBy || {}), [k]: {i:n}}; render(); break; }   // une autre tête au hasard, seulement sur cette carte
     case 'shuffle': {
@@ -3577,7 +3607,7 @@ document.addEventListener('click', e => {
       S.shuffle = ids; S.shuffleAdj = {}; S.adjustKey = null; render(); break;
     }
     case 'shuffle-del': if(S.shuffle && S.shuffle.length > 1){ S.shuffle = S.shuffle.filter(x => x !== id); if(S.shuffleLocks) S.shuffleLocks.delete(id); render(); } break;
-    case 'shuffle-cancel': S.shuffle = null; S.shuffleLocks = new Set(); S.shuffleWx = null; render(); break;
+    case 'shuffle-cancel': S.shuffle = null; S.shuffleLocks = new Set(); S.shuffleWx = null; S.shuffleOcc = undefined; render(); break;
     case 'lock': { S.shuffleLocks = S.shuffleLocks || new Set(); if(S.shuffleLocks.has(id)) S.shuffleLocks.delete(id); else S.shuffleLocks.add(id); render(); break; }
     case 'shuffle-ok': {
       // on ouvre l'éditeur complet : nom, haut + bas, et les vestes / manteaux / chaussures qui vont avec
@@ -3588,6 +3618,13 @@ document.addEventListener('click', e => {
       break;
     }
     case 'adjust': S.adjustKey = S.adjustKey === el.dataset.key ? null : el.dataset.key; render(); break;
+    case 'sh-occ': {
+      S.shuffleOcc = el.dataset.occ || null;
+      // les pièces verrouillées qui ne vont pas avec cette ambiance sont libérées
+      if(S.shuffleLocks) for(const pid of [...S.shuffleLocks]) if(!fitsOcc(S.pieces.get(pid), S.shuffleOcc)) S.shuffleLocks.delete(pid);
+      const ids = randomOutfit(S.shuffleLocks); if(ids) S.shuffle = ids; else toast('Pas assez de vêtements pour cette ambiance.');
+      render(); break;
+    }
     case 'sh-wx': {
       const v = el.dataset.v;
       if(v === 'auto') S.shuffleWx = null;

@@ -419,6 +419,11 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 body.has-tbar #app{padding-bottom:90px}
 body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 
+.pick-row{display:flex;align-items:center;gap:4px;padding-right:8px}
+.pick-row .task.pick{flex:1;min-width:0}
+.wd-pick{gap:4px;flex-wrap:nowrap;font-size:14px}
+.wd-pick .chip{padding:6px 0;flex:1 1 0;min-width:0}
+
 @media (prefers-reduced-motion: reduce){.sheet,.scrim,.modal,.toast{animation:none}.switch .knob{transition:none}}
 .sec-title button{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:inherit;letter-spacing:inherit}
 </style>
@@ -449,7 +454,7 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 <script>
 (() => {
 'use strict';
-const VERSION = 14;
+const VERSION = 15;
 const DEMO = false;
 const DB_NAME = 'organisation';
 const STORES = ['themes', 'tasks', 'lists', 'items', 'routines'];
@@ -837,7 +842,7 @@ function openDayAdd(d) {
     return `<h2 class="sheet-title">${h(name)}</h2>
       <button type="button" class="btn primary wide" data-a="new-task" data-d="${d}">${ic(P.plus, 18, 2)}Nouvelle tâche</button>
       ${rs.length ? `<h3 class="sec-sub">Routine</h3><div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
-      ${nd.length ? `<h3 class="sec-sub">Depuis To-do</h3><div class="day-body plain">${nd.map(t => { const th = themeOf(t); const on = t.free && S.tasks.some(x => x.srcId === t.id && !x.done && x.date === d); return `<div class="task-wrap${th ? ' cat c-' + (th.color || 'slate') : ''}"><button type="button" class="task pick${on ? ' sel' : ''}" data-a="plan-on" data-id="${t.id}" data-d="${d}" aria-pressed="${on}"><span class="check"><span class="box${on ? '' : ' addbox'}">${on ? CHECK : ic(P.plus, 14, 2.4)}</span></span><span class="task-body"><span class="t-title">${h(t.title)}</span><span class="t-meta">${th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.free ? `<span class="rep-lbl">${ic(P.rep, 13, 2)}Libre</span>` : ''}${t.duration ? `<span>${durShort(t)}</span>` : ''}</span></span></button></div>`; }).join('')}</div>` : ''}`;
+      ${nd.length ? `<h3 class="sec-sub">Depuis To-do</h3><div class="day-body plain">${nd.map(t => { const th = themeOf(t); const on = t.free && S.tasks.some(x => x.srcId === t.id && !x.done && x.date === d); return `<div class="task-wrap${th ? ' cat c-' + (th.color || 'slate') : ''}"><div class="pick-row"><button type="button" class="task pick${on ? ' sel' : ''}" data-a="plan-on" data-id="${t.id}" data-d="${d}" aria-pressed="${on}"><span class="check"><span class="box${on ? '' : ' addbox'}">${on ? CHECK : ic(P.plus, 14, 2.4)}</span></span><span class="task-body"><span class="t-title">${h(t.title)}</span><span class="t-meta">${th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.free ? `<span class="rep-lbl">${ic(P.rep, 13, 2)}Libre</span>` : ''}${t.duration ? `<span>${durShort(t)}</span>` : ''}</span></span></button><button type="button" class="btn-ico sm plan" data-a="plan" data-id="${t.id}" data-d="${d}" aria-label="Plusieurs jours pour ${h(t.title)}">${ic(IC.cal, 18, 1.7)}</button></div></div>`; }).join('')}</div>` : ''}`;
   } });
   sh.kind = 'dayadd';
 }
@@ -1140,51 +1145,73 @@ function toggleInRoutine(r, taskId) {
 }
 
 /* Bouton 📅 d'une tâche sans date : la planifier, ou l'ajouter à une routine */
-function planTask(id) {
+// Fenêtre 📅 : choisir un ou plusieurs jours d'un coup, puis « Valider »
+function planTask(id, pre) {
   const t0 = today();
-  let cm = t0.slice(0, 8) + '01', keep = false;
   const task0 = S.tasks.find(x => x.id === id); if (!task0) return;
-  const s = openSheet({ isStatic: true, label: task0.title, bar: '<button type="button" class="btn primary" data-f="cancel">Fermer</button>' });
+  const initial = task0.free ? plannedOf(task0) : (task0.date && !task0.rep ? [task0.date] : []);
+  const sel = new Set(initial);
+  if (pre && pre >= t0) sel.add(pre);
+  let cm = ([...sel].sort()[0] || t0).slice(0, 8) + '01', keep = false;
+  const s = openSheet({ isStatic: true, label: task0.title, bar: '<button type="button" class="btn" data-f="cancel">Annuler</button><button type="button" class="btn primary" data-f="ok">Valider</button>' });
   const draw = () => {
     const t = S.tasks.find(x => x.id === id); if (!t) return;
-    const multi = t.free || keep;
-    const planned = multi ? plannedOf(t) : [];
+    const n = sel.size, multiStay = t.free || keep || n > 1;
     const rs = S.routines.slice().sort(byOrder);
-    const qd = (v, l) => `<button type="button" class="chip${planned.includes(v) ? ' on' : ''}" data-f="cald" data-v="${v}">${planned.includes(v) ? ic(P.check, 14, 2.6) : ''}${l}</button>`;
+    const qd = (v, l) => `<button type="button" class="chip${sel.has(v) ? ' on' : ''}" data-f="cald" data-v="${v}">${sel.has(v) ? ic(P.check, 14, 2.6) : ''}${l}</button>`;
+    const note = t.free ? '🔁 Elle reste dans To-do, chaque jour choisi reçoit sa copie à cocher.'
+      : n > 1 ? `🔁 ${n} jours choisis : la tâche restera aussi dans To-do pour d'autres dates.` : '';
     s.body.innerHTML = `<h2 class="sheet-title">« ${h(t.title)} »</h2>
-      <h3 class="sec-sub">Planifier</h3>
-      ${t.free ? `<p class="panel-note">🔁 Elle reste dans To-do : touche autant de jours que tu veux${planned.length ? ` · ${plural(planned.length, 'jour prévu', 'jours prévus')}` : ''}.</p>`
-        : `<button type="button" class="chip${keep ? ' on' : ''}" data-f="keep" aria-pressed="${keep}">${keep ? ic(P.check, 14, 2.6) : ic(P.rep, 14, 2)}Garder dans To-do pour d'autres dates</button>`}
+      <h3 class="sec-sub">Planifier${n ? ` <span class="muted">· ${plural(n, 'jour', 'jours')}</span>` : ''}</h3>
+      ${note ? `<p class="panel-note">${note}</p>` : ''}
+      ${!t.free && n <= 1 ? `<button type="button" class="chip${keep ? ' on' : ''}" data-f="keep" aria-pressed="${keep}">${keep ? ic(P.check, 14, 2.6) : ic(P.rep, 14, 2)}Garder aussi dans To-do</button>` : ''}
       <div class="chips">${qd(t0, "Aujourd'hui")}${qd(addDays(t0, 1), 'Demain')}</div>
-      <div class="panel">${calendarHTML(cm, planned, t0)}</div>
+      <div class="panel">${calendarHTML(cm, [...sel], t0)}
+        <div class="rowline wd-pick"><span class="muted">Tous les</span>${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((x, i) => `<button type="button" class="chip" data-f="allwd" data-i="${i}" aria-label="Tous les ${JOURS[i].toLowerCase()}s de ce mois">${x}</button>`).join('')}</div></div>
       ${canRoutine(t) ? `<h3 class="sec-sub">Ajouter à une routine</h3>
       <div class="chips">${rs.map(r => { const on = r.steps.some(st => st.taskId === id); return `<button type="button" class="chip${on ? ' on' : ''}" data-f="rt" data-v="${r.id}" aria-pressed="${on}">${on ? ic(P.check, 14, 2.6) : ''}${h(r.emoji + ' ' + r.name)}</button>`; }).join('')}
         <button type="button" class="chip" data-f="rt-new">${ic(P.plus, 14, 2.2)}Nouvelle routine</button></div>` : ''}`;
+    const ok = $('[data-f="ok"]', s.el); ok.textContent = n ? `Valider (${n})` : (initial.length ? 'Retirer les dates' : 'Valider');
+    void multiStay;
+  };
+  const apply = () => {
+    let t = S.tasks.find(x => x.id === id); if (!t) return;
+    const days = [...sel].sort();
+    if (!t.free && !keep && days.length <= 1) {
+      save('tasks', { ...t, date: days[0] || null, routineRun: null });
+      toast(days[0] ? `Prévu ${whenLabel(days[0])} 📅` : 'Remise sans date 📥');
+      return;
+    }
+    if (!t.free) { t = { ...t, free: true, freeLog: t.freeLog || [], date: null, routineRun: null }; save('tasks', t); }
+    const have = S.tasks.filter(x => x.srcId === t.id && !x.done && x.date && x.date >= t0);
+    const gone = have.filter(x => !sel.has(x.date));
+    if (gone.length) removeMany('tasks', gone.map(x => x.id));
+    const add = days.filter(d => !have.some(x => x.date === d));
+    add.forEach(d => makeInstance(t, d));
+    toast(add.length ? `Prévue sur ${plural(add.length, 'jour', 'jours')} de plus 📅` : gone.length ? `${plural(gone.length, 'jour retiré', 'jours retirés')}` : 'Rien n\'a changé');
   };
   draw();
   s.el.addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const k = b.dataset.f;
-    if (k === 'cancel') closeTop();
-    if (k === 'keep') { keep = !keep; draw(); }
-    if (k === 'cal-move') { const x = parse(cm); x.setMonth(x.getMonth() + +b.dataset.s); cm = iso(x); draw(); }
-    if (k === 'cald') {
-      let t = S.tasks.find(x => x.id === id); if (!t) return;
-      const v = b.dataset.v;
-      if (!t.free && !keep) { closeTop(); save('tasks', { ...t, date: v, routineRun: null }); refresh(); toast(`Prévu ${whenLabel(v)} 📅`); return; }
-      if (!t.free) { t = { ...t, free: true, freeLog: t.freeLog || [], date: null }; save('tasks', t); }
-      const ex = S.tasks.find(x => x.srcId === t.id && !x.done && x.date === v);
-      if (ex) { removeMany('tasks', [ex.id]); toast(`Retirée ${whenLabel(v)}`); }
-      else { makeInstance(t, v); toast(`Prévu ${whenLabel(v)} 📅`); }
-      draw(); refresh();
+    if (k === 'cancel') { closeTop(); return; }
+    if (k === 'ok') { apply(); closeTop(); refresh(); return; }
+    if (k === 'keep') keep = !keep;
+    if (k === 'cal-move') { const x = parse(cm); x.setMonth(x.getMonth() + +b.dataset.s); cm = iso(x); }
+    if (k === 'cald') { const v = b.dataset.v; sel.has(v) ? sel.delete(v) : sel.add(v); }
+    if (k === 'allwd') {
+      const i = +b.dataset.i, x = parse(cm), y = x.getFullYear(), m = x.getMonth();
+      const ds = []; for (let j = 1; j <= dim(y, m); j++) { const d = iso(new Date(y, m, j)); if (dow(d) === i && d >= t0) ds.push(d); }
+      const all = ds.length && ds.every(d => sel.has(d));
+      ds.forEach(d => all ? sel.delete(d) : sel.add(d));
     }
     if (k === 'rt') {
       const r = S.routines.find(x => x.id === b.dataset.v); if (!r) return;
-      const added = toggleInRoutine(r, id);
-      draw(); refresh();
+      const added = toggleInRoutine(r, id); refresh();
       toast(added ? `Ajoutée à ${r.emoji} ${r.name} ✨` : `Retirée de ${r.emoji} ${r.name}`);
     }
-    if (k === 'rt-new') openRoutineForm(null, [id], draw);
+    if (k === 'rt-new') { openRoutineForm(null, [id], draw); return; }
+    draw();
   });
 }
 
@@ -2054,7 +2081,7 @@ const A = {
   'new-task-theme': (el, c) => openTaskForm(null, { themeId: c.id || null }),
   'new-task-nodate': () => openTaskForm(null, { date: null }),
   'todo-view': el => { U.todoView = el.dataset.v; refresh(); },
-  'plan': (el, c) => planTask(c.id),
+  'plan': (el, c) => planTask(c.id, c.d || null),
   'plan-today': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, today()); refresh(); toast("C'est dans ta journée ✨"); },
   'plan-on': (el, c) => {
     const t = S.tasks.find(x => x.id === c.id); if (!t) return;

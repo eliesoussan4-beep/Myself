@@ -89,7 +89,7 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 .late-label{font-size:14px;color:var(--muted);white-space:nowrap;flex:none}
 
 /* Raccourcis */
-.shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.shortcuts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-bottom:16px}
 .sc{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0}
 .sc-ico{position:relative;width:42px;height:42px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.08);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .sc-lbl{font-size:9px;font-weight:600;color:var(--muted);text-align:center;line-height:1.15;word-break:normal;overflow-wrap:normal;hyphens:none}
@@ -424,6 +424,24 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .wd-pick{gap:4px;flex-wrap:nowrap;font-size:14px}
 .wd-pick .chip{padding:6px 0;flex:1 1 0;min-width:0}
 
+.toast{display:flex;align-items:center;gap:14px}
+.toast-undo{font-weight:700;text-decoration:underline;text-underline-offset:3px;color:inherit;padding:2px 0}
+.mini-head .day-more{margin-left:auto}
+.mini-head .day-name{flex:1}
+.task-body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.ord-row{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 6px 0 14px;background:var(--sunk);border-radius:12px}
+.ord-row.grp{font-weight:600}
+.ord-row .ell{flex:1;white-space:nowrap}
+.ord-row .btn-ico[disabled]{opacity:.3}
+.stat-row{display:flex;align-items:center;gap:8px;min-height:40px;font-size:15px}
+.stat-row .ell{flex:1;white-space:nowrap}
+.stat-n{font-weight:700;font-variant-numeric:tabular-nums}
+.stat-row.small{min-height:32px;font-size:14px}
+.stat-bar{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+.stat-bar .bar{height:6px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.stat-bar .bar span{display:block;height:100%;border-radius:99px;background:var(--c)}
+.stat-top{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+
 @media (prefers-reduced-motion: reduce){.sheet,.scrim,.modal,.toast{animation:none}.switch .knob{transition:none}}
 .sec-title button{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:inherit;letter-spacing:inherit}
 </style>
@@ -454,7 +472,7 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 <script>
 (() => {
 'use strict';
-const VERSION = 15;
+const VERSION = 16;
 const DEMO = false;
 const DB_NAME = 'organisation';
 const STORES = ['themes', 'tasks', 'lists', 'items', 'routines'];
@@ -501,13 +519,18 @@ const P = {
 };
 const CHECK = ic(P.check, 15, 3);
 
-let toastTO;
-function toast(msg) {
+let toastTO, toastUndo = null;
+function toast(msg, undo) {
   const t = $('#toast');
-  t.textContent = msg; t.hidden = false;
+  t.innerHTML = `<span>${h(msg)}</span>${undo ? '<button type="button" class="toast-undo">Annuler</button>' : ''}`;
+  toastUndo = undo || null; t.hidden = false;
   clearTimeout(toastTO);
-  toastTO = setTimeout(() => { t.hidden = true; }, 2200);
+  toastTO = setTimeout(() => { t.hidden = true; toastUndo = null; }, undo ? 6000 : 2200);
 }
+document.addEventListener('click', e => {
+  if (!e.target.closest('.toast-undo') || !toastUndo) return;
+  const u = toastUndo; toastUndo = null; $('#toast').hidden = true; u();
+});
 
 /* ---------- Base de données « organisation » ---------- */
 let db = null;
@@ -747,7 +770,8 @@ function logSrc(inst, d, add) {
 function freeLbl(t) {
   const log = t.freeLog || []; const last = log[log.length - 1];
   const nx = plannedOf(t);
-  return `<span class="rep-lbl">${ic(P.rep, 13, 2)}Libre${last ? ' · ' + (last === today() ? "fait aujourd'hui" : 'dernière fois ' + shortDate(last)) : ''}</span>${nx.length ? `<span>📅 ${h(nx.slice(0, 3).map(shortDate).join(', '))}${nx.length > 3 ? '…' : ''}</span>` : ''}`;
+  const pre = today().slice(0, 7), nM = (t.freeLog || []).filter(x => x.startsWith(pre)).length;
+  return `<span class="rep-lbl">${ic(P.rep, 13, 2)}Libre${last ? ' · ' + (last === today() ? "fait aujourd'hui" : 'dernière fois ' + shortDate(last)) : ''}${nM ? ` · ${nM}× ce mois` : ''}</span>${nx.length ? `<span>📅 ${h(nx.slice(0, 3).map(shortDate).join(', '))}${nx.length > 3 ? '…' : ''}</span>` : ''}`;
 }
 function taskRow(t, d, o = {}) {
   const done = d ? isDone(t, d) : !!t.done;
@@ -825,6 +849,7 @@ function miniDay(d) {
   const isT = d === today();
   const entries = isT ? todayEntries() : dayItems(d).map(x => ({ t: x, d }));
   return `<div class="day mini ${isT ? 'today' : 'tomorrow'}" id="day-${d}"><div class="mini-head"><h2 class="title day-name">${isT ? "Aujourd'hui" : 'Demain'}</h2>
+    <button type="button" class="day-add day-more" data-a="day-menu" data-d="${d}" aria-label="Plus d'actions ${isT ? "pour aujourd'hui" : 'pour demain'}">${ic('M6 12h.01M12 12h.01M18 12h.01', 20, 3)}</button>
     <button type="button" class="day-add" data-a="day-add" data-d="${d}" aria-label="Ajouter ${isT ? "aujourd'hui" : 'demain'}">${ic(P.plus, 18, 2)}</button></div>
     ${entries.length ? `<div class="mini-body">${rowsHTML(entries, d, 'mini')}</div>` : ''}</div>`;
 }
@@ -859,7 +884,7 @@ function rowsHTML(entries, d, ctx) {
   const inRun = e => !e.late && e.t.routineRun && e.t.runDate === d;
   const seen = new Set(); const items = [];
   entries.forEach(e => {
-    if (!inRun(e)) { items.push(rowItem(e.t, e.d, { ctx, late: e.late })); return; }
+    if (!inRun(e)) { items.push({ ...rowItem(e.t, e.d, { ctx, late: e.late }), key: e.t.id + (e.late ? '@' + e.d : '') }); return; }
     const run = e.t.routineRun; if (seen.has(run)) return; seen.add(run);
     const mem = entries.filter(x => inRun(x) && x.t.routineRun === run);
     const r = S.routines.find(x => x.id === e.t.routineId);
@@ -867,8 +892,10 @@ function rowsHTML(entries, d, ctx) {
     const th = r ? S.themes.find(x => x.id === r.themeId) : null;
     const dn = mem.filter(x => isDone(x.t, x.d)).length;
     const inner = pairUp(mem.map(x => rowItem(x.t, x.d, { ctx })));
-    items.push({ full: true, html: `<div class="rgroup c-${th ? th.color || 'slate' : 'slate'}"><div class="rg-head"><span class="ell">${r ? h(r.emoji + ' ' + r.name) : '⚡ Routine'}</span><span class="rg-n">${dn}/${mem.length}</span></div>${inner}</div>` });
+    items.push({ key: 'run:' + run, full: true, html: `<div class="rgroup c-${th ? th.color || 'slate' : 'slate'}"><div class="rg-head"><span class="ell">${r ? h(r.emoji + ' ' + r.name) : '⚡ Routine'}</span><span class="rg-n">${dn}/${mem.length}</span></div>${inner}</div>` });
   });
+  const ord = S.meta[ordKey(d)];
+  if (ord && ord.length) { const idx = k => { const i = ord.indexOf(k); return i < 0 ? 999 : i; }; items.forEach((x, i) => { x.i = i; }); items.sort((a, b) => idx(a.key) - idx(b.key) || a.i - b.i); }
   return pairUp(items);
 }
 function renderDay(d) {
@@ -894,7 +921,7 @@ function suggestion() {
   const t0 = today();
   const nd = S.tasks.filter(t => !t.rep && !t.date && !t.done);
   const free = nd.filter(t => t.free).map(t => { const log = t.freeLog || []; return { t, last: log[log.length - 1] || null }; })
-    .filter(x => x.last !== t0 && !S.tasks.some(y => y.srcId === x.t.id && y.date === t0))
+    .filter(x => x.last !== t0 && !plannedOf(x.t).length)
     .sort((a, b) => (a.last || '') < (b.last || '') ? -1 : (a.last || '') > (b.last || '') ? 1 : 0)[0];
   if (free) return { t: free.t, why: free.last ? `💡 Pas fait depuis ${diffDays(free.last, t0)} j` : '💡 Pas encore fait' };
   const old = nd.filter(t => !t.free && t.created && diffDays(t.created, t0) >= 3).sort((a, b) => a.created < b.created ? -1 : 1)[0];
@@ -930,8 +957,10 @@ function renderHome() {
 
   html += `<nav class="shortcuts" aria-label="Raccourcis">
     <button type="button" class="sc" data-a="open-todo"><span class="sc-ico">${ic(P.todo, 20, 1.5)}${remaining ? `<span class="badge">${remaining}</span>` : ''}</span><span class="sc-lbl">To-do</span></button>
-    <button type="button" class="sc" data-a="new-task" data-d="${t}"><span class="sc-ico">${ic(P.plus, 20, 1.5)}</span><span class="sc-lbl">Nouvelle tâche</span></button>
     <button type="button" class="sc" data-a="open-lists"><span class="sc-ico">${ic(P.bookmark, 20, 1.5)}</span><span class="sc-lbl">Listes</span></button>
+    <button type="button" class="sc" data-a="new-task" data-d="${t}"><span class="sc-ico">${ic(P.plus, 20, 1.5)}</span><span class="sc-lbl">Nouvelle tâche</span></button>
+    <button type="button" class="sc" data-a="open-routines"><span class="sc-ico">${ic('M7 5.5v13l10-6.5z', 20, 1.5)}</span><span class="sc-lbl">Routines</span></button>
+    <button type="button" class="sc" data-a="open-stats"><span class="sc-ico">${ic('M5 20V11M12 20V5M19 20v-6', 20, 1.6)}</span><span class="sc-lbl">Suivi</span></button>
   </nav>`;
 
   const monthView = !!S.meta.monthView;
@@ -1391,7 +1420,7 @@ function openRoutineForm(obj, withTasks, after) {
     if (k === 'del') {
       const ok = await confirmBox({ title: `Supprimer « ${obj.name} » ?`, text: 'Les tâches de To-do et celles déjà dans l\'agenda restent en place.', ok: 'Supprimer' });
       if (!ok) return;
-      removeMany('routines', [f.id]); closeTop(); refresh(); toast('Routine supprimée 🗑️');
+      const snap = snapshot(); removeMany('routines', [f.id]); closeTop(); refresh(); toast('Routine supprimée 🗑️', () => restore(snap));
     }
   });
   if (isNew) setTimeout(() => { const i = $('[data-f="name"]', s.body); if (i) i.focus(); }, 260);
@@ -1567,7 +1596,8 @@ function openTaskForm(task, preset = {}, dayCtx) {
         ${row(['subs'])}
       </div>
       <input class="note-in" data-f="note" value="${h(f.note || '')}" placeholder="Note" autocomplete="off" enterkeyhint="done" aria-label="Note">
-      ${unplanLabel ? `<button type="button" class="btn wide del-btn" data-f="unplan">${ic(task.rep ? 'M5 6l7 6-7 6M13 6l7 6-7 6' : 'M4 13h5l1.5 2.5h3L15 13h5M5 5h14l1 8v6H4v-6z', 18, 1.8)}${unplanLabel}</button>` : ''}
+      ${unplanLabel ? `<button type="button" class="btn wide del-btn" data-f="report">${ic(P.right, 18, 1.8)}Reporter ${(() => { const b0 = dCtx < t0 ? t0 : dCtx, tg = addDays(b0, 1); return tg === addDays(t0, 1) ? 'à demain' : 'au ' + shortDate(tg); })()}</button>` : ''}
+      ${unplanLabel ? `<button type="button" class="btn wide" data-f="unplan">${ic(task.rep ? 'M5 6l7 6-7 6M13 6l7 6-7 6' : 'M4 13h5l1.5 2.5h3L15 13h5M5 5h14l1 8v6H4v-6z', 18, 1.8)}${unplanLabel}</button>` : ''}
       ${isNew ? '' : `<button type="button" class="btn danger wide${unplanLabel ? '' : ' del-btn'}" data-f="del">Supprimer la tâche</button>`}`;
   };
   const addSub = () => {
@@ -1653,24 +1683,32 @@ function openTaskForm(task, preset = {}, dayCtx) {
       toast(isNew ? 'Tâche ajoutée ✨' : 'Tâche modifiée ✅');
       return;
     }
+    else if (k === 'report') {
+      const snap = snapshot(); const tg = reportTask(task, dCtx);
+      closeTop(); refresh(); toast(`Reportée ${toLabel(tg)} ↷`, () => restore(snap));
+      return;
+    }
     else if (k === 'unplan') {
       if (task.rep) {
         const cut = addDays(t0, -120);
+        const snap = snapshot();
         save('tasks', { ...task, skip: [...(task.skip || []).filter(x => x >= cut), dCtx] });
-        closeTop(); refresh(); toast('Passée pour cette fois 👌');
+        closeTop(); refresh(); toast('Passée pour cette fois 👌', () => restore(snap));
       } else {
         f.title = f.title.trim() || task.title;
-        if (task.srcId) { removeMany('tasks', [task.id]); closeTop(); refresh(); toast('Retirée · le modèle reste dans To-do 📥'); return; }
+        const snap = snapshot();
+        if (task.srcId) { removeMany('tasks', [task.id]); closeTop(); refresh(); toast('Retirée · le modèle reste dans To-do 📥', () => restore(snap)); return; }
         save('tasks', { ...f, date: null, routineRun: null });
-        closeTop(); refresh(); toast('Retirée · elle t\'attend dans To-do 📥');
+        closeTop(); refresh(); toast('Retirée · elle t\'attend dans To-do 📥', () => restore(snap));
       }
       return;
     }
     else if (k === 'del') {
       const ok = await confirmBox({ title: 'Supprimer la tâche ?', text: `« ${f.title || task.title} »${task.rep ? ' et toutes ses répétitions' : ''} sera supprimée.`, ok: 'Supprimer' });
       if (!ok) return;
+      const snap = snapshot();
       removeMany('tasks', [task.id]);
-      closeTop(); refresh(); toast('Tâche supprimée 🗑️');
+      closeTop(); refresh(); toast('Tâche supprimée 🗑️', () => restore(snap));
       return;
     }
     else return;
@@ -1749,9 +1787,10 @@ function openGroupForm(kind, obj, onSaved) {
       const text = n ? (isCat ? `Ses ${plural(n, 'tâche sera supprimée', 'tâches seront supprimées')} aussi.` : `Ses ${plural(n, 'élément sera supprimé', 'éléments seront supprimés')} aussi.`) : '';
       const ok = await confirmBox({ title: `Supprimer « ${obj.name} » ?`, text, ok: 'Supprimer' });
       if (!ok) return;
+      const snap = snapshot();
       removeMany(isCat ? 'tasks' : 'items', children.map(c => c.id));
       removeMany(store, [f.id]);
-      closeTop(); refresh(); toast('Supprimé 🗑️');
+      closeTop(); refresh(); toast('Supprimé 🗑️', () => restore(snap));
     }
   });
   if (isNew) setTimeout(() => { const i = $('[data-f="name"]', s.body); if (i) i.focus(); }, 260);
@@ -1780,7 +1819,7 @@ function openItemForm(item) {
     if (k === 'del') {
       const ok = await confirmBox({ title: 'Supprimer ?', text: `« ${item.name} » sera retiré de la liste.`, ok: 'Supprimer' });
       if (!ok) return;
-      removeMany('items', [item.id]); closeTop(); refresh(); toast('Supprimé 🗑️');
+      const snap = snapshot(); removeMany('items', [item.id]); closeTop(); refresh(); toast('Supprimé 🗑️', () => restore(snap));
     }
   });
 }
@@ -1795,7 +1834,7 @@ function openBackup() {
   s.el.addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     if (b.dataset.f === 'export') {
-      const data = { app: 'organisation', version: VERSION, exportedAt: new Date().toISOString(), themes: S.themes, tasks: S.tasks, lists: S.lists, items: S.items, routines: S.routines, meta: { monthView: !!S.meta.monthView } };
+      const data = { app: 'organisation', version: VERSION, exportedAt: new Date().toISOString(), themes: S.themes, tasks: S.tasks, lists: S.lists, items: S.items, routines: S.routines, meta: { monthView: !!S.meta.monthView, timelog: S.meta.timelog || [] } };
       const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -1816,9 +1855,156 @@ function openBackup() {
     if (!ok) return;
     STORES.forEach(st => { S[st] = Array.isArray(data[st]) ? data[st] : []; });
     await tx(STORES, t => STORES.forEach(st => { const os = t.objectStore(st); os.clear(); S[st].forEach(x => os.put(x)); })).catch(() => {});
-    if (data.meta) await setMeta('monthView', !!data.meta.monthView);
+    if (data.meta) { await setMeta('monthView', !!data.meta.monthView); if (Array.isArray(data.meta.timelog)) await setMeta('timelog', data.meta.timelog); }
     closeTop(); refresh(); toast('Sauvegarde importée ✅');
   });
+}
+
+/* ---------- Annuler, reporter, réorganiser, suivi ---------- */
+function snapshot() { const o = {}; STORES.forEach(st => { o[st] = JSON.parse(JSON.stringify(S[st])); }); return o; }
+async function restore(snap) {
+  STORES.forEach(st => { S[st] = snap[st]; });
+  refresh();
+  await tx(STORES, t => STORES.forEach(st => { const os = t.objectStore(st); os.clear(); S[st].forEach(x => os.put(x)); })).catch(() => {});
+  toast('Annulé ↩️');
+}
+// Reporter une tâche au jour suivant (une répétée : on saute ce jour, et on la recopie si elle n'est pas prévue le lendemain)
+const toLabel = d => d === addDays(today(), 1) ? 'à demain' : 'au ' + shortDate(d);
+function reportTask(t, d) {
+  const t0 = today();
+  const base = !d || d < t0 ? t0 : d, target = addDays(base, 1);
+  if (t.rep) {
+    const cut = addDays(t0, -120);
+    save('tasks', { ...t, skip: [...(t.skip || []).filter(x => x >= cut), d || t0] });
+    if (!occursOn(t, target)) save('tasks', { id: uid(), title: t.title, themeId: t.themeId || null, date: target, prio: false, rep: null, duration: t.duration || 0, seg: t.seg || null, note: t.note || '', done: false, doneDates: [], subs: (t.subs || []).map(x => ({ ...x })), subDone: {}, created: t0, fromRep: t.id });
+  } else {
+    save('tasks', { ...t, date: target, routineRun: null });
+  }
+  return target;
+}
+function reportAll(d) {
+  const t0 = today();
+  const entries = (d === t0 ? todayEntries() : dayItems(d).map(x => ({ t: x, d }))).filter(e => !isDone(e.t, e.d));
+  if (!entries.length) return;
+  const snap = snapshot();
+  let target = null;
+  entries.forEach(e => { target = reportTask(S.tasks.find(x => x.id === e.t.id) || e.t, e.d); });
+  refresh();
+  toast(`${plural(entries.length, 'tâche reportée', 'tâches reportées')} ${toLabel(target)} ↷`, () => restore(snap));
+}
+// Appui long sur une tâche de l'agenda : actions rapides
+function openQuick(id, d) {
+  const t = S.tasks.find(x => x.id === id); if (!t) return;
+  const t0 = today(), day = d || t.date || t0;
+  const base = day < t0 ? t0 : day, target = addDays(base, 1);
+  const done = isDone(t, day);
+  const s = openSheet({ isStatic: true, label: t.title, bar: '<button type="button" class="btn primary" data-f="cancel">Fermer</button>' });
+  s.body.innerHTML = `<h2 class="sheet-title">« ${h(t.title)} »</h2>
+    ${done ? '' : `<button type="button" class="btn wide" data-f="rep">${ic(P.right, 18, 1.8)}Reporter ${target === addDays(t0, 1) ? 'à demain' : 'au ' + shortDate(target)}</button>
+    <button type="button" class="btn wide" data-f="off">${ic(t.rep ? 'M5 6l7 6-7 6M13 6l7 6-7 6' : 'M4 13h5l1.5 2.5h3L15 13h5M5 5h14l1 8v6H4v-6z', 18, 1.8)}${t.rep ? 'Passer cette fois' : base === t0 ? "Retirer d'aujourd'hui" : 'Retirer de ce jour'}</button>`}
+    <button type="button" class="btn wide" data-f="edit">${ic(P.pencil, 18, 1.8)}Modifier</button>`;
+  s.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    const k = b.dataset.f;
+    if (k === 'cancel') closeTop();
+    if (k === 'edit') { closeTop(); setTimeout(() => openTaskForm(S.tasks.find(x => x.id === id), {}, d), 420); }
+    if (k === 'rep') { const snap = snapshot(); const tg = reportTask(t, day); closeTop(); refresh(); toast(`Reportée ${toLabel(tg)} ↷`, () => restore(snap)); }
+    if (k === 'off') {
+      const snap = snapshot();
+      if (t.rep) { const cut = addDays(t0, -120); save('tasks', { ...t, skip: [...(t.skip || []).filter(x => x >= cut), day] }); }
+      else if (t.srcId) removeMany('tasks', [t.id]);
+      else save('tasks', { ...t, date: null, routineRun: null });
+      closeTop(); refresh(); toast(t.rep ? 'Passée pour cette fois 👌' : 'Retirée · elle t\'attend dans To-do 📥', () => restore(snap));
+    }
+  });
+}
+// Menu « ⋯ » d'Aujourd'hui / Demain
+function openDayMenu(d) {
+  const t0 = today(), isT = d === t0;
+  const und = (isT ? todayEntries() : dayItems(d).map(x => ({ t: x, d }))).filter(e => !isDone(e.t, e.d)).length;
+  const s = openSheet({ isStatic: true, label: isT ? "Aujourd'hui" : 'Demain', bar: '<button type="button" class="btn primary" data-f="cancel">Fermer</button>' });
+  s.body.innerHTML = `<h2 class="sheet-title">${isT ? "Aujourd'hui" : 'Demain'}</h2>
+    ${und ? `<button type="button" class="btn wide" data-f="all">${ic(P.right, 18, 1.8)}Reporter ${plural(und, 'la tâche restante', `les ${und} restantes`).replace(/^\d+ /, '')} ${isT ? 'à demain' : 'au ' + shortDate(addDays(d, 1))}</button>` : ''}
+    <button type="button" class="btn wide" data-f="order">${ic('M8 4v16M8 4L4 8M8 4l4 4M16 20V4M16 20l-4-4M16 20l4-4', 18, 1.8)}Réorganiser ${isT ? 'la journée' : 'demain'}</button>
+    <p class="panel-note">Astuce : un appui long sur une tâche permet de la reporter ou de la retirer.</p>`;
+  s.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    if (b.dataset.f === 'cancel') closeTop();
+    if (b.dataset.f === 'all') { closeTop(); reportAll(d); }
+    if (b.dataset.f === 'order') { closeTop(); setTimeout(() => openOrder(d), 420); }
+  });
+}
+// Ordre manuel d'une journée (tâches et routines en bloc)
+const ordKey = d => 'ord:' + d;
+function dayUnits(d) {
+  const entries = d === today() ? todayEntries() : dayItems(d).map(x => ({ t: x, d }));
+  const units = [], seen = new Set();
+  entries.forEach(e => {
+    const inRun = !e.late && e.t.routineRun && e.t.runDate === d;
+    if (inRun) {
+      if (seen.has(e.t.routineRun)) return; seen.add(e.t.routineRun);
+      const r = S.routines.find(x => x.id === e.t.routineId);
+      units.push({ key: 'run:' + e.t.routineRun, label: r ? r.emoji + ' ' + r.name : '⚡ Routine', group: true });
+    } else units.push({ key: e.t.id + (e.late ? '@' + e.d : ''), label: e.t.title, t: e.t });
+  });
+  const ord = S.meta[ordKey(d)] || [];
+  const idx = k => { const i = ord.indexOf(k); return i < 0 ? 999 : i; };
+  return units.map((u, i) => ({ ...u, i })).sort((a, b) => idx(a.key) - idx(b.key) || a.i - b.i);
+}
+function openOrder(d) {
+  openSheet({ label: 'Réorganiser', render: () => {
+    const units = dayUnits(d);
+    return `<h2 class="sheet-title">Réorganiser ${d === today() ? 'la journée' : 'demain'}</h2>
+      ${units.map((u, i) => { const th = u.t ? themeOf(u.t) : null; return `<div class="ord-row${u.group ? ' grp' : ''}">${th ? `<span class="cdot c-${th.color || 'slate'}"></span>` : ''}<span class="ell">${h(u.label)}</span>
+        <button type="button" class="btn-ico sm" data-a="ord-move" data-d="${d}" data-id="${u.key}" data-s="-1" aria-label="Monter"${i ? '' : ' disabled'}>${ic(P.up, 18)}</button>
+        <button type="button" class="btn-ico sm" data-a="ord-move" data-d="${d}" data-id="${u.key}" data-s="1" aria-label="Descendre"${i < units.length - 1 ? '' : ' disabled'}>${ic(P.down, 18)}</button></div>`; }).join('')}`;
+  } });
+}
+function moveUnit(d, key, step) {
+  const keys = dayUnits(d).map(u => u.key);
+  const i = keys.indexOf(key), j = i + step;
+  if (i < 0 || j < 0 || j >= keys.length) return;
+  [keys[i], keys[j]] = [keys[j], keys[i]];
+  setMeta(ordKey(d), keys); refresh();
+}
+// Temps passé au minuteur
+function logTime(tm) {
+  if (!tm || !tm.spent) return;
+  const min = Math.round(tm.spent / 60000); if (min < 1) return;
+  const t = S.tasks.find(x => x.id === tm.taskId);
+  const cut = addDays(today(), -400);
+  const log = (S.meta.timelog || []).filter(x => x.d >= cut);
+  log.push({ d: today(), taskId: tm.taskId, src: t ? t.srcId || t.id : tm.taskId, cat: t ? t.themeId || null : null, title: tm.title, min });
+  setMeta('timelog', log);
+}
+// Suivi du mois : nombre de fois par tâche « Libre » (journées client…) et temps passé
+function renderStats() {
+  const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + (U.statOffset || 0));
+  const y = base.getFullYear(), m = base.getMonth(), pre = `${y}-${pad(m + 1)}`;
+  const inM = d => d && d.startsWith(pre);
+  const frees = S.tasks.filter(t => t.free).map(t => {
+    const n = (t.freeLog || []).filter(inM).length;
+    const plan = S.tasks.filter(x => x.srcId === t.id && !x.done && inM(x.date) && x.date >= today()).length;
+    return { t, n, plan };
+  }).filter(x => x.n || x.plan).sort((a, b) => b.n - a.n || b.plan - a.plan);
+  const logs = (S.meta.timelog || []).filter(x => inM(x.d));
+  const total = logs.reduce((a, x) => a + x.min, 0);
+  const byCat = new Map();
+  logs.forEach(x => byCat.set(x.cat || '_', (byCat.get(x.cat || '_') || 0) + x.min));
+  const cats = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
+  const byTask = new Map();
+  logs.forEach(x => { const k = x.src || x.title; const o = byTask.get(k) || { title: x.title, cat: x.cat, min: 0 }; o.min += x.min; byTask.set(k, o); });
+  const tasks = [...byTask.values()].sort((a, b) => b.min - a.min).slice(0, 6);
+  const max = cats.length ? cats[0][1] : 1;
+  const label = y === new Date().getFullYear() ? cap(MOIS[m]) : cap(MOIS[m]) + ' ' + y;
+  return `<h2 class="sheet-title">Suivi</h2>
+    <div class="cal-head"><button type="button" class="btn-ico sm" data-a="stat-move" data-s="-1" aria-label="Mois précédent">${ic(P.left, 16)}</button><span class="title">${label}</span><button type="button" class="btn-ico sm" data-a="stat-move" data-s="1" aria-label="Mois suivant">${ic(P.right, 16)}</button></div>
+    <h3 class="sec-sub">Nombre de fois</h3>
+    ${frees.length ? frees.map(x => { const th = themeOf(x.t); return `<div class="stat-row"><span class="cdot c-${th ? th.color || 'slate' : 'slate'}"></span><span class="ell">${h(x.t.title)}</span><span class="stat-n">${x.n ? x.n + '×' : ''}</span>${x.plan ? `<span class="muted">+${x.plan} prévue${x.plan > 1 ? 's' : ''}</span>` : ''}</div>`; }).join('') : '<p class="panel-note">Rien de fait ce mois-ci pour tes tâches « Libre ».</p>'}
+    <h3 class="sec-sub">Temps passé${total ? ` <span class="muted">· ${fmtMin(total)}</span>` : ''}</h3>
+    ${cats.length ? cats.map(([c, mn]) => { const th = S.themes.find(x => x.id === c); return `<div class="stat-bar c-${th ? th.color || 'slate' : 'slate'}"><div class="stat-row"><span class="cdot"></span><span class="ell">${th ? h(th.emoji + ' ' + th.name) : 'Sans catégorie'}</span><span class="stat-n">${fmtMin(mn)}</span></div><span class="bar"><span style="width:${Math.max(4, Math.round(mn / max * 100))}%"></span></span></div>`; }).join('')
+      + `<div class="stat-top">${tasks.map(x => `<div class="stat-row small"><span class="ell">${h(x.title)}</span><span class="muted">${fmtMin(x.min)}</span></div>`).join('')}</div>`
+      : '<p class="panel-note">Le temps passé au minuteur apparaîtra ici.</p>'}`;
 }
 
 /* ---------- Minuteur (écran allumé, noir, économe) ---------- */
@@ -1852,7 +2038,7 @@ function startTimer(task, d) {
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) { audio = null; }
   const plan = buildPlan(task, d || today());
   if (!plan.length || !plan[0].ms) return;
-  T = { taskId: task.id, d: d || today(), title: task.title, plan, idx: 0, endAt: Date.now() + plan[0].ms, paused: null, ringing: false, min: false };
+  T = { taskId: task.id, d: d || today(), title: task.title, plan, idx: 0, endAt: Date.now() + plan[0].ms, paused: null, ringing: false, min: false, spent: 0, runAt: Date.now() };
   drawTbar();
   persistTimer();
   showTimer();
@@ -1901,7 +2087,7 @@ function drawTbar() {
 tbar.addEventListener('click', () => {
   if (!T) { drawTbar(); return; }
   T.min = false;
-  if (T.paused != null) { T.endAt = Date.now() + T.paused; T.paused = null; }
+  if (T.paused != null) { T.endAt = Date.now() + T.paused; T.paused = null; T.runAt = Date.now(); }
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
   persistTimer(); drawTbar(); showTimer();
 });
@@ -1910,7 +2096,7 @@ function tick() {
   if (!T) return;
   if (T.ringing) { $('.timer-time', timerEl).textContent = '00:00'; drawTimer(); startRinging(); return; }
   const rem = remaining();
-  if (rem <= 0) { T.ringing = true; persistTimer(); tick(); return; }
+  if (rem <= 0) { if (T.runAt) { T.spent = (T.spent || 0) + Math.max(0, T.endAt - T.runAt); T.runAt = null; } T.ringing = true; persistTimer(); tick(); return; }
   $('.timer-time', timerEl).textContent = fmt(rem);
   drawTimer();
   if (T.paused == null) timerTO = setTimeout(tick, (rem % 1000) || 1000);
@@ -1963,11 +2149,11 @@ function nextPart() {
     if (t && !subDone(t, T.d).includes(cur.subId)) toggleSub(t.id, T.d, cur.subId);
   }
   if (T.idx < T.plan.length - 1) {
-    T.idx++; T.ringing = false; T.paused = null; T.endAt = Date.now() + T.plan[T.idx].ms;
+    T.idx++; T.ringing = false; T.paused = null; T.endAt = Date.now() + T.plan[T.idx].ms; T.runAt = Date.now();
     persistTimer(); tick();
     return;
   }
-  const done = T; T = null; persistTimer(); hideTimer();
+  const done = T; T = null; persistTimer(); hideTimer(); logTime(done);
   const t = S.tasks.find(x => x.id === done.taskId);
   if (t && !isDone(t, done.d)) toggleTask(t.id, done.d);
   toast('Bravo, c\'est fait 🎉');
@@ -1977,10 +2163,10 @@ timerEl.addEventListener('click', e => {
   const k = b.dataset.t;
   if (k === 'next') { nextPart(); return; }
   if (k === 'leave') { minimizeTimer(); return; }
-  if (k === 'stop') { stopRinging(); T = null; persistTimer(); hideTimer(); return; }
+  if (k === 'stop') { stopRinging(); if (T.runAt) T.spent = (T.spent || 0) + (Date.now() - T.runAt); const tm = T; T = null; persistTimer(); hideTimer(); logTime(tm); return; }
   if (k === 'pause') {
-    if (T.paused != null) { T.endAt = Date.now() + T.paused; T.paused = null; requestWake(); }
-    else { T.paused = T.endAt - Date.now(); }
+    if (T.paused != null) { T.endAt = Date.now() + T.paused; T.paused = null; T.runAt = Date.now(); requestWake(); }
+    else { T.paused = T.endAt - Date.now(); if (T.runAt) { T.spent = (T.spent || 0) + (Date.now() - T.runAt); T.runAt = null; } }
   }
   if (k === 'plus') { if (T.paused != null) T.paused += 60000; else T.endAt += 60000; }
   persistTimer(); tick();
@@ -2074,13 +2260,18 @@ const A = {
     renderHome();
     const el = document.getElementById('day-' + tom); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
-  'open-todo': () => openSheet({ render: renderTodo, label: 'To-do' }),
+  'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'To-do' }); },
   'open-lists': () => openSheet({ render: renderLists, label: 'Listes' }),
   'open-backup': () => openBackup(),
   'new-task': (el, c) => openTaskForm(null, { date: c.d || today() }),
   'new-task-theme': (el, c) => openTaskForm(null, { themeId: c.id || null }),
   'new-task-nodate': () => openTaskForm(null, { date: null }),
   'todo-view': el => { U.todoView = el.dataset.v; refresh(); },
+  'day-menu': (el, c) => openDayMenu(c.d),
+  'ord-move': (el, c) => moveUnit(c.d, c.id, +el.dataset.s),
+  'open-routines': () => { U.todoView = 'routines'; openSheet({ render: renderTodo, label: 'To-do' }); },
+  'open-stats': () => { U.statOffset = 0; openSheet({ render: renderStats, label: 'Suivi' }); },
+  'stat-move': el => { U.statOffset = (U.statOffset || 0) + +el.dataset.s; refresh(); },
   'plan': (el, c) => planTask(c.id, c.d || null),
   'plan-today': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, today()); refresh(); toast("C'est dans ta journée ✨"); },
   'plan-on': (el, c) => {
@@ -2116,7 +2307,18 @@ function monthSel() {
   const b = new Date(); b.setDate(1); b.setMonth(b.getMonth() + U.monthOffset);
   U.selDay = iso(b);
 }
+let lpTimer = null, lpFired = false, lpStart = null;
+document.addEventListener('pointerdown', e => {
+  const body = e.target.closest('.day .task-body[data-a="tap"], .duo .task-body[data-a="tap"]'); if (!body) return;
+  const row = body.closest('.task'); lpFired = false; lpStart = [e.clientX, e.clientY];
+  clearTimeout(lpTimer);
+  lpTimer = setTimeout(() => { lpFired = true; try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {} openQuick(row.dataset.id, row.dataset.d || null); }, 480);
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => document.addEventListener(ev, () => clearTimeout(lpTimer)));
+document.addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.clientX - lpStart[0], e.clientY - lpStart[1]) > 10) clearTimeout(lpTimer); });
+document.addEventListener('contextmenu', e => { if (e.target.closest('.task-body')) e.preventDefault(); });
 document.addEventListener('click', e => {
+  if (lpFired) { lpFired = false; if (e.target.closest('.task-body')) { e.preventDefault(); return; } }
   const el = e.target.closest('[data-a]'); if (!el) return;
   const row = el.closest('.task');
   const c = { id: el.dataset.id || (row && row.dataset.id), d: el.dataset.d !== undefined ? el.dataset.d : (row && row.dataset.d) };
@@ -2221,7 +2423,16 @@ async function start() {
     if ((t.freeLog || []).includes(today()) && !S.tasks.some(x => x.srcId === t.id && x.date === today() && x.done)) makeInstance(t, today(), { done: true, doneAt: Date.now() });
     await save('tasks', { ...S.tasks.find(x => x.id === t.id), date: null, routineRun: null });
   }
+  const oldOrd = Object.keys(S.meta).filter(k => k.startsWith('ord:') && k.slice(4) < addDays(today(), -3));
+  if (oldOrd.length) { oldOrd.forEach(k => delete S.meta[k]); tx(['meta'], t => oldOrd.forEach(k => t.objectStore('meta').delete(k))).catch(() => {}); }
   renderHome();
+  const act = new URLSearchParams(location.search).get('a');
+  if (act) {
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    if (act === 'new') openTaskForm(null, { date: today() });
+    if (act === 'routine') A['open-routines']();
+    if (act === 'todo') A['open-todo']();
+  }
   if (S.meta.timer) {
     T = S.meta.timer;
     if (T.min && T.paused != null) drawTbar(); else { T.min = false; showTimer(); }

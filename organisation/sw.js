@@ -1,6 +1,6 @@
 // Service worker de la partie « Organisation » de Mon quotidien.
 // Changer CACHE à chaque mise à jour importante.
-const CACHE = 'organisation-v15';
+const CACHE = 'organisation-v16';
 const PREFIX = 'organisation-';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 

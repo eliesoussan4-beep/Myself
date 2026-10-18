@@ -1,0 +1,4 @@
+# Un agenda par ligne : nom-du-fichier.ics puis le lien de l'agenda (https://… ou webcal://…)
+# Le nom du fichier est celui indiqué dans l'app (Planning > Événements > l'agenda abonné).
+# Exemple :
+# matchs-us-champigny.ics https://exemple.fr/calendrier/equipe.ics

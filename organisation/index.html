@@ -238,9 +238,10 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 
 
 /* Couleurs des catégories et des listes */
-:root{--c-sky:#146C93;--c-lime:#5A7A12;--c-fuchsia:#96309F;--c-sand:#8A6334;--c-green:#2F7A4A;--c-pink:#A83E6E;--c-teal:#1F7C78;--c-yellow:#8A6A0E;--c-purple:#6A4BC4;--c-coral:#B4532F;--c-blue:#2F4C78;--c-slate:#56627A}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c-sky:#63C7EE;--c-lime:#B8D65A;--c-fuchsia:#D47FE0;--c-sand:#D6B48C;--c-green:#7CC992;--c-pink:#E98BB5;--c-teal:#5EC4C0;--c-yellow:#E3C35A;--c-purple:#A58CF0;--c-coral:#EE9A7A;--c-blue:#8FB0E3;--c-slate:#AAB4C6}}
-:root[data-theme="dark"]{--c-sky:#63C7EE;--c-lime:#B8D65A;--c-fuchsia:#D47FE0;--c-sand:#D6B48C;--c-green:#7CC992;--c-pink:#E98BB5;--c-teal:#5EC4C0;--c-yellow:#E3C35A;--c-purple:#A58CF0;--c-coral:#EE9A7A;--c-blue:#8FB0E3;--c-slate:#AAB4C6}
+:root{--c-forest:#1E5E33;--c-mint:#237A5C;--c-cyan:#0E7480;--c-indigo:#3A41A8;--c-plum:#7D2E68;--c-rose:#B03A5B;--c-red:#B42D2D;--c-orange:#B25A12;--c-amber:#946200;--c-olive:#66611C;--c-brown:#6E4426;--c-gray:#5F6670;--c-sky:#146C93;--c-lime:#5A7A12;--c-fuchsia:#96309F;--c-sand:#8A6334;--c-green:#2F7A4A;--c-pink:#A83E6E;--c-teal:#1F7C78;--c-yellow:#8A6A0E;--c-purple:#6A4BC4;--c-coral:#B4532F;--c-blue:#2F4C78;--c-slate:#56627A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c-forest:#4FAE6A;--c-mint:#8EE3C4;--c-cyan:#4FD8E6;--c-indigo:#8C93F0;--c-plum:#C77BB0;--c-rose:#F4A3B8;--c-red:#F07272;--c-orange:#F5A25D;--c-amber:#FFC24D;--c-olive:#BDB76B;--c-brown:#C29572;--c-gray:#C9CDD4;--c-sky:#63C7EE;--c-lime:#B8D65A;--c-fuchsia:#D47FE0;--c-sand:#D6B48C;--c-green:#7CC992;--c-pink:#E98BB5;--c-teal:#5EC4C0;--c-yellow:#E3C35A;--c-purple:#A58CF0;--c-coral:#EE9A7A;--c-blue:#8FB0E3;--c-slate:#AAB4C6}}
+:root[data-theme="dark"]{--c-forest:#4FAE6A;--c-mint:#8EE3C4;--c-cyan:#4FD8E6;--c-indigo:#8C93F0;--c-plum:#C77BB0;--c-rose:#F4A3B8;--c-red:#F07272;--c-orange:#F5A25D;--c-amber:#FFC24D;--c-olive:#BDB76B;--c-brown:#C29572;--c-gray:#C9CDD4;--c-sky:#63C7EE;--c-lime:#B8D65A;--c-fuchsia:#D47FE0;--c-sand:#D6B48C;--c-green:#7CC992;--c-pink:#E98BB5;--c-teal:#5EC4C0;--c-yellow:#E3C35A;--c-purple:#A58CF0;--c-coral:#EE9A7A;--c-blue:#8FB0E3;--c-slate:#AAB4C6}
+.c-forest{--c:var(--c-forest)}.c-mint{--c:var(--c-mint)}.c-cyan{--c:var(--c-cyan)}.c-indigo{--c:var(--c-indigo)}.c-plum{--c:var(--c-plum)}.c-rose{--c:var(--c-rose)}.c-red{--c:var(--c-red)}.c-orange{--c:var(--c-orange)}.c-amber{--c:var(--c-amber)}.c-olive{--c:var(--c-olive)}.c-brown{--c:var(--c-brown)}.c-gray{--c:var(--c-gray)}
 .c-sky{--c:var(--c-sky)}.c-lime{--c:var(--c-lime)}.c-fuchsia{--c:var(--c-fuchsia)}.c-sand{--c:var(--c-sand)}
 .c-green{--c:var(--c-green)}.c-pink{--c:var(--c-pink)}.c-teal{--c:var(--c-teal)}.c-yellow{--c:var(--c-yellow)}
 .c-purple{--c:var(--c-purple)}.c-coral{--c:var(--c-coral)}.c-blue{--c:var(--c-blue)}.c-slate{--c:var(--c-slate)}
@@ -284,7 +285,7 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 .hero-row::-webkit-scrollbar{display:none}
 .hero-row .chip{max-width:260px}
 .chip .muted{color:var(--muted)}
-.swatches{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.swatches{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px 12px}
 .swatch{aspect-ratio:1;border-radius:99px;background:var(--c)}
 .swatch.on{box-shadow:0 0 0 2px var(--sunk),0 0 0 4px var(--c)}
 .f-dot{width:12px;height:12px;border-radius:50%;background:var(--c);display:inline-block;margin-right:8px;vertical-align:-1px}
@@ -625,7 +626,7 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 <script>
 (() => {
 'use strict';
-const VERSION = 28;
+const VERSION = 30;
 const DEMO = false;
 const DB_NAME = 'organisation';
 const STORES = ['themes', 'tasks', 'lists', 'items', 'routines'];
@@ -825,8 +826,10 @@ const subDone = (t, d) => ((t.subDone || {})[subKey(t, d)] || []).filter(id => (
 const hasSubs = t => !!(t.subs && t.subs.length);
 
 /* ---------- Couleurs et emojis automatiques ---------- */
-const COLORS = ['green', 'pink', 'teal', 'yellow', 'purple', 'coral', 'blue', 'sky', 'lime', 'fuchsia', 'sand', 'slate'];
-const COLOR_NAMES = { green: 'Vert', pink: 'Rose', teal: 'Turquoise', yellow: 'Jaune', purple: 'Violet', coral: 'Corail', blue: 'Bleu', sky: 'Ciel', lime: 'Anis', fuchsia: 'Fuchsia', sand: 'Sable', slate: 'Ardoise' };
+const COLORS = ['green', 'pink', 'teal', 'yellow', 'purple', 'coral', 'blue', 'sky', 'lime', 'fuchsia', 'sand', 'red', 'orange', 'indigo', 'mint', 'plum', 'amber', 'cyan', 'forest', 'rose', 'brown', 'olive', 'slate', 'gray'];
+// ordre d'affichage du nuancier : par teinte
+const SWATCHES = ['red', 'coral', 'orange', 'amber', 'yellow', 'olive', 'lime', 'green', 'forest', 'mint', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'purple', 'plum', 'fuchsia', 'pink', 'rose', 'sand', 'brown', 'slate', 'gray'];
+const COLOR_NAMES = { green: 'Vert', pink: 'Rose', teal: 'Turquoise', yellow: 'Jaune', purple: 'Violet', coral: 'Corail', blue: 'Bleu', sky: 'Ciel', lime: 'Anis', fuchsia: 'Fuchsia', sand: 'Sable', slate: 'Ardoise' , forest: 'Forêt', mint: 'Menthe', cyan: 'Cyan', indigo: 'Indigo', plum: 'Prune', rose: 'Rose poudré', red: 'Rouge', orange: 'Orange', amber: 'Ambre', olive: 'Olive', brown: 'Marron', gray: 'Gris' };
 const nextColor = arr => {
   const all = [...S.themes, ...S.lists].map(x => x.color), own = arr.map(x => x.color);
   const n = (list, c) => list.filter(x => x === c).length;
@@ -837,7 +840,7 @@ const KW = {
   themes: [
     ['stand ?up|scene|blague|humour|sketch|impro|spectacle', '🎤'], ['menage|maison|quotidien|vie |linge|lessive', '🏠'],
     ['social|ami|famille|pote|relation', '💬'], ['papier|paperasse|admin|impot|banque|caf|assurance|mutuelle|facture', '📄'],
-    ['sport|muscu|course a pied|running|run|velo|natation|gym|fitness', '💪'], ['travail|boulot|job|pro|bureau|taf', '💼'],
+    ['foot|match|ballon|basket|hand|rugby|volley|tennis', '⚽'], ['sport|muscu|course a pied|running|run|velo|natation|gym|fitness', '💪'], ['travail|boulot|job|pro|bureau|taf', '💼'],
     ['etude|cours|ecole|fac|revision|exam|devoir', '🎓'], ['sante|medecin|docteur|dentiste|soin', '🩺'],
     ['argent|budget|finance|epargne', '💰'], ['art|dessin|peinture|creati|ecriture|photo', '🎨'], ['musique|guitare|piano|chant', '🎵'],
     ['bien.?etre|meditation|yoga|detente', '🧘'], ['cuisine|repas|recette|batch', '🍳'], ['voiture|auto|moto', '🚗'],
@@ -2394,7 +2397,7 @@ function openGroupForm(kind, obj, onSaved) {
       </div>
       <div class="case${openColor ? ' open' : ''}">
         <button type="button" class="field" data-f="toggle-color" aria-expanded="${openColor}"><span class="f-label">Couleur</span><span class="f-value"><span class="f-dot c-${f.color}"></span>${COLOR_NAMES[f.color] || ''}</span>${chev(openColor)}</button>
-        ${openColor ? `<div class="case-more"><div class="swatches">${COLORS.map(c => `<button type="button" class="swatch c-${c}${c === f.color ? ' on' : ''}" data-f="color" data-c="${c}" aria-label="${COLOR_NAMES[c]}" aria-pressed="${c === f.color}"></button>`).join('')}</div></div>` : ''}
+        ${openColor ? `<div class="case-more"><div class="swatches">${SWATCHES.map(c => `<button type="button" class="swatch c-${c}${c === f.color ? ' on' : ''}" data-f="color" data-c="${c}" aria-label="${COLOR_NAMES[c]}" aria-pressed="${c === f.color}"></button>`).join('')}</div></div>` : ''}
       </div>
       ${isCat ? `<div class="field"><span class="f-label">Toujours dans « Bientôt »</span><button type="button" class="switch${isPinned(f) ? ' on' : ''}" role="switch" aria-checked="${isPinned(f)}" aria-label="Toujours afficher dans Bientôt" data-f="pin"><span class="knob"></span></button></div>` : ''}
       ${isNew ? '' : `<button type="button" class="btn danger wide del-btn" data-f="del">Supprimer ${isCat ? 'la catégorie' : 'la liste'}</button>`}`;
@@ -3117,7 +3120,13 @@ async function start() {
   }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if (!DEMO && 'serviceWorker' in navigator && location.protocol === 'https:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Mises à jour : on vérifie à chaque ouverture et on recharge tout seul quand une nouvelle version est prête
+    const hadCtrl = !!navigator.serviceWorker.controller; let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtrl && !reloaded) { reloaded = true; location.reload(); } });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      reg.update().catch(() => {});
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+    }).catch(() => {});
   }
 }
 start();

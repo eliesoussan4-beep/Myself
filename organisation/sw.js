@@ -1,11 +1,12 @@
 // Service worker de la partie « Organisation » de Mon quotidien.
 // Changer CACHE à chaque mise à jour importante.
-const CACHE = 'organisation-v28';
+const CACHE = 'organisation-v30';
 const PREFIX = 'organisation-';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' : on prend les fichiers frais du serveur, pas ceux gardés par le navigateur
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -33,7 +34,7 @@ self.addEventListener('fetch', e => {
 
   // Page : réseau d'abord (pour recevoir les mises à jour), cache si hors ligne.
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => {
+    e.respondWith(fetch(req.url, { cache: 'no-store' }).then(r => {
       const copy = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', copy)); return r;
     }).catch(() => caches.match('./index.html').then(r => r || caches.match('./'))));
     return;

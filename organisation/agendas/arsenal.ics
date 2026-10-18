@@ -1,0 +1,1433 @@
+BEGIN:VCALENDAR
+PRODID:-//E-DIARY//E-DIARY 1.0//EN
+VERSION:2.0
+METHOD:PUBLISH
+X-WR-CALNAME:Arsenal FC
+X-Built-On-Cache-Miss:true
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:St. James' Park\, Newcastle
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261121T173000Z
+DTEND:20261121T193000Z
+SUMMARY:Newcastle United vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848aa0a947f
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 11 | Watch live on UK - Sky Sports. 
+ Join us for analysis and live commentary in The Breakdown Live on the Arsen
+ al App and Arsenal.com | Join In #NEWARS\n\nShop Arsenal Direct\nhttps://ec
+ al.ai/f/2gRLtr/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRLtF/3NsBs\n\n
+ Download the Arsenal App\nhttps://ecal.ai/f/2gRLtM/3NsBs\n\nLatest Videos\n
+ https://ecal.ai/f/2gRLtX/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRLv6/3Ns
+ Bs\n\nFacebook\nhttps://ecal.ai/f/2gRLvg/3NsBs\n\nX\nhttps://ecal.ai/f/2gRL
+ vp/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRLvw/3NsBs\n\nTikTok\nhttps://ec
+ al.ai/f/2gRLvD/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRLw3/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Highbury Stadium\, Fleetwood
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261027T200000Z
+DTEND:20261027T220000Z
+SUMMARY:Fleetwood Town vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6aab161b54aa884cc8428bc0
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:English League Cup | Matchweek 5 | TV: Check local guides. Join
+  us for analysis and live commentary in The Breakdown Live on the Arsenal A
+ pp and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f
+ /2slBn5/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2slBn8/3NsBs\n\nDownloa
+ d the Arsenal App\nhttps://ecal.ai/f/2slBn9/3NsBs\n\nLatest Videos\nhttps:/
+ /ecal.ai/f/2slBnc/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2slBng/3NsBs\n\nF
+ acebook\nhttps://ecal.ai/f/2slBnk/3NsBs\n\nX\nhttps://ecal.ai/f/2slBnm/3NsB
+ s\n\nInstagram\nhttps://ecal.ai/f/2slBnp/3NsBs\n\nTikTok\nhttps://ecal.ai/f
+ /2slBns/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2slBnF/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Gtech Community Stadium\, Brentford
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261202T200000Z
+DTEND:20261202T220000Z
+SUMMARY:Brentford vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848ab04c5f9
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 13 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #BREARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRLMv/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRLMD/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRLMS/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRLN3/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRLNd/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRLNs/3NsBs\n\nX\nhttps://ecal.ai/f/2gRLND/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRLNN/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRLNY/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRLPx/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Tottenham Hotspur Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Tottenham Hotspur vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b09
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 14 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #TOTARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRLSB/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRLSH/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRLSQ/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRLSW/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRLT6/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRLTg/3NsBs\n\nX\nhttps://ecal.ai/f/2gRLTn/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRLTw/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRLTD/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRLVb/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Arsenal vs Everton (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2c1
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 8 | Join us for analysis and live co
+ mmentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join In
+  #ARSEVE\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRLXL/3NsBs\n\nJoin Mem
+ bership\nhttps://ecal.ai/f/2gRLYm/3NsBs\n\nDownload the Arsenal App\nhttps:
+ //ecal.ai/f/2gRLYx/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRLYH/3NsBs\n
+ \nLatest News\nhttps://ecal.ai/f/2gRLYR/3NsBs\n\nFacebook\nhttps://ecal.ai/
+ f/2gRLZ5/3NsBs\n\nX\nhttps://ecal.ai/f/2gRLZd/3NsBs\n\nInstagram\nhttps://e
+ cal.ai/f/2gRLZn/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRLZB/3NsBs\n\nManage m
+ y ECAL\nhttps://ecal.ai/f/2gRM18/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Anfield\, Liverpool
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261101T163000Z
+DTEND:20261101T183000Z
+SUMMARY:Liverpool vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2c2
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 9 | Watch live on UK - Sky Sports. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #LIVARS\n\nShop Arsenal Direct\nhttps://eca
+ l.ai/f/2gRM1s/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRM1G/3NsBs\n\nD
+ ownload the Arsenal App\nhttps://ecal.ai/f/2gRM1L/3NsBs\n\nLatest Videos\nh
+ ttps://ecal.ai/f/2gRM1X/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRM28/3NsB
+ s\n\nFacebook\nhttps://ecal.ai/f/2gRM2r/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM2
+ B/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM2N/3NsBs\n\nTikTok\nhttps://eca
+ l.ai/f/2gRM2Y/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM3J/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Arsenal vs Hull City (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2c3
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 10 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSHUL\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRM3T/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRM42/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRM4c/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRM4m/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRM4y/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRM4K/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM4X/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRM54/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRM5d/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRM5P/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Arsenal vs Bournemouth (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4b1
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 15 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSBOU\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRM8r/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRM8D/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRM8L/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRM8T/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRM94/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRM9g/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM9s/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRM9B/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRM9M/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMbc/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Arsenal vs Manchester United (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2ca
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 16 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSMUN\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMbw/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMbN/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMc2/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMcd/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMcq/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMcG/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMcR/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMd2/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMdb/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMdG/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Selhurst Park\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261227T190000Z
+DTEND:20261227T210000Z
+SUMMARY:Crystal Palace vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2cb
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 17 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #CRYARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMdY/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMf9/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMfp/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMfC/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMfF/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMfW/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMg5/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMgc/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMgk/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMgL/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Craven Cottage\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261230T193000Z
+DTEND:20261230T213000Z
+SUMMARY:Fulham vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b0c
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 18 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #FULARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMgV/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMh4/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMhd/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMhr/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMhB/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMhQ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMj1/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMjg/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMjx/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMk6/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Arsenal vs Ipswich Town (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4b5
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 19 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSIPS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMkg/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMkv/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMkF/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMkT/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMl9/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMlr/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMlD/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMlT/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMm5/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMmM/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270105T193000Z
+DTEND:20270105T213000Z
+SUMMARY:Arsenal vs Brentford (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2cf
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 20 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSBRE\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMmY/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMn8/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMnl/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMnx/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMnK/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMnZ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMp7/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMpj/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMpp/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMpV/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Arsenal vs Newcastle United (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2d1
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 22 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSNEW\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMrG/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMrR/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMrY/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMsb/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMss/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMsH/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMsR/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMsX/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMt5/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMtr/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Etihad Stadium\, Manchester
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Manchester City vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4b9
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 23 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #MCIARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMtG/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMtL/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMtT/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMv3/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMv8/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMvj/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMvr/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMvy/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMvL/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMwl/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Arsenal vs Liverpool (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848ab04c604
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 24 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSLIV\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMwP/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMwX/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMx5/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMxc/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMxq/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMxF/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMxM/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMxV/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMy2/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMyj/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Portman Road\, Ipswich
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270210T200000Z
+DTEND:20270210T220000Z
+SUMMARY:Ipswich Town vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4bb
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 25 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #IPSARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMys/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMyz/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMyG/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMyJ/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMyP/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMyZ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMz7/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMzg/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMzj/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMzM/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Arsenal vs Fulham (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b17
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 26 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSFUL\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMzW/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMB3/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMB7/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMBg/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMBn/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMBC/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMBL/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMCq/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMCF/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMD4/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Old Trafford\, Manchester
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Manchester United vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848ab04c608
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 27 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #MUNARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMDj/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMDv/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMDG/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMDT/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMF2/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMFk/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMFt/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMFG/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMFP/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMG8/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270303T200000Z
+DTEND:20270303T220000Z
+SUMMARY:Arsenal vs Crystal Palace (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4be
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 28 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSCRY\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMGj/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMGs/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMGy/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMGH/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMGV/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMH6/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMHj/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMHt/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMHD/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMJ6/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Stamford Bridge\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270313T150000Z
+DTEND:20270313T170000Z
+SUMMARY:Chelsea vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4bf
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 29 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #CHEARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMJw/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMJH/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMJR/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMK2/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMKd/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMKF/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMKR/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMKY/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRML6/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMLs/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Arsenal vs Sunderland (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4c0
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 30 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSSUN\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMLG/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMLQ/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMM4/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMM7/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMMl/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMMy/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMMH/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMMW/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMN7/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMNH/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Coventry Building Society Arena\, Coventry
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270410T140000Z
+DTEND:20270410T160000Z
+SUMMARY:Coventry City vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2db
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 31 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #COVARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMNZ/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMP9/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMPj/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMPt/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMPB/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMPR/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMQ8/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMQk/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMQx/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMRf/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270417T140000Z
+DTEND:20270417T160000Z
+SUMMARY:Arsenal vs Aston Villa (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4c1
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 32 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSVIL\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMRt/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMRF/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMRQ/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMRX/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMS3/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMSm/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMSz/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMSL/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMT1/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMTt/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Vitality Stadium\, Bournemouth
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270424T140000Z
+DTEND:20270424T160000Z
+SUMMARY:Bournemouth vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848aa0a9482
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 33 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #BOUARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMTy/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMTK/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMTY/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMV8/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMVm/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMVM/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMVQ/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMW2/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMWd/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMWQ/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270501T140000Z
+DTEND:20270501T160000Z
+SUMMARY:Arsenal vs Tottenham Hotspur (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848aa0a9483
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 34 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSTOT\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMX2/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMXb/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMXk/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMXs/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMXz/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMXL/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMXW/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMYb/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMYp/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMYV/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Elland Road\, Leeds
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270508T140000Z
+DTEND:20270508T160000Z
+SUMMARY:Leeds United vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884cc83aa4c3
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 35 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #LEEARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMZ8/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMZg/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMZt/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMZF/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMZS/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRN19/3NsBs\n\nX\nhttps://ecal.ai/f/2gRN1q/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRN1H/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRN1V/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRN2q/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270515T140000Z
+DTEND:20270515T160000Z
+SUMMARY:Arsenal vs Nottingham Forest (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b1c
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 36 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSFOR\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRN2B/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRN2L/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRN2Y/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRN37/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRN3k/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRN3x/3NsBs\n\nX\nhttps://ecal.ai/f/2gRN3C/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRN3M/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRN3S/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRN4j/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Hill Dickinson Stadium\, Liverpool
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270523T140000Z
+DTEND:20270523T160000Z
+SUMMARY:Everton vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848aa0a9486
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 37 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #EVEARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRN4w/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRN4G/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRN4R/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRN52/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRN5m/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRN5z/3NsBs\n\nX\nhttps://ecal.ai/f/2gRN5L/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRN5W/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRN68/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRN6C/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270530T150000Z
+DTEND:20270530T170000Z
+SUMMARY:Arsenal vs Brighton and Hove Albion (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b1e
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 38 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #ARSBHA\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRN6R/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRN6Y/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRN78/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRN7f/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRN7m/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRN7B/3NsBs\n\nX\nhttps://ecal.ai/f/2gRN7K/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRN7R/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRN81/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRN8w/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Allianz Arena\, München
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261021T190000Z
+DTEND:20261021T210000Z
+SUMMARY:Bayern München vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa8848aa16f119
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 3 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWKMr/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWKMC/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWKMM/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWKMW/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWKN5/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWKNj/3NsBs\n\nX\nhttps://ecal.ai/f/2qWKNs/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWKNF/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWKNR/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWKPg/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Fortuna Arena\, Prague
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261104T200000Z
+DTEND:20261104T220000Z
+SUMMARY:Slavia Prague vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa88426515d98f
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 4 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWKPs/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWKPy/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWKPJ/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWKPR/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWKQ1/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWKQg/3NsBs\n\nX\nhttps://ecal.ai/f/2qWKQq/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWKQB/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWKQM/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWKRd/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261124T200000Z
+DTEND:20261124T220000Z
+SUMMARY:Arsenal vs Borussia Dortmund (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa884cc92ec6a1
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 5 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWKRw/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWKRF/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWKRN/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWKRY/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWKS6/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWKSn/3NsBs\n\nX\nhttps://ecal.ai/f/2qWKSy/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWKSN/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWKSW/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWKTJ/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261209T200000Z
+DTEND:20261209T220000Z
+SUMMARY:Arsenal vs Real Madrid (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa884cc92ec6a2
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 6 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWKTX/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWKVc/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWKVp/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWKVB/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWKW2/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWKWt/3NsBs\n\nX\nhttps://ecal.ai/f/2qWKX1/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWKXj/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWKXy/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWKYc/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Estadio La Cartuja de Sevilla\, Sevilla
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270120T200000Z
+DTEND:20270120T220000Z
+SUMMARY:Real Betis vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa88426515d990
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 7 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWKYy/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWKYM/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWKZ1/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWKZ9/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWKZn/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWKZH/3NsBs\n\nX\nhttps://ecal.ai/f/2qWKZR/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWL18/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWL1p/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWL26/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270127T200000Z
+DTEND:20270127T220000Z
+SUMMARY:Arsenal vs Sabah (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa884cc92ec6a3
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 8 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWL2r/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWL2C/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWL2T/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWL3b/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWL3m/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWL3L/3NsBs\n\nX\nhttps://ecal.ai/f/2qWL3T/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWL46/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWL4p/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWL56/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261013T190000Z
+DTEND:20261013T210000Z
+SUMMARY:Arsenal vs Lille (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a92eae554aa8848aa16f118
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:UEFA Champions League | Matchweek 2 | TV: Check local guides. J
+ oin us for analysis and live commentary in The Breakdown Live on the Arsena
+ l App and Arsenal.com | Join In #ARS\n\nShop Arsenal Direct\nhttps://ecal.a
+ i/f/2qWKKB/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2qWKKH/3NsBs\n\nDown
+ load the Arsenal App\nhttps://ecal.ai/f/2qWKKQ/3NsBs\n\nLatest Videos\nhttp
+ s://ecal.ai/f/2qWKKY/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2qWKL6/3NsBs\n
+ \nFacebook\nhttps://ecal.ai/f/2qWKLf/3NsBs\n\nX\nhttps://ecal.ai/f/2qWKLm/3
+ NsBs\n\nInstagram\nhttps://ecal.ai/f/2qWKLw/3NsBs\n\nTikTok\nhttps://ecal.a
+ i/f/2qWKLJ/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2qWKM9/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261010T113000Z
+DTEND:20261010T133000Z
+SUMMARY:Arsenal vs Leeds United (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b00
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 6 | Watch live on TalkSport\, UK - T
+ NT Sports. Join us for analysis and live commentary in The Breakdown Live o
+ n the Arsenal App and Arsenal.com | Join In #ARSLEE\n\nShop Arsenal Direct\
+ nhttps://ecal.ai/f/2gRLPM/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRLQ
+ 5/3NsBs\n\nDownload the Arsenal App\nhttps://ecal.ai/f/2gRLQl/3NsBs\n\nLate
+ st Videos\nhttps://ecal.ai/f/2gRLQM/3NsBs\n\nLatest News\nhttps://ecal.ai/f
+ /2gRLQY/3NsBs\n\nFacebook\nhttps://ecal.ai/f/2gRLRb/3NsBs\n\nX\nhttps://eca
+ l.ai/f/2gRLRn/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRLRD/3NsBs\n\nTikTok\
+ nhttps://ecal.ai/f/2gRLRQ/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRLSm
+ /3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:MKM Stadium\, Hull
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Hull City vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2d0
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 21 | Join us for analysis and live c
+ ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
+ n #HULARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMq8/3NsBs\n\nJoin Me
+ mbership\nhttps://ecal.ai/f/2gRMqg/3NsBs\n\nDownload the Arsenal App\nhttps
+ ://ecal.ai/f/2gRMqn/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMqv/3NsBs\
+ n\nLatest News\nhttps://ecal.ai/f/2gRMqB/3NsBs\n\nFacebook\nhttps://ecal.ai
+ /f/2gRMqH/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMqM/3NsBs\n\nInstagram\nhttps://
+ ecal.ai/f/2gRMqT/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMr1/3NsBs\n\nManage 
+ my ECAL\nhttps://ecal.ai/f/2gRMrr/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261129T163000Z
+DTEND:20261129T183000Z
+SUMMARY:Arsenal vs Manchester City (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa8848ab04c5f8
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 12 | Watch live on UK - Sky Sports. 
+ Join us for analysis and live commentary in The Breakdown Live on the Arsen
+ al App and Arsenal.com | Join In #ARSMCI\n\nShop Arsenal Direct\nhttps://ec
+ al.ai/f/2gRM61/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRM6c/3NsBs\n\n
+ Download the Arsenal App\nhttps://ecal.ai/f/2gRM6l/3NsBs\n\nLatest Videos\n
+ https://ecal.ai/f/2gRM6y/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRM6J/3Ns
+ Bs\n\nFacebook\nhttps://ecal.ai/f/2gRM72/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM
+ 7d/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM7p/3NsBs\n\nTikTok\nhttps://ec
+ al.ai/f/2gRM7C/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM8d/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:The City Ground\, Nottingham
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+DTSTART:20261018T153000Z
+DTEND:20261018T173000Z
+SUMMARY:Nottingham Forest vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b01
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 7 | Watch live on UK - Sky Sports | 
+ BBC Radio 5 Live. Join us for analysis and live commentary in The Breakdown
+  Live on the Arsenal App and Arsenal.com | Join In #FORARS\n\nShop Arsenal 
+ Direct\nhttps://ecal.ai/f/2gRLVm/3NsBs\n\nJoin Membership\nhttps://ecal.ai/
+ f/2gRLVv/3NsBs\n\nDownload the Arsenal App\nhttps://ecal.ai/f/2gRLVG/3NsBs\
+ n\nLatest Videos\nhttps://ecal.ai/f/2gRLVP/3NsBs\n\nLatest News\nhttps://ec
+ al.ai/f/2gRLW2/3NsBs\n\nFacebook\nhttps://ecal.ai/f/2gRLWg/3NsBs\n\nX\nhttp
+ s://ecal.ai/f/2gRLWw/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRLWG/3NsBs\n\n
+ TikTok\nhttps://ecal.ai/f/2gRLWQ/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f
+ /2gRLXv/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:20261018T195151Z
+DTSTAMP:20261018T195151Z
+LOCATION:Proudly powered by ECAL
+X-ECAL-SCHEDULE:6ad522f64c6f700002e1760e
+DTSTART:20261018T200500Z
+DTEND:20261018T202000Z
+SUMMARY:Success! You're connected to Arsenal FC
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6ad522f6cc52c4000246f4e3
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:You'll now have the most up-to-date fixture and event informati
+ on from Arsenal FC.\n\nIf dates\, times or details change\, these will auto
+ matically update in your calendar. How good is that!\n\nReturn of the canon
+ ! Inspired by the past\, ready for the future. Buy in-store on online now a
+ t Arsenal Direct: \nhttps://arsenaldirect.arsenal.com/?utm_source=arsenaldi
+ rect&utm_medium=&utm_campaign=ECAL \n \nWe hope you enjoy this service and 
+ welcome any feedback via our Support Centre http://support.ecal.com.\n-----
+ -\n\nThis service is powered by ECAL\, the world's leading & most trusted c
+ alendar communications service.\n\nManage my ECAL\nhttps://ecal.ai/f/2tZ1hd
+ /3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-PT1M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+END:VCALENDAR

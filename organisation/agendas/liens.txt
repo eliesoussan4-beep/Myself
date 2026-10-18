@@ -2,3 +2,4 @@
 # Le nom du fichier est celui indiqué dans l'app (Planning > Événements > l'agenda abonné).
 # Exemple :
 # matchs-us-champigny.ics https://exemple.fr/calendrier/equipe.ics
+ics.ecal.com/ecal-sub/6ad522f56b0dd2000282a3db/Arsenal%20FC.ics

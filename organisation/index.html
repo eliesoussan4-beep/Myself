@@ -505,6 +505,11 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .mi.done{opacity:.5;text-decoration:line-through}
 .mi-more{font-size:10px;color:var(--muted);text-align:center;line-height:13px}
 
+.info-ico{width:38px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--c,var(--muted));opacity:.8}
+.task-wrap:not(.mini) .info-ico{width:44px}
+.f-hint{font-size:13px;color:var(--muted)}
+.week-wrap{overflow:hidden;margin:0 -2px;padding:0 2px}
+
 @media (prefers-reduced-motion: reduce){.sheet,.scrim,.modal,.toast{animation:none}.switch .knob{transition:none}}
 .sec-title button{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:inherit;letter-spacing:inherit}
 </style>
@@ -535,7 +540,7 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 <script>
 (() => {
 'use strict';
-const VERSION = 19;
+const VERSION = 20;
 const DEMO = false;
 const DB_NAME = 'organisation';
 const STORES = ['themes', 'tasks', 'lists', 'items', 'routines'];
@@ -683,6 +688,7 @@ function occursOn(t, d) {
     if (!days.includes(dow(d))) return false;
     return Math.round(diffDays(mondayOf(start), mondayOf(d)) / 7) % (r.every || 1) === 0;
   }
+  if (r.unit === 'an') return d.slice(5) === start.slice(5) && (parse(d).getFullYear() - parse(start).getFullYear()) % (r.every || 1) === 0;
   if (r.unit === 'mois') {
     const sm = monthIdx(start), dm = monthIdx(d);
     for (const off of [0, -1, 1]) {
@@ -694,7 +700,7 @@ function occursOn(t, d) {
   }
   return false;
 }
-const isDone = (t, d) => t.free ? false : (t.rep || (t.kind === 'event' && t.yearly)) ? (t.doneDates || []).includes(d) : !!t.done;
+const isDone = (t, d) => (t.free || t.info) ? false : (t.rep || (t.kind === 'event' && t.yearly)) ? (t.doneDates || []).includes(d) : !!t.done;
 function prevOcc(t, before) {
   for (let i = 1; i <= 62; i++) { const d = addDays(before, -i); if (occursOn(t, d)) return d; }
   return null;
@@ -724,6 +730,7 @@ function repLabel(t) {
     return n === 1 ? 'Chaque ' + ds : `Toutes les ${n} sem. · ${ds}`;
   }
   if (r.unit === 'mois') return monthText(r) + (n > 1 ? ` · tous les ${n} mois` : '');
+  if (r.unit === 'an') return n === 1 ? 'Chaque année' : `Tous les ${n} ans`;
   return '';
 }
 
@@ -784,7 +791,7 @@ function dayItems(d) {
 function lateEntries() {
   const t = today(), out = [];
   S.tasks.forEach(x => {
-    if (x.kind === 'event') return;
+    if (x.info || x.kind === 'event') return;
     if (!x.rep) { if (x.date && x.date < t && !isDone(x, x.date)) out.push({ t: x, d: x.date, late: true }); return; }
     const p = prevOcc(x, t); if (!p || (x.created && p < x.created)) return;
     const nx = nextOcc(x, addDays(p, 1));
@@ -817,7 +824,7 @@ function subsBlock(t, d, ctx) {
 }
 // Placer une tâche sur un jour : une tâche « Libre » reste dans To-do et on en crée une copie datée
 function makeInstance(src, d, extra = {}) {
-  const inst = { id: uid(), title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: {}, created: today(), srcId: src.id, ...extra };
+  const inst = { id: uid(), info: !!src.info, time: src.time || '', title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: {}, created: today(), srcId: src.id, ...extra };
   save('tasks', inst);
   return inst;
 }
@@ -837,6 +844,7 @@ function freeLbl(t) {
   const log = t.freeLog || []; const last = log[log.length - 1];
   const nx = plannedOf(t);
   const pre = today().slice(0, 7), nM = (t.freeLog || []).filter(x => x.startsWith(pre)).length;
+  if (t.info) return `<span class="rep-lbl">${ic(P.rep, 13, 2)}Plusieurs dates</span>${nx.length ? `<span>📅 ${h(nx.slice(0, 3).map(shortDate).join(', '))}${nx.length > 3 ? '…' : ''}</span>` : ''}`;
   return `<span class="rep-lbl">${ic(P.rep, 13, 2)}Libre${last ? ' · ' + (last === today() ? "fait aujourd'hui" : 'dernière fois ' + shortDate(last)) : ''}${nM ? ` · ${nM}× ce mois` : ''}</span>${nx.length ? `<span>📅 ${h(nx.slice(0, 3).map(shortDate).join(', '))}${nx.length > 3 ? '…' : ''}</span>` : ''}`;
 }
 function eventRow(t, d, o = {}) {
@@ -847,8 +855,8 @@ function eventRow(t, d, o = {}) {
   let when = t.time ? evWhen(t) : '';
   if (o.ctx === 'todo' && d) when = (d === t0 ? "Aujourd'hui" : d === addDays(t0, 1) ? 'Demain' : shortDate(d)) + (t.time ? ' · ' + evWhen(t) : '');
   return `<div class="task-wrap evt${mini ? ' mini' : ''}${th ? ' cat c-' + (th.color || 'slate') : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}">
-    <button type="button" class="check" data-a="check" aria-label="${done ? 'Décocher' : 'Cocher'} ${h(t.title)}"><span class="box">${done ? CHECK : ''}</span></button>
-    <button type="button" class="task-body" data-a="tap">${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${when || t.yearly || (o.ctx === 'day' && th) ? `<span class="t-meta">${when ? `<span class="ev-when">${h(when)}</span>` : ''}${o.ctx === 'day' && th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.yearly ? `<span class="rep-lbl" title="Chaque année">${ic(P.rep, 13, 2)}</span>` : ''}</span>` : ''}</button>
+    <span class="info-ico" aria-hidden="true">${ic(IC.cal, 16, 1.7)}</span>
+    <button type="button" class="task-body" data-a="tap">${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${when || t.rep || (o.ctx === 'day' && th) ? `<span class="t-meta">${when ? `<span class="ev-when">${h(when)}</span>` : ''}${o.ctx === 'day' && th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.rep ? `<span class="rep-lbl" title="${h(repLabel(t))}">${ic(P.rep, 13, 2)}</span>` : ''}</span>` : ''}</button>
   </div></div>`;
 }
 function taskRow(t, d, o = {}) {
@@ -886,7 +894,7 @@ function taskRow(t, d, o = {}) {
   const mini = o.ctx === 'mini';
   const canPlan = (o.ctx === 'todo' || o.ctx === 'nodate') && !t.rep && !t.date && !t.done;
   return `<div class="task-wrap${mini ? ' mini' : ''}${catCls}${openS ? ' open' : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}">
-    <button type="button" class="check" data-a="check" aria-label="${done ? 'Décocher' : 'Cocher'} ${h(t.title)}"><span class="box">${done ? CHECK : ''}</span></button>
+    ${t.info ? `<span class="info-ico" aria-hidden="true">${ic(IC.cal, 16, 1.7)}</span>` : `<button type="button" class="check" data-a="check" aria-label="${done ? 'Décocher' : 'Cocher'} ${h(t.title)}"><span class="box">${done ? CHECK : ''}</span></button>`}
     <button type="button" class="task-body" data-a="tap"${subs ? ` aria-expanded="${openS}"` : ''}>${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${meta ? `<span class="t-meta">${meta}</span>` : ''}</button>
     ${canPlan ? `<button type="button" class="btn-ico sm plan" data-a="plan" aria-label="Planifier ou ajouter à une routine : ${h(t.title)}">${ic(IC.cal, 18, 1.7)}</button>` : t.duration && !done && t.timer !== false ? (mini ? `<button type="button" class="play-ico" data-a="play" aria-label="Lancer le minuteur de ${t.duration} min">${PLAY}</button>` : `<button type="button" class="chip play" data-a="play" aria-label="Lancer le minuteur (${durShort(t)})">${PLAY}${durShort(t)}</button>`) : ''}
     ${subs && !mini ? chev(openS) : ''}
@@ -940,43 +948,40 @@ function monthAgenda(y, m) {
 }
 // ---------- Agenda : vue semaine (lisible) ou vue mois (cases agrandies avec les titres)
 const agendaItems = (d, minGap) => dayItems(d).filter(x => !(x.rep && gapAfter(x, d) < minGap));
-function agendaHTML(ag) {
+function agendaHTML() {
   const t = today(), tom = addDays(t, 1);
-  const seg = `<div class="ag-switch"><div class="chips even"><button type="button" class="chip${ag === 'week' ? ' on' : ''}" data-a="agenda-mode" data-v="week" aria-pressed="${ag === 'week'}">Semaine</button><button type="button" class="chip${ag === 'month' ? ' on' : ''}" data-a="agenda-mode" data-v="month" aria-pressed="${ag === 'month'}">Mois</button></div>
-    <button type="button" class="btn-ico" data-a="agenda-close" aria-label="Fermer l'agenda">${ic(P.close, 18)}</button></div>`;
-  if (ag === 'week') {
-    const m0 = addDays(mondayOf(t), 7 * U.weekOffset), s0 = addDays(m0, 6);
-    const a = parse(m0), b = parse(s0);
-    const label = a.getMonth() === b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${MC[b.getMonth()]}` : `${a.getDate()} ${MC[a.getMonth()]} – ${b.getDate()} ${MC[b.getMonth()]}`;
-    let days = '';
-    for (let i = 0; i < 7; i++) {
-      const d = addDays(m0, i), x = parse(d);
-      const its = agendaItems(d, 2);
-      days += `<div class="wk-day${d === t ? ' today' : d === tom ? ' tomorrow' : d < t ? ' past' : ''}">
-        <button type="button" class="wk-date" data-a="open-day" data-d="${d}" aria-label="${JOURS[dow(d)]} ${x.getDate()}"><span class="wk-name">${JC[dow(d)]}</span><span class="wk-num">${x.getDate()}</span></button>
-        <div class="wk-items">${its.map(it => { const th = themeOf(it); const dn = isDone(it, d); return `<button type="button" class="wk-it c-${th ? th.color || 'slate' : 'slate'}${dn ? ' done' : ''}${isEvent(it) ? ' evt' : ''}" data-a="edit" data-id="${it.id}" data-d="${d}"><span class="ell">${h(it.title)}</span>${isEvent(it) && it.time ? `<span class="wk-when">${evWhen(it)}</span>` : it.duration && !isEvent(it) ? `<span class="wk-when">${durShort(it)}</span>` : ''}</button>`; }).join('')}</div>
-        <button type="button" class="day-add" data-a="day-add" data-d="${d}" aria-label="Ajouter le ${x.getDate()} ${MOIS[x.getMonth()]}">${ic(P.plus, 16, 2)}</button></div>`;
-    }
-    return `<div class="sec-head"><h2 class="sec-title"><button type="button" class="ell" data-a="week-now">${h(label)}</button></h2>
-      <button type="button" class="btn-ico" data-a="week-prev" aria-label="Semaine précédente">${ic(P.left, 18)}</button>
-      <button type="button" class="btn-ico" data-a="week-next" aria-label="Semaine suivante">${ic(P.right, 18)}</button></div>${seg}<div class="week">${days}</div>`;
+  const m0 = addDays(mondayOf(t), 7 * U.weekOffset), s0 = addDays(m0, 6);
+  const a = parse(m0), b = parse(s0);
+  const label = a.getMonth() === b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${MC[b.getMonth()]}` : `${a.getDate()} ${MC[a.getMonth()]} – ${b.getDate()} ${MC[b.getMonth()]}`;
+  let days = '';
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(m0, i), x = parse(d);
+    const its = agendaItems(d, 2);
+    days += `<div class="wk-day${d === t ? ' today' : d === tom ? ' tomorrow' : d < t ? ' past' : ''}">
+      <button type="button" class="wk-date" data-a="open-day" data-d="${d}" aria-label="${JOURS[dow(d)]} ${x.getDate()}"><span class="wk-name">${JC[dow(d)]}</span><span class="wk-num">${x.getDate()}</span></button>
+      <div class="wk-items">${its.map(it => { const th = themeOf(it); const dn = isDone(it, d); return `<button type="button" class="wk-it c-${th ? th.color || 'slate' : 'slate'}${dn ? ' done' : ''}${isEvent(it) ? ' evt' : ''}" data-a="edit" data-id="${it.id}" data-d="${d}"><span class="ell">${h(it.title)}</span>${it.time ? `<span class="wk-when">${evWhen(it)}</span>` : it.duration && !isEvent(it) ? `<span class="wk-when">${durShort(it)}</span>` : ''}</button>`; }).join('')}</div>
+      <button type="button" class="day-add" data-a="day-add" data-d="${d}" aria-label="Ajouter le ${x.getDate()} ${MOIS[x.getMonth()]}">${ic(P.plus, 16, 2)}</button></div>`;
   }
-  const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + U.monthOffset);
-  const y = base.getFullYear(), m = base.getMonth();
-  const first = iso(new Date(y, m, 1)), n = dim(y, m), lead = dow(first);
-  let cells = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(x => `<div class="wd" aria-hidden="true">${x}</div>`).join('');
-  for (let i = 0; i < lead; i++) cells += '<div></div>';
-  for (let i = 1; i <= n; i++) {
-    const d = iso(new Date(y, m, i));
-    const its = agendaItems(d, 7);
-    const cl = ['mcell', d < t && 'past', d === t && 'today', d === tom && 'tomorrow'].filter(Boolean).join(' ');
-    cells += `<button type="button" class="${cl}" data-a="open-day" data-d="${d}" aria-label="${i} ${MOIS[m]}${its.length ? ', ' + plural(its.length, 'élément', 'éléments') : ''}"><span class="mc-num">${i}</span>
-      ${its.slice(0, 3).map(it => { const th = themeOf(it); return `<span class="mi c-${th ? th.color || 'slate' : 'slate'}${isDone(it, d) ? ' done' : ''}">${h(it.title)}</span>`; }).join('')}${its.length > 3 ? `<span class="mi-more">+${its.length - 3}</span>` : ''}</button>`;
-  }
-  const mLabel = y === new Date().getFullYear() ? cap(MOIS[m]) : cap(MC[m]) + ' ' + y;
-  return `<div class="sec-head"><h2 class="sec-title"><button type="button" class="ell" data-a="month-now">${mLabel}</button></h2>
-    <button type="button" class="btn-ico" data-a="month-prev" aria-label="Mois précédent">${ic(P.left, 18)}</button>
-    <button type="button" class="btn-ico" data-a="month-next" aria-label="Mois suivant">${ic(P.right, 18)}</button></div>${seg}<div class="mgrid2">${cells}</div>`;
+  return `<div class="sec-head"><h2 class="sec-title"><button type="button" class="ell" data-a="week-now">${h(label)}</button></h2>
+    <button type="button" class="btn-ico" data-a="agenda-cal" aria-label="Choisir une semaine dans le calendrier">${ic(IC.cal, 18, 1.7)}</button>
+    <button type="button" class="btn-ico" data-a="agenda-close" aria-label="Fermer l'agenda">${ic(P.close, 18)}</button></div>
+    <div class="week-wrap"><div class="week">${days}</div></div>`;
+}
+function openWeekPicker() {
+  const t0 = today();
+  let m0 = addDays(mondayOf(t0), 7 * U.weekOffset), cm = m0.slice(0, 8) + '01';
+  const s = openSheet({ isStatic: true, label: 'Choisir une semaine', bar: '<button type="button" class="btn primary" data-f="cancel">Fermer</button>' });
+  const draw = () => {
+    const week = Array.from({ length: 7 }, (_, i) => addDays(m0, i));
+    s.body.innerHTML = `<h2 class="sheet-title">Aller à…</h2><div class="panel">${calendarHTML(cm, week, t0)}</div>`;
+  };
+  draw();
+  s.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    if (b.dataset.f === 'cancel') closeTop();
+    if (b.dataset.f === 'cal-move') { const x = parse(cm); x.setMonth(x.getMonth() + +b.dataset.s); cm = iso(x); draw(); }
+    if (b.dataset.f === 'cald') { U.weekOffset = Math.round(diffDays(mondayOf(t0), mondayOf(b.dataset.v)) / 7); closeTop(); renderHome(); }
+  });
 }
 function miniDay(d) {
   const isT = d === today();
@@ -999,7 +1004,7 @@ function openDayAdd(d) {
     const nd = noDateTasks();
     const rs = S.routines.slice().sort(byOrder).filter(r => routineSteps(r).some(z => !z.info.done));
     return `<h2 class="sheet-title">${h(name)}</h2>
-      <div class="btn-row"><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(IC.cal, 18, 1.8)}Événement</button><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.todo, 18, 1.8)}Tâche</button></div>
+      <button type="button" class="btn primary wide" data-a="new-task" data-d="${d}">${ic(P.plus, 18, 2)}Ajouter</button>
       ${rs.length ? `<h3 class="sec-sub">Routine</h3><div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
       ${nd.length ? `<h3 class="sec-sub">Depuis To-do</h3><div class="day-body plain">${nd.map(t => { const th = themeOf(t); const on = t.free && S.tasks.some(x => x.srcId === t.id && !x.done && x.date === d); return `<div class="task-wrap${th ? ' cat c-' + (th.color || 'slate') : ''}"><div class="pick-row"><button type="button" class="task pick${on ? ' sel' : ''}" data-a="plan-on" data-id="${t.id}" data-d="${d}" aria-pressed="${on}"><span class="check"><span class="box${on ? '' : ' addbox'}">${on ? CHECK : ic(P.plus, 14, 2.4)}</span></span><span class="task-body"><span class="t-title">${h(t.title)}</span><span class="t-meta">${th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.free ? `<span class="rep-lbl">${ic(P.rep, 13, 2)}Libre</span>` : ''}${t.duration ? `<span>${durShort(t)}</span>` : ''}</span></span></button><button type="button" class="btn-ico sm plan" data-a="plan" data-id="${t.id}" data-d="${d}" aria-label="Plusieurs jours pour ${h(t.title)}">${ic(IC.cal, 18, 1.7)}</button></div></div>`; }).join('')}</div>` : ''}`;
   } });
@@ -1051,6 +1056,7 @@ function streak() {
   return n;
 }
 // Une seule suggestion : une tâche importante sans date qui attend, sinon l'activité « Libre » délaissée depuis le plus longtemps
+const INFO_RE = /[^a-z](anniv|anniversaire|soiree|fete|mariage|concert|festival|vacances?|voyage|week-end|ferie|journee (de )?(boulot|travail|taff?|client)|journee client|seminaire|salon|rdv|rendez-vous)/;
 const WORK_RE = /travail|boulot|taff?\b|job|client|bureau|mission|freelance|\bpro\b/;
 const isPinned = th => !!th && (th.pin !== undefined ? th.pin : WORK_RE.test(norm(th.name)));
 const gapAfter = (t, d) => { const nx = nextOcc(t, addDays(d, 1)); return nx ? diffDays(d, nx) : 999; };
@@ -1070,7 +1076,7 @@ function soonItems() {
 }
 function suggestions() {
   const t0 = today();
-  return S.tasks.filter(t => !t.rep && !t.date && !t.done && t.kind !== 'event' && !(t.free && plannedOf(t).length))
+  return S.tasks.filter(t => !t.rep && !t.date && !t.done && !t.info && t.kind !== 'event' && !(t.free && plannedOf(t).length))
     .map(t => {
       const log = t.freeLog || [], last = log[log.length - 1] || null;
       if (last === t0) return null;
@@ -1118,7 +1124,7 @@ function renderHome() {
     <button type="button" class="sc" data-a="open-routines"><span class="sc-ico">${ic('M7 5.5v13l10-6.5z', 20, 1.5)}</span><span class="sc-lbl">Routines</span></button>
     <button type="button" class="sc" data-a="open-stats"><span class="sc-ico">${ic('M5 20V11M12 20V5M19 20v-6', 20, 1.6)}</span><span class="sc-lbl">Suivi</span></button>
   </nav>
-  <div class="new-row btn-row"><button type="button" class="btn" data-a="new-event" data-d="${t}">${ic(IC.cal, 18, 1.8)}Événement</button><button type="button" class="btn" data-a="new-task" data-d="${t}">${ic(P.todo, 18, 1.8)}Tâche</button></div>`;
+  <div class="new-row"><button type="button" class="btn wide" data-a="new-task" data-d="${t}">${ic(P.plus, 18, 2)}Ajouter</button></div>`;
 
   const ag = S.meta.agenda || (S.meta.monthView ? 'month' : null);
   if (!ag) {
@@ -1126,10 +1132,28 @@ function renderHome() {
       <div class="next3">${[2, 3, 4].map(i => dayBtn(addDays(t, i))).join('')}
         <button type="button" class="daybtn" data-a="agenda-open" aria-label="Ouvrir l'agenda">${ic(IC.cal, 20, 1.6)}<span class="db-sub">Agenda</span></button></div>`;
   } else {
-    html += agendaHTML(ag);
+    html += agendaHTML();
   }
   html += `<button type="button" class="backup-link" data-a="open-backup">Sauvegarde · version ${VERSION}</button>`;
   app.innerHTML = html;
+  const wk = $('.week', app);
+  if (wk) {
+    let sx = null, sy = 0;
+    wk.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    wk.addEventListener('touchend', e => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      const dir = dx < 0 ? 1 : -1;
+      wk.style.transition = 'transform .15s ease, opacity .15s'; wk.style.transform = `translateX(${-dir * 35}%)`; wk.style.opacity = '0';
+      setTimeout(() => { U.weekOffset += dir; U.weekAnim = dir; renderHome(); }, 140);
+    }, { passive: true });
+    if (U.weekAnim) {
+      const dir = U.weekAnim; U.weekAnim = 0;
+      wk.style.transition = 'none'; wk.style.transform = `translateX(${dir * 35}%)`; wk.style.opacity = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => { wk.style.transition = 'transform .18s ease, opacity .18s'; wk.style.transform = ''; wk.style.opacity = ''; }));
+    }
+  }
   const track = $('.tips-track', app);
   if (track) track.addEventListener('scroll', () => {
     const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
@@ -1230,7 +1254,7 @@ function confirmBox({ title, text, ok, cancel = 'Annuler', danger = true }) {
 function themeCard(g) {
   const { th, tasks, virtual } = g;
   const t0 = today();
-  const evNext = t => { const n = nextOcc(t, t0); return n && !isDone(t, n) ? n : (t.yearly ? nextOcc(t, addDays(n || t0, 1)) : null); };
+  const evNext = t => { const n = nextOcc(t, t0); return n && n >= t0 ? n : null; };
   const active = tasks.filter(t => isEvent(t) ? !!evNext(t) : (t.rep || !t.done));
   const doneOnes = tasks.filter(t => !isEvent(t) && !t.rep && t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
   const due = active.filter(t => !isEvent(t) && (t.rep ? (occursOn(t, t0) && !isDone(t, t0)) : (t.date && t.date <= t0))).length;
@@ -1315,7 +1339,7 @@ function openDatePicker(title, onPick, sub) {
 }
 
 /* Étapes de routine : soit un texte libre { title, duration }, soit une tâche existante { taskId } */
-const canRoutine = t => !t.rep && t.kind !== 'event' && (t.free || !t.done);
+const canRoutine = t => !t.rep && t.kind !== 'event' && !t.info && (t.free || !t.done);
 function stepInfo(st) {
   if (!st.taskId) return { title: st.title, duration: st.duration || 0, task: null, done: false };
   const t = S.tasks.find(x => x.id === st.taskId);
@@ -1404,7 +1428,7 @@ function planTask(id, pre) {
   });
 }
 
-const noDateTasks = () => S.tasks.filter(t => !t.rep && !t.date && !t.done && t.kind !== 'event').sort((a, b) => {
+const noDateTasks = () => S.tasks.filter(t => !t.rep && !t.date && !t.done && t.kind !== 'event' && !(t.info && !t.free)).sort((a, b) => {
   const oa = (themeOf(a) || { order: 99 }).order || 0, ob = (themeOf(b) || { order: 99 }).order || 0;
   return oa - ob || (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || ((a.created || '') < (b.created || '') ? -1 : 1);
 });
@@ -1587,7 +1611,7 @@ function openRoutineForm(obj, withTasks, after) {
 }
 
 /* ---------- Événements (une fois, avec date et heure éventuelle) ---------- */
-const isEvent = t => t && t.kind === 'event';
+const isEvent = t => !!t && !!t.info && !t.free; // élément « pas à cocher » placé dans l'agenda
 const EV_KW = [
   ['anniv|anniversaire|bday', '🎂'], ['medecin|docteur|dentiste|kine|osteo|ophtalmo|gyneco|labo|prise de sang|vaccin|hopital', '🩺'],
   ['soiree|fete|apero|teuf|crémaillere|cremaillere', '🎉'], ['mariage', '💍'], ['resto|restaurant|diner|dej|dejeuner|brunch|bouffe', '🍽️'],
@@ -1670,7 +1694,7 @@ function openEventForm(ev, preset = {}) {
   });
   if (isNew) setTimeout(() => { const i = $('[data-f="title"]', s.body); if (i) i.focus(); }, 260);
 }
-const openEditor = (t, d) => isEvent(t) ? openEventForm(t) : openTaskForm(t, {}, d);
+const openEditor = (t, d) => openTaskForm(t, {}, d);
 // Événements des 30 prochains jours (pour la carte du haut)
 function upcomingEvents(days = 30) {
   const t0 = today(), out = [];
@@ -1760,6 +1784,7 @@ function repShort(t) {
   const n = r.every || 1;
   if (r.unit === 'jour') return n === 1 ? 'Chaque jour' : `Tous les ${n} j`;
   if (r.unit === 'sem') { const days = (r.days || []).slice().sort(); if (n === 1 && days.length === 7) return 'Chaque jour'; return n === 1 ? 'Chaque ' + days.map(i => JC[i]).join(' ') : `Toutes les ${n} sem.`; }
+  if (r.unit === 'an') return 'Chaque année';
   return n === 1 ? 'Chaque mois' : `Tous les ${n} mois`;
 }
 const monthStart = s => s.slice(0, 8) + '01';
@@ -1768,8 +1793,9 @@ function openTaskForm(task, preset = {}, dayCtx) {
   const t0 = today();
   const f = task ? JSON.parse(JSON.stringify(task)) : {
     id: uid(), title: '', themeId: preset.themeId !== undefined ? preset.themeId : (S.themes.slice().sort(byOrder)[0] || {}).id || null,
-    date: preset.date !== undefined ? preset.date : t0, prio: false, rep: null, duration: 0, note: '', done: false, doneDates: [], subs: [], subDone: {}, created: t0
+    date: preset.date !== undefined ? preset.date : t0, time: '', info: !!preset.info, prio: false, rep: null, duration: 0, note: '', done: false, doneDates: [], subs: [], subDone: {}, created: t0
   };
+  let infoTouched = !isNew || !!preset.info;
   if (!f.subs) f.subs = [];
   if (f.rep && f.rep.unit === 'mois') {
     const x = parse(f.date || t0);
@@ -1778,7 +1804,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
   // Retirer la tâche du jour d'où on l'a ouverte (sans la supprimer)
   let unplanLabel = '';
   const dCtx = task ? (dayCtx || (task.rep ? null : task.date)) : null;
-  if (task && dCtx && occursOn(task, dCtx) && !isDone(task, dCtx)) {
+  if (task && dCtx && occursOn(task, dCtx) && !isDone(task, dCtx) && !(task.info && !task.srcId && !task.rep)) {
     const shown = dCtx < t0 ? t0 : dCtx;
     const where = shown === t0 ? "aujourd'hui" : shown === addDays(t0, 1) ? 'demain' : 'le ' + shortDate(shown);
     unplanLabel = task.rep ? `Passer pour ${where}` : `Retirer ${where === "aujourd'hui" ? "d'aujourd'hui" : where === 'demain' ? 'de demain' : 'du ' + shortDate(shown)}`;
@@ -1787,7 +1813,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
   let durBlock = f.seg && f.seg.n > 1 ? f.seg.m : (f.duration || 0), durN = f.seg && f.seg.n > 1 ? f.seg.n : 1;
   const applyDur = () => { if (durN > 1 && durBlock > 0) { f.seg = { n: durN, m: durBlock }; f.duration = durN * durBlock; } else { f.seg = null; f.duration = durBlock; } };
   const durLabel = () => { const ts = timedSubs(f); if (ts.length) return 'Étapes · ' + fmtMin(ts.reduce((a, x) => a + x.min, 0)); if (f.seg && f.seg.n > 1) return `${f.seg.n} × ${f.seg.m} min`; return f.duration ? (f.timer === false ? '≈ ' : '') + fmtMin(f.duration) : 'Durée'; };
-  const s = openSheet({ isStatic: true, label: isNew ? 'Nouvelle tâche' : 'Modifier la tâche', bar: BAR_FORM });
+  const s = openSheet({ isStatic: true, label: isNew ? 'Ajouter' : 'Modifier', bar: BAR_FORM });
 
   const mc = (key, icon, val, muted) => { const [k, cls] = key.split(' '); return `<button type="button" class="mcase${cls ? ' ' + cls : ''}${panel === k ? ' on' : ''}${muted ? ' empty' : ''}" data-f="panel" data-p="${k}" aria-expanded="${panel === k}">${ic(icon, 18, 1.7)}<span class="mval">${val}</span></button>`; };
   const calHTML = () => calendarHTML(calMonth, f.date, t0);
@@ -1798,6 +1824,10 @@ function openTaskForm(task, preset = {}, dayCtx) {
         <button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button>
         <button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
     }
+    if (panel === 'time') {
+      return `<div class="panel"><div class="rowline"><span>Heure</span><span class="f-grow"></span><input type="time" class="num-in time-in" data-f="time" value="${f.time || ''}" aria-label="Heure"></div>
+        <div class="chips"><button type="button" class="chip${!f.time ? ' on' : ''}" data-f="notime">Sans heure</button></div></div>`;
+    }
     if (panel === 'date') {
       return `<div class="panel"><div class="chips">
         <button type="button" class="chip${f.date === t0 ? ' on' : ''}" data-f="qdate" data-v="${t0}">Aujourd'hui</button>
@@ -1806,7 +1836,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
     }
     if (panel === 'rep') {
       const cur = f.free ? 'libre' : r ? r.unit : '';
-      let x = `${r ? `<div class="panel-note">${h(repLabel(f))}</div>` : f.free ? '<div class="panel-note">🔁 Reste dans To-do : tu peux la placer sur autant de jours que tu veux.</div>' : ''}<div class="chips">${[['', 'Non'], ['jour', 'Jours'], ['sem', 'Semaines'], ['mois', 'Mois'], ['libre', 'Libre']].map(([u, l]) => `<button type="button" class="chip${cur === u ? ' on' : ''}" data-f="unit" data-u="${u}" aria-pressed="${cur === u}">${l}</button>`).join('')}</div>`;
+      let x = `${r ? `<div class="panel-note">${h(repLabel(f))}</div>` : f.free ? '<div class="panel-note">🔁 Reste dans To-do : tu peux la placer sur autant de jours que tu veux.</div>' : ''}<div class="chips">${[['', 'Non'], ['jour', 'Jours'], ['sem', 'Semaines'], ['mois', 'Mois'], ['an', 'Années'], ['libre', f.info ? 'Plusieurs dates' : 'Libre']].map(([u, l]) => `<button type="button" class="chip${cur === u ? ' on' : ''}" data-f="unit" data-u="${u}" aria-pressed="${cur === u}">${l}</button>`).join('')}</div>`;
       if (r && r.unit === 'jour') { const n = r.every || 1; x += `<div class="rowline"><span>Tous les</span><span class="f-grow"></span>${stepper('every', n)}<span class="f-word">${n > 1 ? 'jours' : 'jour'}</span></div>`; }
       if (r && r.unit === 'sem') { const n = r.every || 1; x += `<div class="rowline"><span>Toutes les</span><span class="f-grow"></span>${stepper('every', n)}<span class="f-word">${n > 1 ? 'semaines' : 'semaine'}</span></div>${wdChips(r.days, true)}`; }
       if (r && r.unit === 'mois') {
@@ -1840,18 +1870,20 @@ function openTaskForm(task, preset = {}, dayCtx) {
   const draw = () => {
     const th = S.themes.find(x => x.id === f.themeId);
     const row = keys => keys.includes(panel) ? panelHTML() : '';
-    s.body.innerHTML = `<h2 class="sheet-title">${isNew ? 'Nouvelle tâche' : 'Modifier la tâche'}</h2>
-      <input class="name-in" data-f="title" value="${h(f.title)}" placeholder="Nom de la tâche" autocomplete="off" enterkeyhint="done" aria-label="Nom de la tâche">
+    s.body.innerHTML = `<h2 class="sheet-title">${isNew ? 'Ajouter' : 'Modifier'}</h2>
+      <input class="name-in" data-f="title" value="${h(f.title)}" placeholder="Tâche, anniv, rendez-vous…" autocomplete="off" enterkeyhint="done" aria-label="Nom">
       <div class="mgrid">
         ${mc('cat', IC.cat, th ? `<span class="cdot c-${th.color || 'slate'}"></span> ${h(th.emoji + ' ' + th.name)}` : 'Sans catégorie', !th)}
-        ${mc('date', IC.cal, f.date ? (f.rep ? `Dès le ${parse(f.date).getDate()} ${MC[parse(f.date).getMonth()]}` : h(relLabel(f.date))) : 'Sans date', !f.date)}
+        ${mc('date', IC.cal, f.date ? (f.rep ? `Dès le ${parse(f.date).getDate()} ${MC[parse(f.date).getMonth()]}` : h(relLabel(f.date))) : (f.free && f.info ? 'Plusieurs dates' : 'Sans date'), !f.date)}
         ${row(['cat', 'date'])}
-        ${mc('rep', P.rep, f.free ? 'Libre' : h(repShort(f)), !f.rep && !f.free)}
-        ${mc('dur', IC.timer, h(durLabel()), durLabel() === 'Durée')}
-        ${row(['rep', 'dur'])}
-        ${mc('subs wide', IC.subs, f.subs.length ? plural(f.subs.length, 'étape', 'étapes') : 'Sans étapes', !f.subs.length)}
-        ${row(['subs'])}
+        ${mc('time', IC.timer, f.time ? h(evWhen(f)) : 'Heure', !f.time)}
+        ${mc('rep', P.rep, f.free ? (f.info ? 'Plusieurs dates' : 'Libre') : h(repShort(f)), !f.rep && !f.free)}
+        ${row(['time', 'rep'])}
+        ${f.info ? '' : `${mc('dur', IC.timer, h(durLabel()), durLabel() === 'Durée')}
+        ${mc('subs', IC.subs, f.subs.length ? plural(f.subs.length, 'étape', 'étapes') : 'Étapes', !f.subs.length)}
+        ${row(['dur', 'subs'])}`}
       </div>
+      <div class="field"><span class="f-label">${f.info ? 'Pas à cocher' : 'À cocher'}</span><span class="f-grow"></span><button type="button" class="switch${f.info ? '' : ' on'}" role="switch" aria-checked="${!f.info}" aria-label="À cocher" data-f="info"><span class="knob"></span></button></div>
       <input class="note-in" data-f="note" value="${h(f.note || '')}" placeholder="Note" autocomplete="off" enterkeyhint="done" aria-label="Note">
       ${unplanLabel ? `<button type="button" class="btn wide del-btn" data-f="report">${ic(P.right, 18, 1.8)}Reporter ${(() => { const b0 = dCtx < t0 ? t0 : dCtx, tg = addDays(b0, 1); return tg === addDays(t0, 1) ? 'à demain' : 'au ' + shortDate(tg); })()}</button>` : ''}
       ${unplanLabel ? `<button type="button" class="btn wide" data-f="unplan">${ic(task.rep ? 'M5 6l7 6-7 6M13 6l7 6-7 6' : 'M4 13h5l1.5 2.5h3L15 13h5M5 5h14l1 8v6H4v-6z', 18, 1.8)}${unplanLabel}</button>` : ''}
@@ -1870,11 +1902,17 @@ function openTaskForm(task, preset = {}, dayCtx) {
     const k = e.target.dataset.f;
     if (k === 'title') f.title = e.target.value;
     if (k === 'note') f.note = e.target.value;
+    if (k === 'time') { f.time = e.target.value; const mv = $('.mcase[data-p="time"] .mval', s.body); if (mv) mv.textContent = f.time ? evWhen(f) : 'Heure'; }
     if (k === 'sub-title') { const x = f.subs[+e.target.dataset.i]; if (x) x.title = e.target.value; }
     if (k === 'sub-min') { const x = f.subs[+e.target.dataset.i]; if (x) x.min = Math.max(0, Math.min(600, parseInt(e.target.value, 10) || 0)); }
     if (k === 'dur-in') { durBlock = Math.max(0, Math.min(600, parseInt(e.target.value, 10) || 0)); if (!durBlock) durN = 1; applyDur(); const mv = $('.mcase[data-p="dur"] .mval', s.body); if (mv) mv.textContent = durLabel(); }
   });
-  s.el.addEventListener('change', e => { const k = e.target.dataset.f; if (k === 'dur-in' || k === 'sub-min') draw(); });
+  s.el.addEventListener('change', e => {
+    const k = e.target.dataset.f;
+    if (k === 'dur-in' || k === 'sub-min' || k === 'time') draw();
+    // un anniv, une soirée, une journée de boulot… : pas à cocher, deviné d'après le nom
+    if (k === 'title' && !infoTouched) { const v = INFO_RE.test(' ' + norm(f.title) + ' '); if (v !== !!f.info) { f.info = v; if (v && !f.date && !f.free) f.date = t0; draw(); } }
+  });
   s.el.addEventListener('keydown', e => {
     if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
     if (e.target.dataset.f === 'sub-new') { e.preventDefault(); addSub(); return; }
@@ -1888,6 +1926,8 @@ function openTaskForm(task, preset = {}, dayCtx) {
     else if (k === 'qdate' || k === 'cald') { f.date = b.dataset.v || null; panel = null; }
     else if (k === 'cal-move') { const x = parse(calMonth); x.setMonth(x.getMonth() + +b.dataset.s); calMonth = iso(x); }
     else if (k === 'prio') f.prio = !f.prio;
+    else if (k === 'info') { infoTouched = true; f.info = !f.info; if (f.info && !f.date && !f.free) f.date = t0; if (f.info) panel = ['dur', 'subs'].includes(panel) ? null : panel; }
+    else if (k === 'notime') { f.time = ''; panel = null; }
     else if (k === 'tmode') { f.timer = b.dataset.v === '1'; if (!f.timer) { durN = 1; applyDur(); } }
     else if (k === 'durq') { durBlock = +b.dataset.v; if (!durBlock) durN = 1; applyDur(); }
     else if (k === 'cat-new') { openGroupForm('themes', null, th => { f.themeId = th.id; panel = null; draw(); }); return; }
@@ -1904,6 +1944,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
         if (u === 'jour') f.rep = { unit: 'jour', every: 1 };
         if (u === 'sem') f.rep = { unit: 'sem', every: 1, days: [dow(f.date)] };
         if (u === 'mois') f.rep = { unit: 'mois', mode: 'dom', every: 1, dom: x.getDate(), nth: Math.min(4, Math.ceil(x.getDate() / 7)), wd: dow(f.date) };
+        if (u === 'an') f.rep = { unit: 'an', every: 1 };
       }
     }
     else if (k === 'mmode') {
@@ -1938,7 +1979,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
       if (!f.doneDates) f.doneDates = [];
       save('tasks', f);
       closeTop(); refresh();
-      toast(isNew ? 'Tâche ajoutée ✨' : 'Tâche modifiée ✅');
+      toast(isNew ? (f.info ? 'Ajouté à l\'agenda 📅' : 'Tâche ajoutée ✨') : 'Modifié ✅');
       return;
     }
     else if (k === 'report') {
@@ -2241,8 +2282,8 @@ function renderStats() {
   const y = base.getFullYear(), m = base.getMonth(), pre = `${y}-${pad(m + 1)}`;
   const inM = d => d && d.startsWith(pre);
   const frees = S.tasks.filter(t => t.free).map(t => {
-    const n = (t.freeLog || []).filter(inM).length;
-    const plan = S.tasks.filter(x => x.srcId === t.id && !x.done && inM(x.date) && x.date >= today()).length;
+    const n = t.info ? S.tasks.filter(x => x.srcId === t.id && inM(x.date) && x.date <= today()).length : (t.freeLog || []).filter(inM).length;
+    const plan = S.tasks.filter(x => x.srcId === t.id && !x.done && inM(x.date) && x.date > (t.info ? today() : addDays(today(), -1))).length;
     return { t, n, plan };
   }).filter(x => x.n || x.plan).sort((a, b) => b.n - a.n || b.plan - a.plan);
   const logs = (S.meta.timelog || []).filter(x => inM(x.d));
@@ -2455,7 +2496,7 @@ function setDone(nt, d, v) {
   }
 }
 function toggleTask(id, d) {
-  const t = S.tasks.find(x => x.id === id); if (!t) return;
+  const t = S.tasks.find(x => x.id === id); if (!t || t.info) return;
   const before = remainingToday();
   if (t.free) { // cochée depuis To-do : faite aujourd'hui, le modèle reste
     const inst = makeInstance(t, today(), { done: true, doneAt: Date.now() });
@@ -2506,9 +2547,9 @@ const A = {
   'week-prev': () => { U.weekOffset--; renderHome(); },
   'week-next': () => { U.weekOffset++; renderHome(); },
   'week-now': () => { U.weekOffset = 0; renderHome(); },
-  'month-toggle': () => { setMeta('agenda', S.meta.agendaLast || 'month'); U.monthOffset = 0; U.weekOffset = 0; renderHome(); },
-  'agenda-open': () => { setMeta('agenda', S.meta.agendaLast || 'week'); setMeta('monthView', false); U.monthOffset = 0; U.weekOffset = 0; renderHome(); },
-  'agenda-mode': el => { setMeta('agenda', el.dataset.v); setMeta('agendaLast', el.dataset.v); renderHome(); },
+  'month-toggle': () => { setMeta('agenda', 'week'); U.monthOffset = 0; U.weekOffset = 0; renderHome(); },
+  'agenda-open': () => { setMeta('agenda', 'week'); setMeta('monthView', false); U.monthOffset = 0; U.weekOffset = 0; renderHome(); },
+  'agenda-cal': () => openWeekPicker(),
   'agenda-close': () => { setMeta('agenda', null); setMeta('monthView', false); renderHome(); },
   'month-prev': () => { U.monthOffset--; monthSel(); renderHome(); },
   'month-next': () => { U.monthOffset++; monthSel(); renderHome(); },
@@ -2525,7 +2566,7 @@ const A = {
   'open-lists': () => openSheet({ render: renderLists, label: 'Listes' }),
   'open-backup': () => openBackup(),
   'new-task': (el, c) => openTaskForm(null, { date: c.d || today() }),
-  'new-event': (el, c) => openEventForm(null, { date: c.d || today() }),
+  'new-event': (el, c) => openTaskForm(null, { date: c.d || today(), info: true }),
   'plan-tomorrow': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, addDays(today(), 1)); refresh(); toast('Prévu demain 📅'); },
   'new-task-theme': (el, c) => openTaskForm(null, { themeId: c.id || null }),
   'new-task-nodate': () => openTaskForm(null, { date: null }),
@@ -2656,8 +2697,8 @@ function demoData() {
     { id: 'r1', name: 'Session créative', emoji: '🎨', themeId: 'th5', order: 0, steps: [{ id: uid(), taskId: tid('Dessiner') }, { id: uid(), taskId: tid('Jouer de la guitare') }, { id: uid(), taskId: tid('Trier les photos') }, { id: uid(), title: 'Écrire des vannes', duration: 30 }] },
     { id: 'r2', name: 'Grand ménage', emoji: '🧽', themeId: 'th2', order: 1, steps: [{ id: uid(), title: 'Aspirateur', duration: 20 }, { id: uid(), title: 'Salle de bain', duration: 30 }, { id: uid(), title: 'Vitres', duration: 20 }, { id: uid(), title: 'Sortir les poubelles', duration: 5 }] }
   ];
-  const dup = mk({ title: 'Journée client Dupont', themeId: 'th6', free: true, freeLog: [D(-7), D(-6)] }); tasks.push(dup);
-  [2, 5, 9, 12].forEach(n => tasks.push(mk({ title: dup.title, themeId: 'th6', date: D(n), srcId: dup.id })));
+  const dup = mk({ title: 'Journée client Dupont', themeId: 'th6', free: true, info: true }); tasks.push(dup);
+  [-6, 2, 5, 9, 12].forEach(n => tasks.push(mk({ title: dup.title, themeId: 'th6', date: D(n), srcId: dup.id, info: true })));
   ['Dessiner', 'Jouer de la guitare', 'Trier les photos'].forEach(n => Object.assign(tasks.find(x => x.title === n), { date: t, routineRun: 'run-demo', runDate: t, routineId: 'r1' }));
   return { themes, tasks, lists, items, routines };
 }
@@ -2686,6 +2727,11 @@ async function start() {
     const d = demoData();
     STORES.forEach(st => { S[st] = d[st]; });
     await tx(STORES, t => STORES.forEach(st => S[st].forEach(x => t.objectStore(st).put(x)))).catch(() => {});
+  }
+  for (const x of S.tasks.filter(y => y.kind === 'event')) {
+    const nx = { ...x, info: true, rep: x.yearly ? { unit: 'an', every: 1 } : (x.rep || null) };
+    delete nx.kind; delete nx.yearly; delete nx.emoji; delete nx.autoEmoji;
+    await save('tasks', nx);
   }
   await migrateRoutineSteps();
   for (const t of S.tasks.filter(x => x.free && (x.date || (x.freeLog || []).includes(today())))) {

@@ -1,0 +1,38 @@
+name: Agendas abonnés
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  agendas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Télécharger les agendas
+        run: |
+          mkdir -p organisation/agendas
+          [ -f organisation/agendas/liens.txt ] || exit 0
+          while read -r file url; do
+            case "$file" in ""|\#*) continue ;; esac
+            url="${url/webcal:\/\//https://}"
+            if curl -fsSL --max-time 60 "$url" -o "organisation/agendas/$file.tmp" && grep -q "BEGIN:VCALENDAR" "organisation/agendas/$file.tmp"; then
+              mv "organisation/agendas/$file.tmp" "organisation/agendas/$file"
+              echo "OK : $file"
+            else
+              rm -f "organisation/agendas/$file.tmp"
+              echo "Échec : $file"
+            fi
+          done < organisation/agendas/liens.txt
+
+      - name: Enregistrer s'il y a du nouveau
+        run: |
+          git config user.name "agendas-bot"
+          git config user.email "agendas-bot@users.noreply.github.com"
+          git add organisation/agendas
+          git diff --cached --quiet || (git commit -m "Mise à jour des agendas" && git push)

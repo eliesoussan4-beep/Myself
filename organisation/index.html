@@ -553,6 +553,34 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .reuse-x::-webkit-scrollbar{display:none}
 .sc-lbl{max-width:76px}
 
+.wk-day.opened{background:var(--tomorrow-card);border-color:var(--tomorrow-line)}
+.wk-day.opened .wk-num,.wk-day.opened .wk-name{color:var(--tomorrow)}
+.wk-day.opened .task-wrap{background:var(--tomorrow-row)}
+.wk-day.opened .check .box{border-color:var(--tomorrow-box);background:transparent}
+.wk-day.opened .task.done .check .box{background:var(--tomorrow);border-color:var(--tomorrow);color:var(--tomorrow-card)}
+.wk-day.opened .day-add{background:var(--tomorrow-row);border-color:var(--tomorrow-line);color:var(--tomorrow)}
+.wk-day.today .day-add{background:var(--today-row);border-color:var(--today-line);color:var(--today)}
+.wk-day.shut{align-items:center;min-height:0;padding:4px 6px 4px 4px}
+.wk-day.shut .wk-date{flex-direction:row;gap:6px;width:auto;min-height:38px;padding:0 6px}
+.wk-day.shut .day-add{width:32px;height:32px}
+.wk-day.past.shut{opacity:.55}
+.wk-past .ell{display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis}
+.wk-empty{font-size:14px;color:var(--muted);padding:10px 4px}
+.wk-day .task-body{padding:2px 4px;gap:0;min-height:40px}
+.wk-day .t-title{line-height:1.25}
+.wk-day .t-meta{font-size:12px;line-height:1.25;gap:2px 6px;flex-wrap:nowrap;overflow:hidden;white-space:nowrap}
+.wk-day .t-meta .cat-name{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.wk-day .task{min-height:44px}
+.wk-day .play-ico{width:32px;height:32px;margin-left:2px}
+
+.kind-sw{margin-bottom:6px}
+.sheet-wrap.swap .sheet,.sheet-wrap.swap .scrim{animation:none}
+
+.grp-h.small{font-size:14px;margin:4px 2px 0}
+.ev-txt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.ev-txt .ell{white-space:nowrap}
+.ev-cat{font-size:12px;font-weight:600;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 @media (prefers-reduced-motion: reduce){.sheet,.scrim,.modal,.toast{animation:none}.switch .knob{transition:none}}
 .sec-title button{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:inherit;letter-spacing:inherit}
 </style>
@@ -583,7 +611,7 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 <script>
 (() => {
 'use strict';
-const VERSION = 22;
+const VERSION = 25;
 const DEMO = false;
 const DB_NAME = 'organisation';
 const STORES = ['themes', 'tasks', 'lists', 'items', 'routines'];
@@ -899,7 +927,7 @@ function eventRow(t, d, o = {}) {
   if (o.ctx === 'todo' && d) when = (d === t0 ? "Aujourd'hui" : d === addDays(t0, 1) ? 'Demain' : shortDate(d)) + (t.time ? ' · ' + evWhen(t) : '');
   return `<div class="task-wrap evt${mini ? ' mini' : ''}${th ? ' cat c-' + (th.color || 'slate') : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}">
     <span class="info-ico" aria-hidden="true">${ic(IC.cal, 16, 1.7)}</span>
-    <button type="button" class="task-body" data-a="tap">${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${when || t.rep || (o.ctx === 'day' && th) ? `<span class="t-meta">${when ? `<span class="ev-when">${h(when)}</span>` : ''}${o.ctx === 'day' && th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.rep ? `<span class="rep-lbl" title="${h(repLabel(t))}">${ic(P.rep, 13, 2)}</span>` : ''}</span>` : ''}</button>
+    <button type="button" class="task-body" data-a="tap">${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${when || t.rep || ((o.ctx === 'day' || o.ctx === 'week') && th) ? `<span class="t-meta">${when ? `<span class="ev-when">${h(when)}</span>` : ''}${(o.ctx === 'day' || o.ctx === 'week') && th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.rep ? `<span class="rep-lbl" title="${h(repLabel(t))}">${ic(P.rep, 13, 2)}</span>` : ''}</span>` : ''}</button>
   </div></div>`;
 }
 function taskRow(t, d, o = {}) {
@@ -914,7 +942,7 @@ function taskRow(t, d, o = {}) {
     if (t.rep || t.free) parts.push(`<span class="rep-lbl" title="${t.free ? 'Libre' : 'Répétée'}">${ic(P.rep, 13, 2)}</span>`);
   } else if (o.ctx === 'day' || o.ctx === 'week') {
     if (o.late) parts.push(`<span class="late">prévue ${h(shortDate(d))}</span>`);
-    if (th && o.ctx === 'day') parts.push(`<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>`);
+    if (th && (o.ctx === 'day' || o.ctx === 'week')) parts.push(`<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>`);
     if (t.rep || t.free) parts.push(`<span class="rep-lbl" title="${t.free ? 'Libre' : 'Répétée'}">${ic(P.rep, 13, 2)}</span>`);
   } else if (o.ctx === 'nodate') {
     if (t.free) parts.push(freeLbl(t));
@@ -939,7 +967,7 @@ function taskRow(t, d, o = {}) {
   return `<div class="task-wrap${mini ? ' mini' : ''}${catCls}${openS ? ' open' : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}">
     ${t.info ? `<span class="info-ico" aria-hidden="true">${ic(IC.cal, 16, 1.7)}</span>` : `<button type="button" class="check" data-a="check" aria-label="${done ? 'Décocher' : 'Cocher'} ${h(t.title)}"><span class="box">${done ? CHECK : ''}</span></button>`}
     <button type="button" class="task-body" data-a="tap"${subs ? ` aria-expanded="${openS}"` : ''}>${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${meta ? `<span class="t-meta">${meta}</span>` : ''}</button>
-    ${canPlan ? `<button type="button" class="btn-ico sm plan" data-a="plan" aria-label="Planifier ou ajouter à une routine : ${h(t.title)}">${ic(IC.cal, 18, 1.7)}</button>` : t.duration && !done && t.timer !== false ? (mini ? `<button type="button" class="play-ico" data-a="play" aria-label="Lancer le minuteur de ${t.duration} min">${PLAY}</button>` : `<button type="button" class="chip play" data-a="play" aria-label="Lancer le minuteur (${durShort(t)})">${PLAY}${durShort(t)}</button>`) : ''}
+    ${canPlan ? `<button type="button" class="btn-ico sm plan" data-a="plan" aria-label="Planifier ou ajouter à une routine : ${h(t.title)}">${ic(IC.cal, 18, 1.7)}</button>` : t.duration && !done && t.timer !== false ? ((mini || o.ctx === 'week') ? `<button type="button" class="play-ico" data-a="play" aria-label="Lancer le minuteur de ${t.duration} min">${PLAY}</button>` : `<button type="button" class="chip play" data-a="play" aria-label="Lancer le minuteur (${durShort(t)})">${PLAY}${durShort(t)}</button>`) : ''}
     ${subs && !mini ? chev(openS) : ''}
   </div>${openS ? subsBlock(t, d) : ''}</div>`;
 }
@@ -992,22 +1020,31 @@ function monthAgenda(y, m) {
 // ---------- Agenda : vue semaine (lisible) ou vue mois (cases agrandies avec les titres)
 const agendaItems = (d, minGap) => dayItems(d).filter(x => !(x.rep && gapAfter(x, d) < minGap));
 function agendaHTML() {
-  const t = today(), tom = addDays(t, 1);
+  const t = today();
   const m0 = addDays(mondayOf(t), 7 * U.weekOffset), s0 = addDays(m0, 6);
   const a = parse(m0), b = parse(s0);
   const label = a.getMonth() === b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${MC[b.getMonth()]}` : `${a.getDate()} ${MC[a.getMonth()]} – ${b.getDate()} ${MC[b.getMonth()]}`;
+  // Ouvert par défaut : aujourd'hui (semaine en cours) ou le 1er jour (autres semaines) ; chaque jour s'ouvre et se ferme d'un toucher
+  const def = U.weekOffset === 0 ? t : m0;
+  if (!U.wkTog) U.wkTog = new Set();
   let days = '';
   for (let i = 0; i < 7; i++) {
     const d = addDays(m0, i), x = parse(d);
+    const open = (d === def) !== U.wkTog.has(d);
     const entries = d === t ? todayEntries() : dayItems(d).map(it => ({ t: it, d }));
     const mins = entries.filter(e => !isEvent(e.t)).reduce((s2, e) => s2 + (e.t.duration || 0), 0);
-    const left = d === t ? entries.filter(e => !isEvent(e.t) && !isDone(e.t, e.d)).length : 0;
-    days += `<div class="wk-day${d === t ? ' today' : d === tom ? ' tomorrow' : d < t && U.wkSel !== d ? ' past' : ''}${U.wkSel === d ? ' sel' : ''}" id="day-${d}">
-      <div class="wk-side"><button type="button" class="wk-date" data-a="wk-pick" data-d="${d}" aria-label="${JOURS[dow(d)]} ${x.getDate()}" aria-pressed="${U.wkSel === d}"><span class="wk-name">${JC[dow(d)]}</span><span class="wk-num">${x.getDate()}</span>${mins ? `<span class="wk-min">${fmtMin(mins)}</span>` : ''}</button>
-        <button type="button" class="day-add" data-a="day-add" data-d="${d}" aria-label="Ajouter le ${x.getDate()} ${MOIS[x.getMonth()]}">${ic(P.plus, 16, 2)}</button>
-        ${left ? `<button type="button" class="day-add" data-a="report-now" data-d="${d}" aria-label="Reporter les ${left} restantes à demain">${ic('M4 12h12M12 7l5 5-5 5M20 5v14', 16, 2)}</button>` : ''}</div>
-      ${d < t && U.wkSel !== d ? (() => { const tk = entries.filter(e => !isEvent(e.t)), left = tk.filter(e => !isDone(e.t, e.d)).length, evs = entries.filter(e => isEvent(e.t)); return `<button type="button" class="wk-past" data-a="wk-pick" data-d="${d}">${evs.length ? `<span class="ell">${h(evs.map(e => e.t.title).join(' · '))}</span>` : ''}<span class="muted">${tk.length ? (left ? `${left} non faite${left > 1 ? 's' : ''}` : 'Tout fait 🎉') : ''}</span></button>`; })()
-        : `<div class="wk-items day-body plain">${rowsHTML(entries, d, 'week')}</div>`}</div>`;
+    const cls = d === t ? ' today' : open ? ' opened' : (d < t ? ' past' : '');
+    const head = `<button type="button" class="wk-date" data-a="wk-pick" data-d="${d}" aria-expanded="${open}" aria-label="${JOURS[dow(d)]} ${x.getDate()}${open ? ', ouvert' : ''}"><span class="wk-name">${JC[dow(d)]}</span><span class="wk-num">${x.getDate()}</span>${open && mins ? `<span class="wk-min">${fmtMin(mins)}</span>` : ''}</button>`;
+    const add = `<button type="button" class="day-add" data-a="day-add" data-d="${d}" aria-label="Ajouter le ${x.getDate()} ${MOIS[x.getMonth()]}">${ic(P.plus, 16, 2)}</button>`;
+    if (open) {
+      days += `<div class="wk-day${cls}" id="day-${d}"><div class="wk-side">${head}${add}</div>
+        <div class="wk-items day-body plain">${entries.length ? rowsHTML(entries, d, 'week') : '<span class="wk-empty">Rien de prévu</span>'}</div></div>`;
+    } else {
+      const tk = entries.filter(e => !isEvent(e.t)), left = tk.filter(e => !isDone(e.t, e.d)).length, evs = entries.filter(e => isEvent(e.t));
+      const sum = d < t ? (tk.length ? (left ? `${left} non faite${left > 1 ? 's' : ''}` : 'Tout fait 🎉') : '') : (tk.length ? plural(tk.length, 'tâche', 'tâches') : '');
+      days += `<div class="wk-day shut${cls}" id="day-${d}">${head}
+        <button type="button" class="wk-past" data-a="wk-pick" data-d="${d}" aria-label="Ouvrir ${JOURS[dow(d)]} ${x.getDate()}">${evs.length ? `<span class="ell">${evs.map(e => { const th = themeOf(e.t); return `<span class="cdot c-${th ? th.color || 'slate' : 'slate'}"></span> ${h(e.t.title)}${e.t.time ? ' ' + evWhen(e.t) : ''}`; }).join(' · ')}</span>` : '<span class="f-grow"></span>'}<span class="muted">${sum}</span></button>${add}</div>`;
+    }
   }
   return `<div class="sec-head"><h2 class="sec-title"><button type="button" class="ell" data-a="week-now">${h(label)}</button></h2></div>
     <div class="week-wrap"><div class="week swipe">${days}</div></div>`;
@@ -1058,6 +1095,25 @@ function miniDay(d) {
 function dayBtn(d) {
   const und = dayItems(d).filter(x => !isDone(x, d));
   return `<button type="button" class="daybtn" data-a="open-day" data-d="${d}"><span class="db-name">${cap(JC[dow(d)])} ${parse(d).getDate()}</span><span class="db-sub">${und.length ? catDots(und) + und.length : ''}</span></button>`;
+}
+const kindSwitch = cur => `<div class="chips even kind-sw" role="tablist">${[['task', 'Tâche'], ['event', 'Événement'], ['routine', 'Routine']].map(([k, l]) => `<button type="button" class="chip${cur === k ? ' on' : ''}" role="tab" aria-selected="${cur === k}" data-f="kind" data-v="${k}">${l}</button>`).join('')}</div>`;
+function swapAdd(kind, date) {
+  const top = stack.pop(); if (top) top.wrap.remove();
+  U.reuseHist = true;
+  if (kind === 'task') openTaskForm(null, { date });
+  else if (kind === 'event') openEventForm(null, { date });
+  else openRoutinePick(date);
+}
+function openRoutinePick(d) {
+  const s = openSheet({ label: 'Lancer une routine', render: () => {
+    const rs = S.routines.slice().sort(byOrder).filter(r => routineSteps(r).some(z => !z.info.done));
+    return `${kindSwitch('routine')}
+      <p class="panel-note">Pour ${h(whenLabel(d))}</p>
+      ${rs.length ? `<div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
+      <button type="button" class="dashed-add" data-a="new-routine">${ic(P.plus, 18, 2)}Nouvelle routine</button>`;
+  } });
+  s.kind = 'dayadd';
+  s.el.addEventListener('click', e => { const b = e.target.closest('[data-f="kind"]'); if (b && b.dataset.v !== 'routine') swapAdd(b.dataset.v, d); });
 }
 const closeDayAddSoon = () => setTimeout(() => { if (stack.length && stack[stack.length - 1].kind === 'dayadd') closeTop(); }, 450);
 function openDayAdd(d) {
@@ -1184,7 +1240,7 @@ function renderHome() {
   </section>`;
 
   html += `<nav class="shortcuts" aria-label="Raccourcis">
-    <button type="button" class="sc" data-a="open-todo"><span class="sc-ico">${ic(P.todo, 20, 1.5)}${remaining ? `<span class="badge">${remaining}</span>` : ''}</span><span class="sc-lbl">Tâches &amp; événements</span></button>
+    <button type="button" class="sc" data-a="open-todo"><span class="sc-ico">${ic(P.todo, 20, 1.5)}${remaining ? `<span class="badge">${remaining}</span>` : ''}</span><span class="sc-lbl">Planning</span></button>
     <button type="button" class="sc" data-a="open-lists"><span class="sc-ico">${ic(P.bookmark, 20, 1.5)}</span><span class="sc-lbl">Listes</span></button>
     <button type="button" class="sc" data-a="open-routines"><span class="sc-ico">${ic('M7 5.5v13l10-6.5z', 20, 1.5)}</span><span class="sc-lbl">Routines</span></button>
     <button type="button" class="sc" data-a="open-stats"><span class="sc-ico">${ic('M5 20V11M12 20V5M19 20v-6', 20, 1.6)}</span><span class="sc-lbl">Suivi</span></button>
@@ -1206,7 +1262,7 @@ function renderHome() {
       if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
       const dir = dx < 0 ? 1 : -1;
       wk.style.transition = 'transform .15s ease, opacity .15s'; wk.style.transform = `translateX(${-dir * 35}%)`; wk.style.opacity = '0';
-      setTimeout(() => { if (isMonth) U.monthOffset += dir; else U.weekOffset += dir; U.weekAnim = dir; renderHome(); }, 140);
+      setTimeout(() => { if (isMonth) U.monthOffset += dir; else { U.weekOffset += dir; U.wkTog = new Set(); } U.weekAnim = dir; renderHome(); }, 140);
     }, { passive: true });
     if (U.weekAnim) {
       const dir = U.weekAnim; U.weekAnim = 0;
@@ -1228,7 +1284,7 @@ const BAR_CLOSE = '<button type="button" class="btn primary" data-a="close">Ferm
 const BAR_FORM = '<button type="button" class="btn" data-f="cancel">Annuler</button><button type="button" class="btn primary" data-f="save">Enregistrer</button>';
 function openSheet(opts) {
   const wrap = document.createElement('div');
-  wrap.className = 'sheet-wrap';
+  wrap.className = 'sheet-wrap' + (U.reuseHist ? ' swap' : '');
   wrap.innerHTML = `<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="${h(opts.label || '')}"><div class="sheet-body"></div><div class="sheet-bar">${opts.bar || BAR_CLOSE}</div></div>`;
   const s = {
     wrap, el: $('.sheet', wrap), body: $('.sheet-body', wrap), render: opts.render, isStatic: !!opts.isStatic,
@@ -1255,7 +1311,8 @@ function openSheet(opts) {
   stack.push(s);
   s.update();
   document.body.classList.add('locked');
-  if (useHistory) { try { history.pushState({ sheet: stack.length }, ''); } catch (e) { useHistory = false; } }
+  if (U.reuseHist) U.reuseHist = false;
+  else if (useHistory) { try { history.pushState({ sheet: stack.length }, ''); } catch (e) { useHistory = false; } }
   return s;
 }
 function popSheet() {
@@ -1361,7 +1418,7 @@ function renderTodo() {
   } else {
     return renderRoutinesSheet();
   }
-  return `<h2 class="sheet-title">Tâches &amp; événements</h2>${tabs}${body}`;
+  return `<h2 class="sheet-title">Planning</h2>${tabs}${body}`;
 }
 function renderRoutinesSheet() {
   return `<h2 class="sheet-title">Routines</h2>${S.routines.slice().sort(byOrder).map(routineCard).join('')}<button type="button" class="dashed-add" data-a="new-routine">${ic(P.plus, 18, 2)}Nouvelle routine</button>`;
@@ -1374,13 +1431,17 @@ function eventsList() {
   for (let i = 0; i <= 120; i++) { const d = addDays(t0, i); S.tasks.forEach(x => { if (isEvent(x) && occursOn(x, d)) up.push({ t: x, d }); }); }
   up.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
   let html = '';
-  if (tpls.length) html += `<h3 class="sec-sub">À réutiliser</h3>${tpls.map(x => { const th = themeOf(x), n = plannedOf(x).length; return `<div class="ev-row c-${th ? th.color || 'slate' : 'slate'}"><button type="button" class="ev-main" data-a="edit" data-id="${x.id}"><span class="cdot"></span><span class="ell">${h(x.title)}</span><span class="muted">${n ? plural(n, 'jour prévu', 'jours prévus') : ''}</span></button><button type="button" class="btn-ico sm plan" data-a="plan" data-id="${x.id}" aria-label="Placer ${h(x.title)} sur des jours">${ic(IC.cal, 18, 1.7)}</button></div>`; }).join('')}`;
+  // À réutiliser, rangé par catégorie
+  const grp = [];
+  tpls.slice().sort((a, b) => ((themeOf(a) || { order: 99 }).order || 0) - ((themeOf(b) || { order: 99 }).order || 0) || a.title.localeCompare(b.title))
+    .forEach(x => { const th = themeOf(x), k = th ? th.id : '_'; let g = grp.find(y => y.k === k); if (!g) { g = { k, th, items: [] }; grp.push(g); } g.items.push(x); });
+  if (tpls.length) html += `<h3 class="sec-sub">À réutiliser</h3>${grp.map(g => `<h4 class="grp-h small c-${g.th ? g.th.color || 'slate' : 'slate'}"><span class="cdot"></span>${g.th ? h(g.th.emoji + ' ' + g.th.name) : 'Sans catégorie'}<span class="muted">${g.items.length}</span></h4>${g.items.map(x => { const th = themeOf(x), n = plannedOf(x).length; return `<div class="ev-row c-${th ? th.color || 'slate' : 'slate'}"><button type="button" class="ev-main" data-a="edit" data-id="${x.id}"><span class="cdot"></span><span class="ell">${h(x.title)}</span><span class="muted">${n ? plural(n, 'jour prévu', 'jours prévus') : ''}</span></button><button type="button" class="btn-ico sm plan" data-a="plan" data-id="${x.id}" aria-label="Placer ${h(x.title)} sur des jours">${ic(IC.cal, 18, 1.7)}</button></div>`; }).join('')}`).join('')}`;
   let lastM = '';
   if (up.length) html += `<h3 class="sec-sub">À venir</h3>` + up.map(e => {
     const x = parse(e.d), mk = MOIS[x.getMonth()];
     const head = mk !== lastM ? `<div class="ev-month">${cap(mk)}</div>` : ''; lastM = mk;
     const th = themeOf(e.t);
-    return `${head}<div class="ev-row c-${th ? th.color || 'slate' : 'slate'}"><button type="button" class="ev-main" data-a="edit" data-id="${e.t.id}" data-d="${e.d}"><span class="ev-date"><b>${x.getDate()}</b><small>${JC[dow(e.d)]}</small></span><span class="cdot"></span><span class="ell">${h(e.t.title)}</span><span class="muted">${e.t.time ? evWhen(e.t) : ''}</span></button></div>`;
+    return `${head}<div class="ev-row c-${th ? th.color || 'slate' : 'slate'}"><button type="button" class="ev-main" data-a="edit" data-id="${e.t.id}" data-d="${e.d}"><span class="ev-date"><b>${x.getDate()}</b><small>${JC[dow(e.d)]}</small></span><span class="ev-txt"><span class="ell">${h(e.t.title)}</span>${th ? `<span class="ev-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}</span><span class="muted">${e.t.time ? evWhen(e.t) : ''}</span></button></div>`;
   }).join('');
   if (!html) html = '<p class="panel-note">Aucun événement à venir.</p>';
   return html + `<button type="button" class="dashed-add" data-a="new-event" data-d="${t0}">${ic(P.plus, 18, 2)}Nouvel événement</button>`;
@@ -1512,7 +1573,7 @@ function planTask(id, pre) {
   });
 }
 
-const noDateTasks = () => S.tasks.filter(t => !t.rep && !t.date && !t.done && t.kind !== 'event' && !(t.info && !t.free)).sort((a, b) => {
+const noDateTasks = () => S.tasks.filter(t => !t.rep && !t.date && !t.done && t.kind !== 'event' && !t.info).sort((a, b) => {
   const oa = (themeOf(a) || { order: 99 }).order || 0, ob = (themeOf(b) || { order: 99 }).order || 0;
   return oa - ob || (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || ((a.created || '') < (b.created || '') ? -1 : 1);
 });
@@ -1743,7 +1804,7 @@ function openEventForm(ev, preset = {}) {
       <div class="chips"><button type="button" class="chip${!f.time ? ' on' : ''}" data-f="notime">Toute la journée</button></div></div>`;
     if (panel === 'cat') pan = `<div class="panel"><div class="chips">${S.themes.slice().sort(byOrder).map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button><button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
     const list = isNew ? tpls() : [];
-    s.body.innerHTML = `<h2 class="sheet-title">${title}</h2>
+    s.body.innerHTML = `${isNew ? kindSwitch('event') : `<h2 class="sheet-title">${title}</h2>`}
       ${list.length ? `<div class="chips reuse">${list.map(x => { const tth = themeOf(x); return `<button type="button" class="chip${tpl === x.id ? ' on' : ''}" data-f="tpl" data-v="${x.id}" aria-pressed="${tpl === x.id}"><span class="cdot c-${tth ? tth.color || 'slate' : 'slate'}"></span>${h(x.title)}</button>`; }).join('')}</div>` : ''}
       <input class="name-in" data-f="title" value="${h(f.title)}" placeholder="Anniv, journée client, soirée…" autocomplete="off" enterkeyhint="done" aria-label="Nom de l'événement"${tpl ? ' disabled' : ''}>
       <div class="mgrid">
@@ -1771,6 +1832,7 @@ function openEventForm(ev, preset = {}) {
   s.el.addEventListener('click', async e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const k = b.dataset.f;
+    if (k === 'kind') { if (b.dataset.v !== 'event') swapAdd(b.dataset.v, [...sel].sort()[0] || t0); return; }
     if (k === 'panel') { panel = panel === b.dataset.p ? null : b.dataset.p; rangeStart = null; }
     else if (k === 'mode') { range = b.dataset.v === '1'; rangeStart = null; }
     else if (k === 'cal-move') { const x = parse(cm); x.setMonth(x.getMonth() + +b.dataset.s); cm = iso(x); }
@@ -2002,7 +2064,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
     const row = keys => keys.includes(panel) ? panelHTML() : '';
     const nd = isNew ? noDateTasks() : [];
     const when = f.date || t0;
-    s.body.innerHTML = `<h2 class="sheet-title">${isNew ? 'Nouvelle tâche' : 'Modifier la tâche'}</h2>
+    s.body.innerHTML = `${isNew ? kindSwitch('task') : '<h2 class="sheet-title">Modifier la tâche</h2>'}
       ${nd.length ? `<div class="reuse-lbl">Depuis To-do, pour ${h(whenLabel(when))}</div><div class="chips reuse-x">${nd.map(x => { const th = themeOf(x); return `<button type="button" class="chip" data-f="pick-todo" data-v="${x.id}">${th ? h(th.emoji) + ' ' : ''}${h(x.title)}</button>`; }).join('')}</div>` : ''}
       <input class="name-in" data-f="title" value="${h(f.title)}" placeholder="Nom de la tâche" autocomplete="off" enterkeyhint="done" aria-label="Nom de la tâche">
       <div class="mgrid">
@@ -2052,6 +2114,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
   s.el.addEventListener('click', async e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const k = b.dataset.f, r = f.rep;
+    if (k === 'kind') { if (b.dataset.v !== 'task') swapAdd(b.dataset.v, f.date || t0); return; }
     if (k === 'panel') { const p = b.dataset.p; panel = panel === p ? null : p; if (panel === 'date') calMonth = monthStart(f.date || t0); }
     else if (k === 'cat') { f.themeId = b.dataset.v || null; panel = null; }
     else if (k === 'qdate' || k === 'cald') { f.date = b.dataset.v || null; panel = null; }
@@ -2683,16 +2746,16 @@ const A = {
   'sub-check': (el, c) => toggleSub(c.id, c.d, el.dataset.sid),
   'play': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (t && t.duration) startTimer(t, c.d); },
   'toggle-day': (el, c) => { U.toggled.has(c.d) ? U.toggled.delete(c.d) : U.toggled.add(c.d); renderHome(); },
-  'week-prev': () => { U.weekOffset--; renderHome(); },
-  'week-next': () => { U.weekOffset++; renderHome(); },
-  'week-now': () => { U.weekOffset = 0; renderHome(); },
+  'week-prev': () => { U.weekOffset--; U.wkTog = new Set(); renderHome(); },
+  'week-next': () => { U.weekOffset++; U.wkTog = new Set(); renderHome(); },
+  'week-now': () => { U.weekOffset = 0; U.wkTog = new Set(); renderHome(); },
   'month-toggle': () => { setMeta('agenda', 'week'); U.monthOffset = 0; U.weekOffset = 0; renderHome(); },
   'agenda-open': () => { setMeta('agenda', 'week'); setMeta('monthView', false); U.monthOffset = 0; U.weekOffset = 0; renderHome(); },
   'agenda-cal': () => openWeekPicker(),
   'view-toggle': () => { setMeta('view', (S.meta.view || 'week') === 'week' ? 'month' : 'week'); U.weekOffset = 0; U.monthOffset = 0; renderHome(); },
   'report-all': (el, c) => { closeTop(); reportAll(c.d); },
   'report-now': (el, c) => reportAll(c.d),
-  'wk-pick': (el, c) => { U.wkSel = U.wkSel === c.d ? null : c.d; renderHome(); },
+  'wk-pick': (el, c) => { if (!U.wkTog) U.wkTog = new Set(); U.wkTog.has(c.d) ? U.wkTog.delete(c.d) : U.wkTog.add(c.d); renderHome(); },
   'agenda-close': () => { setMeta('agenda', null); setMeta('monthView', false); renderHome(); },
   'month-prev': () => { U.monthOffset--; monthSel(); renderHome(); },
   'month-next': () => { U.monthOffset++; monthSel(); renderHome(); },
@@ -2705,7 +2768,7 @@ const A = {
     renderHome();
     const el = document.getElementById('day-' + tom); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
-  'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Tâches et événements' }); },
+  'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-lists': () => openSheet({ render: renderLists, label: 'Listes' }),
   'open-backup': () => openBackup(),
   'new-task': (el, c) => openTaskForm(null, { date: c.d || today() }),
@@ -2729,7 +2792,7 @@ const A = {
     placeTask(t, c.d); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`);
   },
   'routine-launch-on': (el, c) => { if (stack.length && stack[stack.length - 1].kind === 'dayadd') closeTop(); launchRoutine(c.id, c.d); },
-  'day-add': (el, c) => openDayAdd(c.d),
+  'day-add': (el, c) => openTaskForm(null, { date: c.d }),
   'list-quick': (el, c) => openListQuick(c.id),
   'routine-toggle': (el, c) => { U.openRoutines.has(c.id) ? U.openRoutines.delete(c.id) : U.openRoutines.add(c.id); refresh(); },
   'routine-launch': (el, c) => launchRoutine(c.id),

@@ -7,9 +7,9 @@
 <meta name="theme-color" content="#E8EBEF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#11151C" media="(prefers-color-scheme: dark)">
 <!--PWA-->
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <!--/PWA-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3119,15 +3119,7 @@ async function start() {
     if (T.min && T.paused != null) drawTbar(); else { T.min = false; showTimer(); }
   }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-  if (!DEMO && 'serviceWorker' in navigator && location.protocol === 'https:') {
-    // Mises à jour : on vérifie à chaque ouverture et on recharge tout seul quand une nouvelle version est prête
-    const hadCtrl = !!navigator.serviceWorker.controller; let reloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtrl && !reloaded) { reloaded = true; location.reload(); } });
-    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
-      reg.update().catch(() => {});
-      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
-    }).catch(() => {});
-  }
+  // Hors ligne et mises à jour : gérés par le service worker unique de « Mon quotidien » (../sw.js)
 }
 start();
 })();

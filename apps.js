@@ -1,0 +1,43 @@
+/* ================================================================
+   « Mon quotidien » — LA liste des apps.
+   Lue à la fois par la coquille (index.html) et par le service worker (sw.js).
+
+   Pour ajouter une app plus tard :
+   1. mettre son dossier dans Myself/ (ex. Myself/budget/) ;
+   2. copier un bloc ci-dessous et le remplir :
+        id      : nom court, sans espace ni accent
+        nom     : ce qui s'affiche dans la barre du bas
+        dossier : le dossier de l'app, terminé par « / »
+        base    : le nom de sa base IndexedDB (indexedDB.open('…'))
+        icone   : le dessin de l'icône (contenu d'un <svg viewBox="0 0 24 24">, trait seulement)
+   3. augmenter VERSION_QUOTIDIEN de 1 (l'app se mettra à jour toute seule sur le téléphone).
+
+   La sauvegarde globale prend automatiquement toute la base de chaque app listée.
+   Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
+   ================================================================ */
+
+self.VERSION_QUOTIDIEN = 1;
+
+self.APPS = [
+  {
+    id: 'garde-robe',
+    nom: 'Garde-robe',
+    dossier: 'garde-robe/',
+    base: 'garde-robe',
+    icone: '<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>'
+  },
+  {
+    id: 'organisation',
+    nom: 'Organisation',
+    dossier: 'organisation/',
+    base: 'organisation',
+    icone: '<path d="M4 6.5l1.5 1.5L8.5 5M4 12.5l1.5 1.5 3-3M4 18.5l1.5 1.5 3-3M12 7h8M12 13h8M12 19h8"/>'
+  },
+  {
+    id: 'courses',
+    nom: 'Courses',
+    dossier: 'courses/',
+    base: 'courses',
+    icone: '<path d="M3 4h2.5l2.2 11h10.6L20.5 7.5H6.4"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'
+  }
+];

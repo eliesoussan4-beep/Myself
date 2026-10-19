@@ -1,17 +1,23 @@
 {
   "name": "Mon quotidien",
-  "short_name": "Quotidien",
-  "description": "Mon quotidien : pour l’instant, ma garde-robe et mes tenues selon la météo",
+  "short_name": "Mon quotidien",
+  "description": "Ma journée en un coup d’œil : garde-robe, organisation et courses.",
   "lang": "fr",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#E8EBEF",
-  "theme_color": "#2F4C78",
+  "background_color": "#11151C",
+  "theme_color": "#11151C",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Nouvelle tâche", "short_name": "Nouvelle tâche", "url": "./?app=organisation&a=new", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Lancer une routine", "short_name": "Routine", "url": "./?app=organisation&a=routine", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Ma liste de courses", "short_name": "Courses", "url": "./?app=courses", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] }
   ]
 }

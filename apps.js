@@ -12,13 +12,14 @@
         — ou, si l'app range ses données dans localStorage :
         stockage: 'localStorage' et prefixe : le début commun de ses clés (ex. 'backstage_')
         icone   : le dessin de l'icône (contenu d'un <svg viewBox="0 0 24 24">, trait seulement)
+        couleur : [couleur en mode clair, couleur en mode sombre] — barre du bas et carte de l'accueil
    3. augmenter VERSION_QUOTIDIEN de 1 (l'app se mettra à jour toute seule sur le téléphone).
 
    La sauvegarde globale prend automatiquement toute la base de chaque app listée.
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 4;
+self.VERSION_QUOTIDIEN = 5;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;
@@ -28,6 +29,7 @@ self.APPS = [
     id: 'garde-robe',
     nom: 'Garde-robe',
     dossier: 'garde-robe/',
+    couleur: ['#2F4C78', '#8FB0E3'],
     base: 'garde-robe',
     icone: '<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>'
   },
@@ -35,6 +37,7 @@ self.APPS = [
     id: 'organisation',
     nom: 'Organisation',
     dossier: 'organisation/',
+    couleur: ['#C26A12', '#F0A648'],
     base: 'organisation',
     icone: '<path d="M4 6.5l1.5 1.5L8.5 5M4 12.5l1.5 1.5 3-3M4 18.5l1.5 1.5 3-3M12 7h8M12 13h8M12 19h8"/>'
   },
@@ -42,6 +45,7 @@ self.APPS = [
     id: 'courses',
     nom: 'Courses',
     dossier: 'courses/',
+    couleur: ['#2F7A4A', '#7CC992'],
     base: 'courses',
     icone: '<path d="M3 4h2.5l2.2 11h10.6L20.5 7.5H6.4"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'
   },
@@ -49,6 +53,7 @@ self.APPS = [
     id: 'backstage',
     nom: 'Backstage',
     dossier: 'backstage/',
+    couleur: ['#7B5CD6', '#A58CF0'],
     stockage: 'localStorage',
     prefixe: 'backstage_',
     icone: '<rect x="9" y="3" width="5" height="7.5" rx="2.5" transform="rotate(18 11.5 6.75)"/><path d="M13.3 9.3 11 21"/><path d="M7.5 21h7"/>'

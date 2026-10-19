@@ -550,6 +550,12 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .ev-date small{font-size:11px;color:var(--muted)}
 .ev-month{font-size:13px;font-weight:600;color:var(--muted);margin:6px 2px 0;text-transform:none}
 .reuse-lbl{font-size:13px;color:var(--muted);margin-top:-2px}
+.reuse-btn{justify-content:flex-start;gap:10px}
+.reuse-btn .muted{margin-left:auto}
+.pick-list{display:flex;flex-direction:column;margin-bottom:6px}
+.pick-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-family:inherit;font-weight:500;font-size:16px;line-height:1.35;padding:12px 4px;cursor:pointer}
+.pick-row:last-child{border-bottom:0}
+.task-wrap.big .t-title{font-size:17px;font-weight:600}
 .reuse-x{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px 2px}
 .reuse-x::-webkit-scrollbar{display:none}
 .sc-lbl{max-width:76px}
@@ -910,6 +916,21 @@ function subsBlock(t, d, ctx) {
       <span class="sub-title">${h(s.title)}</span></div>`; }).join('')}
     <button type="button" class="sub-edit" data-a="edit" data-id="${t.id}" data-d="${d || ''}">${ic(P.pencil, 15)}Modifier</button></div>`;
 }
+// Choisir un élément déjà créé, rangé par catégorie (fenêtre dédiée)
+function openReusePicker(title, items, onPick) {
+  const groups = [];
+  items.forEach(x => { const th = themeOf(x); const k = th ? th.id : '_'; let g = groups.find(y => y.k === k); if (!g) { g = { k, th, items: [] }; groups.push(g); } g.items.push(x); });
+  groups.sort((a, b) => (a.th ? a.th.order || 0 : 999) - (b.th ? b.th.order || 0 : 999));
+  const s = openSheet({ isStatic: true, label: title, bar: '<button type="button" class="btn" data-f="cancel">Annuler</button>' });
+  s.body.innerHTML = `<h2 class="sheet-title">${h(title)}</h2>
+    ${groups.map(g => `<h3 class="grp-h c-${g.th ? g.th.color || 'slate' : 'slate'}"><span class="cdot"></span>${g.th ? h(g.th.emoji + ' ' + g.th.name) : 'Sans catégorie'}<span class="muted">${g.items.length}</span></h3>
+      <div class="pick-list">${g.items.map(x => `<button type="button" class="pick-row" data-f="pick" data-v="${x.id}">${h(x.title)}${x.time ? `<span class="muted">${h(evWhen(x))}</span>` : ''}</button>`).join('')}</div>`).join('')}`;
+  s.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    if (b.dataset.f === 'cancel') closeTop();
+    if (b.dataset.f === 'pick') { const id = b.dataset.v; closeTop(); setTimeout(() => onPick(id), 420); }
+  });
+}
 // Placer une tâche sur un jour : une tâche « Libre » reste dans To-do et on en crée une copie datée
 function makeInstance(src, d, extra = {}) {
   const inst = { id: uid(), info: !!src.info, time: src.time || '', title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: {}, created: today(), srcId: src.id, ...extra };
@@ -961,9 +982,8 @@ function taskRow(t, d, o = {}) {
     if (o.late) parts.push(`<span class="late">prévue ${h(shortDate(d))}</span>`);
     if (th && (o.ctx === 'day' || o.ctx === 'week')) parts.push(`<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>`);
     if (t.rep || t.free) parts.push(`<span class="rep-lbl" title="${t.free ? 'Libre' : 'Répétée'}">${ic(P.rep, 13, 2)}</span>`);
-  } else if (o.ctx === 'nodate') {
-    if (t.free) parts.push(freeLbl(t));
-    const rs = routinesOf(t.id); if (rs.length) parts.push(`<span title="Dans ${h(rs.map(r => r.name).join(', '))}">${h(rs.map(r => r.emoji).join(''))}</span>`);
+  } else if (o.ctx === 'nodate' || o.ctx === 'todo') {
+    // Planning : rien de superflu, juste le nom (en gros)
   } else {
     const t0 = today();
     if (d && !(t.done && !t.rep)) {
@@ -976,12 +996,13 @@ function taskRow(t, d, o = {}) {
     if (t.free) parts.push(freeLbl(t));
     const rs = routinesOf(t.id); if (rs.length) parts.push(`<span title="Dans ${h(rs.map(r => r.name).join(', '))}">${h(rs.map(r => r.emoji).join(''))}</span>`);
   }
-  if (subs) parts.push(`<span class="rep-lbl">${SUBICO}${subDone(t, d).length}/${t.subs.length}</span>`);
+  if (subs && o.ctx !== 'todo' && o.ctx !== 'nodate') parts.push(`<span class="rep-lbl">${SUBICO}${subDone(t, d).length}/${t.subs.length}</span>`);
   const meta = parts.join('');
   const catCls = (o.ctx === 'day' || o.ctx === 'week' || o.ctx === 'mini' || o.ctx === 'nodate') && th ? ` cat c-${th.color || 'slate'}` : '';
   const mini = o.ctx === 'mini';
   const canPlan = (o.ctx === 'todo' || o.ctx === 'nodate') && !t.rep && !t.date && !t.done;
-  return `<div class="task-wrap${mini ? ' mini' : ''}${catCls}${openS ? ' open' : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}">
+  const big = o.ctx === 'todo' || o.ctx === 'nodate';
+  return `<div class="task-wrap${mini ? ' mini' : ''}${big ? ' big' : ''}${catCls}${openS ? ' open' : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}"${o.late ? ' data-late="1"' : ''}>
     ${t.info ? `<span class="info-ico" aria-hidden="true">${ic(IC.cal, 16, 1.7)}</span>` : `<button type="button" class="check" data-a="check" aria-label="${done ? 'Décocher' : 'Cocher'} ${h(t.title)}"><span class="box">${done ? CHECK : ''}</span></button>`}
     <button type="button" class="task-body" data-a="tap"${subs ? ` aria-expanded="${openS}"` : ''}>${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${meta ? `<span class="t-meta">${meta}</span>` : ''}</button>
     ${canPlan ? `<button type="button" class="btn-ico sm plan" data-a="plan" aria-label="Planifier ou ajouter à une routine : ${h(t.title)}">${ic(IC.cal, 18, 1.7)}</button>` : t.duration && !done && t.timer !== false ? ((mini || o.ctx === 'week') ? `<button type="button" class="play-ico" data-a="play" aria-label="Lancer le minuteur de ${t.duration} min">${PLAY}</button>` : `<button type="button" class="chip play" data-a="play" aria-label="Lancer le minuteur (${durShort(t)})">${PLAY}${durShort(t)}</button>`) : ''}
@@ -1246,7 +1267,7 @@ function renderHome() {
   const evs = soonItems();
   const whenEv = e => dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : '');
   let html = `<section class="hero" aria-label="Aujourd'hui">
-    <div class="hero-head"><span class="hero-day">${JOURS[dow(t)]} ${x0.getDate()} ${MOIS[x0.getMonth()]}</span>${tasksE.length ? `<span class="hero-count">${doneN}/${tasksE.length}</span>` : ''}</div>
+    <div class="hero-head"><span class="hero-day">${JOURS[dow(t)]} ${x0.getDate()} ${MOIS[x0.getMonth()]}</span>${tasksE.length ? `<span class="hero-count">${doneN} faite${doneN > 1 ? 's' : ''} sur ${tasksE.length}</span>` : ''}</div>
     <div class="hero-row2">
       <div class="hero-left"><span class="hero-num">${remaining}</span><span class="hero-sub2">${sub}</span></div>
       ${tips.length ? `<div class="tips"><div class="tips-track">${tips.map(x => `<div class="tip-slide cat c-${(themeOf(x.t) || {}).color || 'slate'}">
@@ -1433,7 +1454,7 @@ function renderTodo() {
     const groups = S.themes.slice().sort(byOrder).map(th => ({ th, tasks: S.tasks.filter(t => t.themeId === th.id && !t.srcId && (t.kind !== 'event' || nextOcc(t, today()))) }));
     const orphans = S.tasks.filter(t => !t.srcId && (t.kind !== 'event' || nextOcc(t, today())) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
     if (orphans.length) groups.push({ th: { id: '_none', emoji: '📌', name: 'Sans catégorie' }, tasks: orphans, virtual: true });
-    body = `${groups.map(themeCard).join('')}<button type="button" class="dashed-add" data-a="new-theme">${ic(P.plus, 18, 2)}Nouvelle catégorie</button>`;
+    body = `${groups.map(themeCard).join('')}<button type="button" class="dashed-add" data-a="new-theme">${ic(P.plus, 18, 2)}Nouvelle catégorie</button>${S.themes.length > 1 ? `<button type="button" class="dashed-add" data-a="theme-order">${ic('M8 4v16M8 4 4 8M8 4l4 4M16 20V4M16 20l-4-4M16 20l4-4', 18, 1.8)}Réorganiser les catégories</button>` : ''}`;
   } else if (v === 'nodate') {
     const grp = []; nd.forEach(t => { const th = themeOf(t); const k = th ? th.id : '_'; let g = grp.find(x => x.k === k); if (!g) { g = { k, th, items: [] }; grp.push(g); } g.items.push(t); });
     body = `${grp.map(g => `<h3 class="grp-h c-${g.th ? g.th.color || 'slate' : 'slate'}"><span class="cdot"></span>${g.th ? h(g.th.emoji + ' ' + g.th.name) : 'Sans catégorie'}<span class="muted">${g.items.length}</span></h3><div class="day-body plain">${g.items.map(t => taskRow(t, '', { ctx: 'nodate' })).join('')}</div>`).join('')}
@@ -1830,7 +1851,7 @@ function openEventForm(ev, preset = {}) {
     if (panel === 'cat') pan = `<div class="panel"><div class="chips">${S.themes.slice().sort(byOrder).map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button><button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
     const list = isNew && preset.fromDay ? tpls() : [];
     s.body.innerHTML = `${isNew ? kindSwitch('event') : `<h2 class="sheet-title">${title}</h2>`}
-      ${list.length ? `<div class="chips reuse">${list.map(x => { const tth = themeOf(x); return `<button type="button" class="chip${tpl === x.id ? ' on' : ''}" data-f="tpl" data-v="${x.id}" aria-pressed="${tpl === x.id}"><span class="cdot c-${tth ? tth.color || 'slate' : 'slate'}"></span>${h(x.title)}</button>`; }).join('')}</div>` : ''}
+      ${list.length ? (tpl ? `<div class="chips reuse"><button type="button" class="chip on" data-f="tpl" data-v="${tpl}" aria-pressed="true">${h((S.tasks.find(y => y.id === tpl) || {}).title || '')} ✕</button></div>` : `<button type="button" class="btn wide reuse-btn" data-f="tpl-open">${ic(IC.cal, 18, 1.8)}Choisir parmi mes événements<span class="muted">${list.length}</span></button>`) : ''}
       <input class="name-in" data-f="title" value="${h(f.title)}" placeholder="Anniv, journée client, soirée…" autocomplete="off" enterkeyhint="done" aria-label="Nom de l'événement"${tpl ? ' disabled' : ''}>
       <div class="mgrid">
         ${isTpl ? '' : mc('date', ic(IC.cal, 18, 1.7), dateLabel(), !sel.size, ' wide')}
@@ -1876,6 +1897,13 @@ function openEventForm(ev, preset = {}) {
     else if (k === 'cat-new') { openGroupForm('themes', null, th => { f.themeId = th.id; panel = null; draw(); }); return; }
     else if (k === 'yearly') f.rep = f.rep && f.rep.unit === 'an' ? null : { unit: 'an', every: 1 };
     else if (k === 'keep') keep = !keep;
+    else if (k === 'tpl-open') {
+      openReusePicker('Mes événements', tpls(), id => {
+        const x = S.tasks.find(y => y.id === id); if (!x) return;
+        tpl = x.id; f.title = x.title; f.themeId = x.themeId || null; f.time = x.time || ''; f.note = x.note || ''; draw();
+      });
+      return;
+    }
     else if (k === 'tpl') {
       const x = S.tasks.find(y => y.id === b.dataset.v);
       if (tpl === b.dataset.v || !x) { tpl = null; f.title = ''; }
@@ -2219,7 +2247,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
     const nd = isNew && preset.fromDay ? noDateTasks() : [];
     const when = f.date || t0;
     s.body.innerHTML = `${isNew ? kindSwitch('task') : '<h2 class="sheet-title">Modifier la tâche</h2>'}
-      ${nd.length ? `<div class="reuse-lbl">Depuis To-do, pour ${h(whenLabel(when))}</div><div class="chips reuse-x">${nd.map(x => { const th = themeOf(x); return `<button type="button" class="chip" data-f="pick-todo" data-v="${x.id}">${th ? h(th.emoji) + ' ' : ''}${h(x.title)}</button>`; }).join('')}</div>` : ''}
+      ${nd.length ? `<button type="button" class="btn wide reuse-btn" data-f="pick-open">${ic(P.todo, 18, 1.8)}Choisir parmi mes tâches<span class="muted">${nd.length}</span></button>` : ''}
       <input class="name-in" data-f="title" value="${h(f.title)}" placeholder="Nom de la tâche" autocomplete="off" enterkeyhint="done" aria-label="Nom de la tâche">
       <div class="mgrid">
         ${mc('cat', IC.cat, th ? `<span class="cdot c-${th.color || 'slate'}"></span> ${h(th.emoji + ' ' + th.name)}` : 'Sans catégorie', !th)}
@@ -2274,6 +2302,15 @@ function openTaskForm(task, preset = {}, dayCtx) {
     else if (k === 'qdate' || k === 'cald') { f.date = b.dataset.v || null; panel = null; }
     else if (k === 'cal-move') { const x = parse(calMonth); x.setMonth(x.getMonth() + +b.dataset.s); calMonth = iso(x); }
     else if (k === 'prio') f.prio = !f.prio;
+    else if (k === 'pick-open') {
+      openReusePicker('Mes tâches', noDateTasks(), id => {
+        const x = S.tasks.find(y => y.id === id); if (!x) return;
+        const snap = snapshot(); const when = f.date || t0;
+        placeTask(x, when); closeTop(); refresh(); closeDayAddSoon();
+        toast(`« ${x.title} » prévue ${whenLabel(when)} 📅`, () => restore(snap));
+      });
+      return;
+    }
     else if (k === 'pick-todo') {
       const x = S.tasks.find(y => y.id === b.dataset.v); if (!x) return;
       const snap = snapshot(); const when = f.date || t0;
@@ -2527,13 +2564,13 @@ async function restore(snap) {
 }
 // Reporter une tâche au jour suivant (une répétée : on saute ce jour, et on la recopie si elle n'est pas prévue le lendemain)
 const toLabel = d => d === addDays(today(), 1) ? 'à demain' : 'au ' + shortDate(d);
-function reportTask(t, d) {
+function reportTask(t, d, cible) {
   const t0 = today();
-  const base = !d || d < t0 ? t0 : d, target = addDays(base, 1);
+  const base = !d || d < t0 ? t0 : d, target = cible || addDays(base, 1);
   if (t.rep) {
     const cut = addDays(t0, -120);
     save('tasks', { ...t, skip: [...(t.skip || []).filter(x => x >= cut), d || t0] });
-    if (!occursOn(t, target)) save('tasks', { id: uid(), title: t.title, themeId: t.themeId || null, date: target, prio: false, rep: null, duration: t.duration || 0, seg: t.seg || null, note: t.note || '', done: false, doneDates: [], subs: (t.subs || []).map(x => ({ ...x })), subDone: {}, created: t0, fromRep: t.id });
+    if (!occursOn(t, target)) save('tasks', { id: uid(), info: !!t.info, time: t.time || '', title: t.title, themeId: t.themeId || null, date: target, prio: false, rep: null, duration: t.duration || 0, seg: t.seg || null, note: t.note || '', done: false, doneDates: [], subs: (t.subs || []).map(x => ({ ...x })), subDone: {}, created: t0, fromRep: t.id });
   } else {
     save('tasks', { ...t, date: target, routineRun: null });
   }
@@ -2550,28 +2587,34 @@ function reportAll(d) {
   toast(`${plural(entries.length, 'tâche reportée', 'tâches reportées')} ${toLabel(target)} ↷`, () => restore(snap));
 }
 // Appui long sur une tâche de l'agenda : actions rapides
+// Scène (plateaux où je joue) : lien avec Backstage, quand l'app est dans Mon quotidien
+const SCENE_RE = /sc[eè]ne|plateau|stand.?up|open.?mic/i;
+const isScene = t => { const th = themeOf(t); return !!th && (SCENE_RE.test(th.name || '') || th.emoji === '🎤'); };
+const quotidien = () => { try { return window.parent !== window && window.parent.quotidien ? window.parent.quotidien : null; } catch (e) { return null; } };
 function openQuick(id, d) {
   const t = S.tasks.find(x => x.id === id); if (!t) return;
   const t0 = today(), day = d || t.date || t0;
-  const base = day < t0 ? t0 : day, target = addDays(base, 1);
   const done = isDone(t, day);
+  const noter = isScene(t) && day <= t0 && quotidien();
   const s = openSheet({ isStatic: true, label: t.title, bar: '<button type="button" class="btn primary" data-f="cancel">Fermer</button>' });
   s.body.innerHTML = `<h2 class="sheet-title">« ${h(t.title)} »</h2>
-    ${done ? '' : `<button type="button" class="btn wide" data-f="rep">${ic(P.right, 18, 1.8)}Reporter ${target === addDays(t0, 1) ? 'à demain' : 'au ' + shortDate(target)}</button>
-    ${isEvent(t) ? '' : `<button type="button" class="btn wide" data-f="off">${ic(t.rep ? 'M5 6l7 6-7 6M13 6l7 6-7 6' : 'M4 13h5l1.5 2.5h3L15 13h5M5 5h14l1 8v6H4v-6z', 18, 1.8)}${t.rep ? 'Passer cette fois' : base === t0 ? "Retirer d'aujourd'hui" : 'Retirer de ce jour'}</button>`}`}
-    <button type="button" class="btn wide" data-f="edit">${ic(P.pencil, 18, 1.8)}Modifier</button>`;
+    <button type="button" class="btn wide" data-f="edit">${ic(P.pencil, 18, 1.8)}Modifier</button>
+    ${done ? '' : `<button type="button" class="btn wide" data-f="rep">${ic(IC.cal, 18, 1.8)}Reporter…</button>`}
+    ${noter ? `<button type="button" class="btn wide" data-f="noter">🎤 Noter dans Backstage</button>` : ''}`;
   s.el.addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const k = b.dataset.f;
     if (k === 'cancel') closeTop();
     if (k === 'edit') { closeTop(); setTimeout(() => openEditor(S.tasks.find(x => x.id === id), d), 420); }
-    if (k === 'rep') { const snap = snapshot(); const tg = reportTask(t, day); closeTop(); refresh(); toast(`Reportée ${toLabel(tg)} ↷`, () => restore(snap)); }
-    if (k === 'off') {
-      const snap = snapshot();
-      if (t.rep) { const cut = addDays(t0, -120); save('tasks', { ...t, skip: [...(t.skip || []).filter(x => x >= cut), day] }); }
-      else if (t.srcId) removeMany('tasks', [t.id]);
-      else save('tasks', { ...t, date: null, routineRun: null });
-      closeTop(); refresh(); toast(t.rep ? 'Passée pour cette fois 👌' : 'Retirée · elle t\'attend dans To-do 📥', () => restore(snap));
+    if (k === 'noter') { closeTop(); setTimeout(() => { const q = quotidien(); if (q) q.ouvrir('backstage', { action: 'noter', nom: t.title, date: day }); }, 300); }
+    if (k === 'rep') {
+      closeTop();
+      setTimeout(() => openDatePicker(`Reporter « ${t.title} »`, target => {
+        const cur = S.tasks.find(x => x.id === id) || t;
+        if (target === day && !cur.rep) return;
+        const snap = snapshot(); reportTask(cur, day, target); refresh();
+        toast(`Reportée ${toLabel(target)} ↷`, () => restore(snap));
+      }, 'Choisis le nouveau jour'), 420);
     }
   });
 }
@@ -2828,7 +2871,7 @@ timerEl.addEventListener('click', e => {
 });
 
 /* ---------- Cocher ---------- */
-function setDone(nt, d, v) {
+function setDone(nt, d, v, late) {
   const t0 = today();
   if (nt.free) {
     const log = new Set(nt.freeLog || []);
@@ -2848,10 +2891,10 @@ function setDone(nt, d, v) {
     Object.keys(nt.caught).forEach(k => { if (k < cut) delete nt.caught[k]; });
   } else {
     nt.done = v; nt.doneAt = v ? Date.now() : null;
-    if (v && nt.date && nt.date < t0 && nt.kind !== 'event') nt.date = t0; // fait en retard : reste dans « Aujourd'hui »
+    if (v && late && nt.date && nt.date < t0 && nt.kind !== 'event') nt.date = t0; // en retard, cochée depuis « Aujourd'hui » : reste dans aujourd'hui
   }
 }
-function toggleTask(id, d) {
+function toggleTask(id, d, late) {
   const t = S.tasks.find(x => x.id === id); if (!t || t.info) return;
   const before = remainingToday();
   if (t.free) { // cochée depuis To-do : faite aujourd'hui, le modèle reste
@@ -2860,7 +2903,7 @@ function toggleTask(id, d) {
   }
   const nt = JSON.parse(JSON.stringify(t));
   const v = !isDone(t, d || today());
-  setDone(nt, d, v);
+  setDone(nt, d, v, late);
   save('tasks', nt);
   if (nt.srcId) logSrc(nt, nt.date || today(), v);
   refresh();
@@ -2889,11 +2932,11 @@ function toggleSub(id, d, sid) {
 
 /* ---------- Actions ---------- */
 const A = {
-  'check': (el, c) => toggleTask(c.id, c.d),
+  'check': (el, c) => { const row = el.closest('.task'); toggleTask(c.id, c.d, !!(row && row.dataset.late)); },
   'edit': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (t) openEditor(t, c.d || null); },
   'tap': (el, c) => {
     const t = S.tasks.find(x => x.id === c.id); if (!t) return;
-    if (isEvent(t) || !hasSubs(t)) { openEditor(t, c.d || null); return; }
+    if (isEvent(t) || !hasSubs(t)) { openQuick(t.id, c.d || null); return; }
     const k = t.id + '|' + (c.d || '');
     U.openSubs.has(k) ? U.openSubs.delete(k) : U.openSubs.add(k); refresh();
   },
@@ -2961,6 +3004,21 @@ const A = {
   'theme-done': (el, c) => { U.doneThemes.has(c.id) ? U.doneThemes.delete(c.id) : U.doneThemes.add(c.id); refresh(); },
   'theme-edit': (el, c) => { const th = S.themes.find(x => x.id === c.id); if (th) openGroupForm('themes', th); },
   'new-theme': () => openGroupForm('themes'),
+  'theme-order': () => openSheet({ label: 'Ordre des catégories', render: () => {
+    const ths = S.themes.slice().sort(byOrder);
+    return `<h2 class="sheet-title">Ordre des catégories</h2><p class="panel-note">La première s'affiche en haut du Planning.</p>
+      ${ths.map((th, i) => `<div class="ord-row"><span class="cdot c-${th.color || 'slate'}"></span><span class="ell">${h(th.emoji + ' ' + th.name)}</span>
+        <button type="button" class="btn-ico sm" data-a="theme-move" data-id="${th.id}" data-s="-1" aria-label="Monter"${i ? '' : ' disabled'}>${ic(P.up, 18)}</button>
+        <button type="button" class="btn-ico sm" data-a="theme-move" data-id="${th.id}" data-s="1" aria-label="Descendre"${i < ths.length - 1 ? '' : ' disabled'}>${ic(P.down, 18)}</button></div>`).join('')}`;
+  } }),
+  'theme-move': (el, c) => {
+    const ths = S.themes.slice().sort(byOrder);
+    const i = ths.findIndex(x => x.id === c.id), j = i + +el.dataset.s;
+    if (i < 0 || j < 0 || j >= ths.length) return;
+    [ths[i], ths[j]] = [ths[j], ths[i]];
+    ths.forEach((th, k) => { if (th.order !== k) save('themes', { ...th, order: k }); });
+    refresh();
+  },
   'list-toggle': (el, c) => { U.openLists.has(c.id) ? U.openLists.delete(c.id) : U.openLists.add(c.id); refresh(); },
   'list-done': (el, c) => { U.doneLists.has(c.id) ? U.doneLists.delete(c.id) : U.doneLists.add(c.id); refresh(); },
   'list-edit': (el, c) => { const l = S.lists.find(x => x.id === c.id); if (l) openGroupForm('lists', l); },
@@ -3121,6 +3179,8 @@ async function start() {
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   // Hors ligne et mises à jour : gérés par le service worker unique de « Mon quotidien » (../sw.js)
 }
+// Pour Mon quotidien : cocher une tâche depuis l'accueil, avec les règles de l'app
+window.toggleTask = (id, d, late) => toggleTask(id, d, late);
 start();
 })();
 </script>

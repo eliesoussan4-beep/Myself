@@ -1241,6 +1241,11 @@
   .modal-card{border-radius:22px}
   .modal-title{font-size:19px;font-weight:700}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);border:0;border-radius:12px;font-size:14px;font-weight:500}
+  .agenda-noter{display:flex;flex-direction:column;gap:6px;margin:12px 0 4px}
+  .agenda-noter-t{font-size:13px;font-weight:600;color:var(--text-dim)}
+  .agenda-noter-b{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:14px;padding:11px 14px;font-size:15px;cursor:pointer}
+  .agenda-noter-b b{font-weight:600}
+  .agenda-noter-b span{margin-left:auto;color:var(--text-dim);font-size:13px;white-space:nowrap}
   .foot-link{display:block;margin:28px auto 0;border:0;background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 </style>
 </head>
@@ -1368,6 +1373,7 @@
     <section class="view" id="view-notation">
       <button type="button" class="bs-back" onclick="goto('home')">← Backstage</button>
       <div class="page-head"><h1>Noter</h1></div>
+      <div id="agenda-a-noter"></div>
 
       <div class="field" style="margin-top:20px;">
         <label for="f-nom">Nom du plateau</label>
@@ -2006,7 +2012,7 @@ function goto(view, depuisRetour){
   const navBtn = document.getElementById('nav-'+view);
   if(navBtn) navBtn.classList.add('active');
   if(view==='home'){ renderHomeRating(); }
-  if(view==='notation') resetForm();
+  if(view==='notation'){ resetForm(); afficherAgendaANoter(); }
   if(view==='stats') renderStats();
   if(view==='33') renderGoals();
   if(view==='tests'){
@@ -5768,6 +5774,38 @@ renderHomeRating();
 generateRandomWord();
 
 // Hors ligne et mises à jour : gérés par le service worker unique de « Mon quotidien » (../sw.js)
+
+/* ---------- Lien avec l'Organisation (catégorie « Scène ») via Mon quotidien ---------- */
+function quotidienParent(){ try{ return window.parent !== window && window.parent.quotidien ? window.parent.quotidien : null; }catch(e){ return null; } }
+function prefillNotation(nom, date){
+  const d = document.getElementById('f-date'), n = document.getElementById('f-nom');
+  if(date){ d.value = date; d.dispatchEvent(new Event('change')); }
+  if(nom){ n.value = nom; n.dispatchEvent(new Event('input')); }
+  window.scrollTo(0, 0);
+}
+// Appelé par Mon quotidien : « Noter dans Backstage » depuis une scène de l'agenda
+window.quotidienAction = function(p){
+  if(!p || p.action !== 'noter') return;
+  goto('notation');
+  prefillNotation(p.nom || '', p.date || '');
+};
+// En haut de « Noter » : les scènes de l'agenda des 7 derniers jours pas encore notées
+async function afficherAgendaANoter(){
+  const box = document.getElementById('agenda-a-noter'); if(!box) return;
+  box.innerHTML = '';
+  const q = quotidienParent(); if(!q || !q.scenesAgenda) return;
+  let items = [];
+  try{ items = await q.scenesAgenda(7); }catch(e){ return; }
+  const notees = loadScenes();
+  const dejaNotee = it => notees.some(s => s.date === it.date && (s.nom || '').trim().toLowerCase() === it.titre.trim().toLowerCase());
+  items = items.filter(it => !dejaNotee(it));
+  if(!items.length) return;
+  const jour = d => { const t = new Date(); t.setHours(0,0,0,0); const x = new Date(d + 'T00:00:00'); const n = Math.round((t - x) / 864e5);
+    return n === 0 ? 'aujourd’hui' : n === 1 ? 'hier' : x.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric'}); };
+  box.innerHTML = `<div class="agenda-noter"><div class="agenda-noter-t">À noter, d’après ton agenda</div>${items.map((it, i) =>
+    `<button type="button" class="agenda-noter-b" data-i="${i}">🎤 <b>${escapeHtml(it.titre)}</b><span>${escapeHtml(jour(it.date))}${it.heure ? ' · ' + escapeHtml(it.heure) : ''}</span></button>`).join('')}</div>`;
+  box.querySelectorAll('.agenda-noter-b').forEach(b => b.addEventListener('click', () => { const it = items[+b.dataset.i]; prefillNotation(it.titre, it.date); }));
+}
 
 // Retour (Android) : ferme d'abord une fiche ouverte (texte, plateau), sinon revient à l'accueil
 window.addEventListener('popstate', e => {

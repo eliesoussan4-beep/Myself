@@ -56,11 +56,18 @@ button{font:inherit;color:inherit;cursor:pointer}
 #v-accueil{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 
 /* ---------- Barre du bas ---------- */
-#barre{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Couleur de l'app ouverte : --app (clair/sombre) et --app-mix (0 % sur l'accueil) */
+:root{--app:var(--app-c,var(--denim));--app-mix:0%}
+:root[data-theme="dark"]{--app:var(--app-s,var(--denim))}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--app:var(--app-s,var(--denim))}}
+#barre{position:fixed;left:0;right:0;bottom:0;z-index:10;background-color:color-mix(in srgb,var(--app) var(--app-mix),var(--surface));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid color-mix(in srgb,var(--app) calc(var(--app-mix) * 2.5),var(--line));padding-bottom:env(safe-area-inset-bottom,0px);transition:background-color .45s ease,border-color .45s ease}
 #onglets{display:grid;max-width:640px;margin:0 auto;height:var(--nav-h)}
 #onglets button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;padding:0 2px}
 #onglets button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-#onglets button[aria-current="page"]{color:var(--denim)}
+#onglets button{transition:color .3s ease}
+#onglets button[aria-current="page"]{color:var(--app)}
+#onglets button[data-id="accueil"][aria-current="page"]{color:var(--ink)}
+#onglets button[aria-current="page"] svg{transform:scale(1.08);transition:transform .25s ease}
 #onglets.serre button{font-size:10.5px;letter-spacing:-.02em}
 
 /* ---------- Accueil ---------- */
@@ -69,12 +76,17 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .tete .date{font-size:15px;color:var(--muted)}
 .tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(38px,12vw,52px);line-height:.95;letter-spacing:-.03em}
 .rond{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
-.bloc{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--ink);transition:transform .12s}
+.bloc{--c:var(--c-c,var(--denim));width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--ink);transition:transform .12s;cursor:pointer;position:relative;overflow:hidden}
+:root[data-theme="dark"] .bloc{--c:var(--c-s,var(--denim))}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bloc{--c:var(--c-s,var(--denim))}}
+.bloc::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--c)}
 .bloc:active{transform:scale(.985)}
+.bloc-t{display:flex;align-items:center;gap:10px}
+.bloc-ico{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent)}
 .bloc-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .bloc-t{font-family:var(--display);font-weight:700;font-size:17px}
 .bloc-t small{font-family:var(--body);font-weight:500;font-size:14px;color:var(--muted)}
-.bloc-lien{font-size:13px;font-weight:600;color:var(--denim);white-space:nowrap}
+.bloc-lien{font-size:13px;font-weight:600;color:var(--c);white-space:nowrap;border:0;background:none;padding:4px 0}
 .vide{margin:0;font-size:14px;color:var(--muted)}
 .wx{display:flex;align-items:center;gap:14px}
 .wx-ico{font-size:40px;line-height:1}
@@ -95,10 +107,13 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .taches{display:flex;flex-direction:column}
 .tache{display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:15px}
 .tache:last-child{border-bottom:0}
-.tache i{width:20px;height:20px;border-radius:6px;border:2px solid var(--box);flex:none}
+.coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--box);flex:none;background:none;padding:0;display:flex;align-items:center;justify-content:center;color:var(--on-denim);margin:-3px 0}
+.tache.prio .coche{border-color:var(--today)}
+.tache.faite .coche{background:var(--c);border-color:var(--c)}
+.tache.faite span{text-decoration:line-through;color:var(--muted)}
 .tache span{flex:1;min-width:0}
 .tache em{font-style:normal;font-size:12px;font-weight:600;color:var(--warn);white-space:nowrap}
-.tache.prio i{border-color:var(--today)}
+
 .encore{font-size:13px;color:var(--muted);padding-top:6px}
 .total{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .total b{font-family:var(--display);font-weight:800;font-size:30px;line-height:1}
@@ -112,6 +127,17 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .alerte{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--surface));color:var(--ink);border-radius:16px;padding:12px 14px}
 .alerte b{color:var(--warn);font-size:15px}
 .alerte span{font-size:13px;color:var(--muted)}
+.slides{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px;overscroll-behavior-x:contain}
+.slides::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;background:color-mix(in srgb,var(--c) 12%,var(--sunk));border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.slide-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.slide-h b{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;color:var(--c)}
+.slide-type{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface);border-radius:99px;padding:3px 10px;white-space:nowrap}
+.slide-n{font-size:17px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slide-a{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.points{display:flex;justify-content:center;gap:6px;margin-top:-4px}
+.points span{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
+.points span.on{background:var(--c);width:16px;border-radius:3px}
 .bilan{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .bilan b{color:var(--ink);font-weight:600}
 .etoiles{color:var(--today);letter-spacing:1px;white-space:nowrap}
@@ -219,12 +245,34 @@ function creerFrame(app, query = ''){
   f.charge = new Promise(res => f.addEventListener('load', res, {once:true}));
   f.addEventListener('load', () => {
     try{ appliquerTheme(f.contentDocument); }catch(e){}
+    brancherHistorique(f, app);
     planifierAccueil(1500);   // ex. les Courses complètent leur liste à l'ouverture
   });
   f.src = app.dossier + query;
   $('#vues').appendChild(f);
   frames.set(app.id, f);
   return f;
+}
+/* Bouton « retour » : les apps ne créent plus d'entrées d'historique dans leur fenêtre.
+   Leur history.pushState / back passe par la coquille, qui garde une seule pile (fiable sur Android). */
+function brancherHistorique(f, app){
+  let w; try{ w = f.contentWindow; if(!w || w.__quotidienHist) return; w.__quotidienHist = true; }catch(e){ return; }
+  const h = w.history, origReplace = h.replaceState.bind(h);
+  let base = null; f.pile = [];
+  try{
+    Object.defineProperty(h, 'state', {configurable:true, get:() => f.pile.length ? f.pile[f.pile.length - 1] : base});
+    h.pushState = st => {
+      if(actif !== app.id) return;
+      f.pile.push(st === undefined ? null : st);
+      history.pushState({app:app.id, p:f.pile.length}, '', location.pathname + '#' + app.id);
+    };
+    h.replaceState = (st, titre, url) => {
+      if(f.pile.length) f.pile[f.pile.length - 1] = st === undefined ? null : st; else base = st === undefined ? null : st;
+      if(url != null){ try{ origReplace(null, '', url); }catch(e){} }
+    };
+    h.back = () => { if(f.pile.length) history.back(); };
+    h.go = n => { if(n < 0 && f.pile.length) history.go(Math.max(n, -f.pile.length)); };
+  }catch(e){ console.warn('historique', e); }
 }
 function vueDe(id){ return id === 'accueil' ? $('#v-accueil') : frames.get(id); }
 function montrer(id, {query = '', historique = false} = {}){
@@ -233,6 +281,7 @@ function montrer(id, {query = '', historique = false} = {}){
     return;
   }
   const avant = vueDe(actif);
+  if(avant && avant.pile) avant.pile.length = 0;   // on quitte l'app : ses niveaux internes ne sont plus dans l'historique
   if(avant){ avant.classList.remove('on'); avant.inert = true; if(actif !== 'accueil') cacheeDepuis.set(actif, Date.now()); }
   actif = id;
   let v;
@@ -246,13 +295,17 @@ function montrer(id, {query = '', historique = false} = {}){
     cacheeDepuis.delete(id);
   }
   v.classList.add('on'); v.inert = false;
+  // Couleur de l'app ouverte (barre du bas)
+  const appC = APPS.find(a => a.id === id), rs = document.documentElement.style;
+  if(appC && appC.couleur){ rs.setProperty('--app-c', appC.couleur[0]); rs.setProperty('--app-s', appC.couleur[1]); rs.setProperty('--app-mix', '16%'); }
+  else rs.setProperty('--app-mix', '0%');
   document.querySelectorAll('#onglets button').forEach(b => { if(b.dataset.id === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   // Bouton « retour » d'Android : depuis une app, il ramène à l'Accueil (au lieu de fermer Mon quotidien)
   if(!historique){
     const url = location.pathname + (id === 'accueil' ? '' : '#' + id);
     try{
-      if(id !== 'accueil' && !(history.state && history.state.app)) history.pushState({app:id}, '', url);
-      else history.replaceState(id === 'accueil' ? null : {app:id}, '', url);
+      if(id !== 'accueil' && !(history.state && history.state.app)) history.pushState({app:id, p:0}, '', url);
+      else history.replaceState(id === 'accueil' ? null : {app:id, p:0}, '', url);
     }catch(e){}
   }
 }
@@ -422,17 +475,20 @@ async function lireOrganisation(){
     const taches = jour.filter(x => !isEvent(x));
     const restantes = [...lateEntries(tasks, t).map(e => ({...e, retard:true})),
       ...taches.filter(x => !isDone(x, t)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0)).map(x => ({t:x, d:t}))];
-    return {evts, restantes, faites:taches.filter(x => isDone(x, t)).length, themes:new Map(themes.map(th => [th.id, th]))};
+    const faitesL = taches.filter(x => isDone(x, t)).map(x => ({t:x, d:t, fait:true}));
+    return {evts, restantes, faitesL, faites:faitesL.length, themes:new Map(themes.map(th => [th.id, th]))};
   });
 }
 function blocOrganisation(d){
   if(!d) return `<p class="vide">Pas encore d’organisation sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
-  if(!d.evts.length && !d.restantes.length) return `<p class="vide">${d.faites ? `Tout est fait pour aujourd’hui (${plur(d.faites, 'tâche', 'tâches')}).` : 'Rien de prévu aujourd’hui.'}</p>`;
+  if(!d.evts.length && !d.restantes.length && !d.faites) return `<p class="vide">${d.faites ? `Tout est fait pour aujourd’hui (${plur(d.faites, 'tâche', 'tâches')}).` : 'Rien de prévu aujourd’hui.'}</p>`;
   const emo = x => { const th = d.themes.get(x.themeId); return th && th.emoji ? th.emoji + ' ' : ''; };
   const ev = d.evts.slice(0, 4).map(e => `<div class="evt"><b>${esc(e.time || 'Journée')}</b><span>${esc(emo(e) + e.title)}</span></div>`).join('')
     + (d.evts.length > 4 ? `<div class="encore">et ${plur(d.evts.length - 4, 'autre événement', 'autres événements')}</div>` : '');
-  const ta = d.restantes.slice(0, 6).map(e => `<div class="tache${e.t.prio ? ' prio' : ''}"><i></i><span>${esc(emo(e.t) + e.t.title)}</span>${e.retard ? `<em>en retard · ${esc(shortDate(e.d))}</em>` : ''}</div>`).join('')
-    + (d.restantes.length > 6 ? `<div class="encore">et ${plur(d.restantes.length - 6, 'autre tâche', 'autres tâches')}</div>` : '');
+  // Les tâches faites restent visibles, rayées (on peut les décocher)
+  const lignes = [...d.restantes, ...d.faitesL], vues = lignes.slice(0, 7);
+  const ta = vues.map(e => `<div class="tache${e.t.prio ? ' prio' : ''}${e.fait ? ' faite' : ''}"><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span>${esc(emo(e.t) + e.t.title)}</span>${e.retard ? `<em>en retard · ${esc(shortDate(e.d))}</em>` : ''}</div>`).join('')
+    + (lignes.length > 7 ? `<div class="encore">et ${plur(lignes.length - 7, 'autre tâche', 'autres tâches')}</div>` : '');
   return (ev ? `<div class="evts">${ev}</div>` : '') + (ta ? `<div class="taches">${ta}</div>` : '');
 }
 function titreOrganisation(d){
@@ -497,23 +553,46 @@ async function lireBackstage(){
   const w = f.contentWindow;
   if(!w || typeof w.loadScenes !== 'function') return null;
   const toutes = w.loadScenes(), plateaux = w.loadPlateaux();
-  if(!toutes.length && !plateaux.length) return null;
+  if(!toutes.length && !plateaux.length && !(await lireScenesAgenda(1, 0)).length) return null;
   const jour = new Date(); jour.setHours(0, 0, 0, 0);
   let plats = [];
   try{
     plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === 'Paris' && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
-      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || ''}));
+      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:(slot && w.typeLabelText ? w.typeLabelText(slot.type) : ''), adresse:p.address || ''}));
   }catch(e){ console.warn(e); }
   const mois = new Date().toISOString().slice(0, 7);
   const scenes = toutes.filter(s => s.date && s.date.slice(0, 7) === mois);
   const net = scenes.reduce((a, s) => a + ((s.gains || 0) - (s.depenses || 0)), 0);
   let etoiles = null; try{ etoiles = w.computeStarRating().stars; }catch(e){}
-  return {plats, nb:scenes.length, net, etoiles};
+  let agenda = []; try{ agenda = await lireScenesAgenda(1, 0); }catch(e){}
+  return {plats, agenda, nb:scenes.length, net, etoiles};
+}
+// Scènes prévues dans l'Organisation (catégorie « Scène » ou 🎤), sur une période
+const SCENE_RE = /sc[eè]ne|plateau|stand.?up|open.?mic/i;
+async function lireScenesAgenda(avant, apres){
+  const r = await lire('organisation', async db => {
+    const [tasks, themes] = await Promise.all([tout(db, 'tasks'), tout(db, 'themes')]);
+    const ids = new Set(themes.filter(th => SCENE_RE.test(th.name || '') || th.emoji === '🎤').map(th => th.id));
+    if(!ids.size) return [];
+    const out = [], t0 = new Date();
+    for(let i = -avant + 1; i <= apres; i++){
+      const x = new Date(t0); x.setDate(x.getDate() + i); const d = iso(x);
+      tasks.filter(k => ids.has(k.themeId) && occursOn(k, d)).forEach(k => out.push({titre:k.title, date:d, heure:(k.time || '').replace(':', 'h').replace(/h00$/, 'h')}));
+    }
+    return out.sort((a, b) => (a.date + a.heure) < (b.date + b.heure) ? -1 : 1);
+  });
+  return r || [];
 }
 function blocBackstage(d){
   if(!d) return `<p class="vide">Pas encore de scènes ni de plateaux. Ouvre Backstage pour commencer.</p>`;
-  const pl = d.plats.length
-    ? `<div class="evts">${d.plats.slice(0, 3).map(x => `<div class="evt"><b>${esc(x.heure || 'Ce soir')}</b><span>${esc(x.nom)}</span></div>`).join('')}</div>${d.plats.length > 3 ? `<div class="encore">et ${plur(d.plats.length - 3, 'autre plateau', 'autres plateaux')}</div>` : ''}`
+  // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
+  const memes = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  const slides = [
+    ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : '', adresse:p ? p.adresse : '', prevu:true}; }),
+    ...d.plats.filter(p => !d.agenda.some(a => memes(a.titre, p.nom)))
+  ];
+  const pl = slides.length
+    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide"><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="pastille demain">Prévu dans ton agenda</span>' : s.type ? `<span class="slide-type">${esc(s.type)}</span>` : ''}</div><div class="slide-n">${esc(s.nom)}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
     : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
   const signe = d.net >= 0 ? '+' : '−';
   const et = d.etoiles == null ? '' : `<span class="etoiles" aria-label="${(Math.round(d.etoiles * 2) / 2).toString().replace('.', ',')} étoiles sur 5">${'★'.repeat(Math.round(d.etoiles))}<i>${'★'.repeat(5 - Math.round(d.etoiles))}</i></span>`;
@@ -527,8 +606,10 @@ const LECTEURS = {
   'courses':      {titre:() => 'À acheter bientôt', lire:lireCourses, rendre:blocCourses},
   'backstage':    {titre:() => 'Sur scène', lire:lireBackstage, rendre:blocBackstage},
 };
+const styleCouleur = app => app.couleur ? ` style="--c-c:${app.couleur[0]};--c-s:${app.couleur[1]}"` : '';
+// Carte de l'accueil : toucher la carte ouvre l'app ; les cases à cocher et le carrousel restent utilisables dedans
 function carte(app, titre, corps){
-  return `<button type="button" class="bloc" data-ouvrir="${esc(app.id)}"><div class="bloc-h"><span class="bloc-t">${titre}</span><span class="bloc-lien">${esc(app.nom)} ›</span></div>${corps}</button>`;
+  return `<div class="bloc" data-ouvrir="${esc(app.id)}"${styleCouleur(app)}><div class="bloc-h"><span class="bloc-t"><span class="bloc-ico">${svg(app.icone, 18)}</span><span>${titre}</span></span><button type="button" class="bloc-lien" data-ouvrir="${esc(app.id)}">${esc(app.nom)} ›</button></div>${corps}</div>`;
 }
 function squeletteAccueil(){
   const now = new Date();
@@ -542,6 +623,11 @@ function squeletteAccueil(){
   $('#accueil').dataset.jour = iso(now);
   alerteDrive();
 }
+function brancherSlides(el){
+  const s = el.querySelector('.slides'); if(!s) return;
+  const pts = el.querySelectorAll('.points span');
+  s.addEventListener('scroll', () => { const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); }, {passive:true});
+}
 let enCours = false, aRefaire = false, minuteur = 0;
 function planifierAccueil(ms){ clearTimeout(minuteur); minuteur = setTimeout(rafraichirAccueil, ms); }
 async function rafraichirAccueil(){
@@ -553,7 +639,7 @@ async function rafraichirAccueil(){
       const L = LECTEURS[a.id];
       let d = null; try{ d = await L.lire(); }catch(e){ console.warn(a.id, e); }
       const el = $(`[data-bloc="${a.id}"]`);
-      if(el) el.innerHTML = carte(a, L.titre(d), L.rendre(d));
+      if(el){ el.innerHTML = carte(a, L.titre(d), L.rendre(d)); brancherSlides(el); }
       if(a.id === 'garde-robe' && d){
         const jours = await meteo(d.ville);
         const el2 = $(`[data-bloc="${a.id}"]`);
@@ -565,8 +651,26 @@ async function rafraichirAccueil(){
     if(aRefaire){ aRefaire = false; planifierAccueil(50); }
   }
 }
+// Cocher une tâche depuis l'accueil : c'est l'Organisation elle-même qui le fait (mêmes règles, même enregistrement)
+async function cocherOrganisation(btn){
+  const ligne = btn.closest('.tache'); if(!ligne || ligne.dataset.attente) return;
+  ligne.dataset.attente = '1';
+  ligne.classList.toggle('faite');   // effet immédiat
+  try{
+    const app = APPS.find(a => a.id === 'organisation'), f = creerFrame(app);
+    await f.charge;
+    let w = f.contentWindow;
+    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero')); i++){ await pause(150); w = f.contentWindow; }
+    if(typeof w.toggleTask !== 'function') throw new Error('Organisation pas prête');
+    w.toggleTask(btn.dataset.coche, btn.dataset.d, !!btn.dataset.late);
+  }catch(e){ console.warn(e); ligne.classList.toggle('faite'); toast('Impossible de cocher pour l’instant.'); }
+  delete ligne.dataset.attente;
+  planifierAccueil(350);
+}
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
+  const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
+  if(e.target.closest('.slides')) { const s = e.target.closest('[data-ouvrir]'); if(s) montrer(s.dataset.ouvrir); return; }
   const b = e.target.closest('[data-ouvrir]'); if(b) montrer(b.dataset.ouvrir);
 });
 
@@ -972,9 +1076,28 @@ $('#retours').addEventListener('click', async e => {
 $('#retour-btn').addEventListener('click', ouvrirRetours);
 if(self.RETOURS !== false){ $('#retour-btn').hidden = false; majPastille(); }
 
+/* ---------- Pont entre les apps (ex. Organisation « Scène » → Backstage « Noter ») ---------- */
+window.quotidien = {
+  async ouvrir(id, params){
+    const app = APPS.find(a => a.id === id); if(!app) return;
+    montrer(id);
+    const f = frames.get(id); await f.charge;
+    try{ const fn = f.contentWindow.quotidienAction; if(typeof fn === 'function') fn(params || {}); }catch(e){}
+  },
+  scenesAgenda: jours => lireScenesAgenda(jours || 7, 0)
+};
+
 /* ---------- Démarrage ---------- */
 window.addEventListener('popstate', e => {
-  const id = (e.state && e.state.app) || 'accueil';
+  const st = e.state || {}, id = st.app || 'accueil', p = st.p || 0;
+  const f = frames.get(id);
+  // Retour à l'intérieur de l'app ouverte : on lui dit de revenir d'un cran (fermer une fenêtre, revenir à son accueil…)
+  if(id === actif && f && f.pile && f.pile.length > p){
+    f.pile.length = p;
+    try{ const w = f.contentWindow; w.dispatchEvent(new w.PopStateEvent('popstate', {state:w.history.state})); }catch(err){}
+    return;
+  }
+  if(id === actif) return;
   montrer(APPS.some(a => a.id === id) ? id : 'accueil', {historique:true});
 });
 appliquerTheme(document);

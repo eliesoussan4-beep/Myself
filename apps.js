@@ -9,6 +9,8 @@
         nom     : ce qui s'affiche dans la barre du bas
         dossier : le dossier de l'app, terminé par « / »
         base    : le nom de sa base IndexedDB (indexedDB.open('…'))
+        — ou, si l'app range ses données dans localStorage :
+        stockage: 'localStorage' et prefixe : le début commun de ses clés (ex. 'backstage_')
         icone   : le dessin de l'icône (contenu d'un <svg viewBox="0 0 24 24">, trait seulement)
    3. augmenter VERSION_QUOTIDIEN de 1 (l'app se mettra à jour toute seule sur le téléphone).
 
@@ -16,7 +18,7 @@
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 1;
+self.VERSION_QUOTIDIEN = 2;
 
 self.APPS = [
   {
@@ -39,5 +41,13 @@ self.APPS = [
     dossier: 'courses/',
     base: 'courses',
     icone: '<path d="M3 4h2.5l2.2 11h10.6L20.5 7.5H6.4"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'
+  },
+  {
+    id: 'backstage',
+    nom: 'Backstage',
+    dossier: 'backstage/',
+    stockage: 'localStorage',
+    prefixe: 'backstage_',
+    icone: '<rect x="9" y="3" width="5" height="7.5" rx="2.5" transform="rotate(18 11.5 6.75)"/><path d="M13.3 9.3 11 21"/><path d="M7.5 21h7"/>'
   }
 ];

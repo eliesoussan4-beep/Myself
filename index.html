@@ -61,6 +61,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #onglets button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;padding:0 2px}
 #onglets button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 #onglets button[aria-current="page"]{color:var(--denim)}
+#onglets.serre button{font-size:10.5px;letter-spacing:-.02em}
 
 /* ---------- Accueil ---------- */
 main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-direction:column;gap:12px}
@@ -108,6 +109,10 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bas{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line);font-size:13px}
 .bas b{color:var(--warn);font-weight:600;white-space:nowrap}
 .bas span{color:var(--muted)}
+.bilan{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.bilan b{color:var(--ink);font-weight:600}
+.etoiles{color:var(--today);letter-spacing:1px;white-space:nowrap}
+.etoiles i{font-style:normal;color:var(--line)}
 
 /* ---------- Feuille Sauvegarde & réglages ---------- */
 dialog{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(560px,100%);max-height:92dvh;border-radius:22px 22px 0 0;margin:auto auto 0;overflow:auto}
@@ -231,6 +236,7 @@ function construireBarre(){
   const items = [{id:'accueil', nom:'Accueil', icone:ICONE_ACCUEIL}, ...APPS];
   const o = $('#onglets');
   o.style.gridTemplateColumns = `repeat(${items.length}, minmax(0, 1fr))`;
+  o.classList.toggle('serre', items.length > 4);
   o.innerHTML = items.map(a => `<button type="button" data-id="${esc(a.id)}">${svg(a.icone)}<span>${esc(a.nom)}</span></button>`).join('');
   o.addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if(b) montrer(b.dataset.id); });
 }
@@ -269,6 +275,9 @@ async function lire(nom, fn){
 }
 const aTable = (db, t) => db.objectStoreNames.contains(t);
 const tout = (db, t) => aTable(db, t) ? req(db.transaction(t).objectStore(t).getAll()) : Promise.resolve([]);
+// Apps qui rangent leurs données dans localStorage (ex. Backstage) : toutes les clés qui commencent par leur préfixe
+const clesLocales = app => { const out = []; try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k && k.startsWith(app.prefixe)) out.push(k); } }catch(e){} return out; };
+const estLocale = app => app.stockage === 'localStorage' && !!app.prefixe;
 const un = (db, t, k) => aTable(db, t) && k != null ? req(db.transaction(t).objectStore(t).get(k)) : Promise.resolve(undefined);
 
 /* ---------- Garde-robe : météo et tenue prévue ---------- */
@@ -454,11 +463,45 @@ function blocCourses(d){
   return h;
 }
 
+/* ---------- Backstage : plateaux du jour et bilan du mois ----------
+   Backstage est chargée dans sa fenêtre : on utilise ses propres calculs (aucune copie de logique). */
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+async function lireBackstage(){
+  const app = APPS.find(a => a.id === 'backstage'); if(!app) return null;
+  const f = creerFrame(app);
+  await f.charge;
+  const w = f.contentWindow;
+  if(!w || typeof w.loadScenes !== 'function') return null;
+  const toutes = w.loadScenes(), plateaux = w.loadPlateaux();
+  if(!toutes.length && !plateaux.length) return null;
+  const jour = new Date(); jour.setHours(0, 0, 0, 0);
+  let plats = [];
+  try{
+    plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === 'Paris' && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
+      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || ''}));
+  }catch(e){ console.warn(e); }
+  const mois = new Date().toISOString().slice(0, 7);
+  const scenes = toutes.filter(s => s.date && s.date.slice(0, 7) === mois);
+  const net = scenes.reduce((a, s) => a + ((s.gains || 0) - (s.depenses || 0)), 0);
+  let etoiles = null; try{ etoiles = w.computeStarRating().stars; }catch(e){}
+  return {plats, nb:scenes.length, net, etoiles};
+}
+function blocBackstage(d){
+  if(!d) return `<p class="vide">Pas encore de scènes ni de plateaux. Ouvre Backstage pour commencer.</p>`;
+  const pl = d.plats.length
+    ? `<div class="evts">${d.plats.slice(0, 3).map(x => `<div class="evt"><b>${esc(x.heure || 'Ce soir')}</b><span>${esc(x.nom)}</span></div>`).join('')}</div>${d.plats.length > 3 ? `<div class="encore">et ${plur(d.plats.length - 3, 'autre plateau', 'autres plateaux')}</div>` : ''}`
+    : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
+  const signe = d.net >= 0 ? '+' : '−';
+  const et = d.etoiles == null ? '' : `<span class="etoiles" aria-label="${(Math.round(d.etoiles * 2) / 2).toString().replace('.', ',')} étoiles sur 5">${'★'.repeat(Math.round(d.etoiles))}<i>${'★'.repeat(5 - Math.round(d.etoiles))}</i></span>`;
+  return pl + `<div class="bilan"><span>${cap(MOIS[new Date().getMonth()])} : <b>${plur(d.nb, 'scène', 'scènes')}</b> · <b>${signe}${Math.abs(Math.round(d.net))} €</b></span>${et}</div>`;
+}
+
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
 const LECTEURS = {
   'garde-robe':   {titre:() => 'Météo et tenue', lire:lireGardeRobe, rendre:d => blocGardeRobe(d, undefined)},
   'organisation': {titre:d => 'Aujourd’hui' + titreOrganisation(d), lire:lireOrganisation, rendre:blocOrganisation},
   'courses':      {titre:() => 'À acheter bientôt', lire:lireCourses, rendre:blocCourses},
+  'backstage':    {titre:() => 'Sur scène', lire:lireBackstage, rendre:blocBackstage},
 };
 function carte(app, titre, corps){
   return `<button type="button" class="bloc" data-ouvrir="${esc(app.id)}"><div class="bloc-h"><span class="bloc-t">${titre}</span><span class="bloc-lien">${esc(app.nom)} ›</span></div>${corps}</button>`;
@@ -520,8 +563,13 @@ async function exporterTout(){
     });
     if(c) bases[app.base] = c;
   }
-  if(!Object.keys(bases).length){ toast('Aucune donnée à sauvegarder sur ce téléphone.'); return; }
-  const data = {app:'mon-quotidien-tout', version:1, date:new Date().toISOString(), bases};
+  const locaux = {};
+  for(const app of APPS.filter(estLocale)){
+    const ks = clesLocales(app);
+    if(ks.length) locaux[app.id] = Object.fromEntries(ks.map(k => [k, localStorage.getItem(k)]));
+  }
+  if(!Object.keys(bases).length && !Object.keys(locaux).length){ toast('Aucune donnée à sauvegarder sur ce téléphone.'); return; }
+  const data = {app:'mon-quotidien-tout', version:2, date:new Date().toISOString(), bases, locaux};
   const nom = `mon-quotidien-${iso(new Date())}.json`;
   const fichier = new File([JSON.stringify(data)], nom, {type:'application/json'});
   // Sur téléphone : feuille de partage (Enregistrer dans Fichiers, Drive…) ; sinon téléchargement
@@ -538,9 +586,17 @@ async function exporterTout(){
 function planImport(data){
   if(!data || typeof data !== 'object') return null;
   const tab = v => Array.isArray(v) ? v : [];
-  if(data.app === 'mon-quotidien-tout' && data.bases){
-    return Object.entries(data.bases).map(([base, c]) => ({base, tables:Object.fromEntries(Object.entries(c.tables || {}).map(([n, t]) =>
-      [n, t.cle == null ? {vider:true, paires:tab(t.paires)} : {vider:true, valeurs:tab(t.valeurs)}]))}));
+  if(data.app === 'mon-quotidien-tout' && (data.bases || data.locaux)){
+    return [...Object.entries(data.bases || {}).map(([base, c]) => ({base, tables:Object.fromEntries(Object.entries(c.tables || {}).map(([n, t]) =>
+      [n, t.cle == null ? {vider:true, paires:tab(t.paires)} : {vider:true, valeurs:tab(t.valeurs)}]))})),
+      ...Object.entries(data.locaux || {}).map(([id, cles]) => ({local:id, vider:true, cles}))];
+  }
+  if(data.app === 'backstage' || (Array.isArray(data.scenes) && data.exportedAt)){   // sauvegarde faite dans Backstage
+    const cles = {backstage_scenes_v1:JSON.stringify(tab(data.scenes)), backstage_goals_v1:JSON.stringify(data.goals || {}), backstage_texts_v1:JSON.stringify(tab(data.texts))};
+    if(data.rotation2) cles.backstage_rotation2_v1 = JSON.stringify(data.rotation2);
+    if(Array.isArray(data.plateaux)) cles.backstage_plateaux_v1 = JSON.stringify(data.plateaux);
+    if(data.plateauxCity) cles.backstage_plateaux_city_v1 = data.plateauxCity;
+    return [{local:'backstage', vider:false, cles}];
   }
   if(data.app === 'courses'){
     return [{base:'courses', tables:{products:{vider:true, valeurs:tab(data.products)}, aliases:{vider:true, valeurs:tab(data.aliases)},
@@ -572,6 +628,15 @@ async function attendreBase(nom){
   return null;
 }
 async function ecrire(p){
+  if(p.local){
+    const app = APPS.find(a => a.id === p.local);
+    if(!app || !estLocale(app)) throw new Error(`app « ${p.local} » inconnue`);
+    if(p.vider) clesLocales(app).forEach(k => localStorage.removeItem(k));
+    for(const [k, v] of Object.entries(p.cles || {})) if(k.startsWith(app.prefixe) && typeof v === 'string') localStorage.setItem(k, v);
+    const f = frames.get(app.id);
+    if(f){ try{ f.contentWindow.location.reload(); }catch(e){} }
+    return;
+  }
   const app = APPS.find(a => a.base === p.base);
   let db = await ouvrirBase(p.base);
   if(!db && app){ await creerFrame(app).charge; db = await attendreBase(p.base); }   // l'app crée d'abord sa base
@@ -598,7 +663,7 @@ async function importerFichiers(files){
     try{ data = JSON.parse(await f.text()); }catch(e){ toast(`« ${f.name} » est illisible.`); continue; }
     const plan = planImport(data);
     if(!plan || !plan.length){ toast(`« ${f.name} » n’est pas une sauvegarde reconnue.`); continue; }
-    const noms = plan.map(p => (APPS.find(a => a.base === p.base) || {nom:p.base}).nom).join(', ');
+    const noms = plan.map(p => (APPS.find(a => p.local ? a.id === p.local : a.base === p.base) || {nom:p.base || p.local}).nom).join(', ');
     if(!confirm(`Importer : ${noms}\ndepuis « ${f.name} » ?\n\nLes données actuelles de ${plan.length > 1 ? 'ces apps' : 'cette app'} sur ce téléphone seront remplacées.`)) continue;
     try{
       for(const p of plan) await ecrire(p);
@@ -613,7 +678,12 @@ $('#fichier').addEventListener('change', e => { const fs = [...e.target.files]; 
 /* ---------- Feuille « Sauvegarde et réglages » ---------- */
 async function majEtat(){
   const el = $('#etat'); if(!el) return;
-  const lignes = await Promise.all(APPS.filter(a => a.base).map(async a => {
+  const lignes = await Promise.all(APPS.filter(a => a.base || estLocale(a)).map(async a => {
+    if(estLocale(a)){
+      const ks = clesLocales(a); let n = 0;
+      for(const k of ks){ try{ const v = JSON.parse(localStorage.getItem(k)); n += Array.isArray(v) ? v.length : 1; }catch(e){ n++; } }
+      return `<div><b>${esc(a.nom)}</b><span>${ks.length ? plur(n, 'élément', 'éléments') : 'aucune donnée'}</span></div>`;
+    }
     const n = await lire(a.base, async db => { let s = 0; for(const t of Array.from(db.objectStoreNames)) s += await req(db.transaction(t).objectStore(t).count()); return s; });
     return `<div><b>${esc(a.nom)}</b><span>${n == null ? 'aucune donnée' : plur(n, 'élément', 'éléments')}</span></div>`;
   }));

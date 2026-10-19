@@ -109,6 +109,9 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bas{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line);font-size:13px}
 .bas b{color:var(--warn);font-weight:600;white-space:nowrap}
 .bas span{color:var(--muted)}
+.alerte{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--surface));color:var(--ink);border-radius:16px;padding:12px 14px}
+.alerte b{color:var(--warn);font-size:15px}
+.alerte span{font-size:13px;color:var(--muted)}
 .bilan{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .bilan b{color:var(--ink);font-weight:600}
 .etoiles{color:var(--today);letter-spacing:1px;white-space:nowrap}
@@ -534,8 +537,10 @@ function squeletteAccueil(){
       <div><div class="date">${esc(now.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}))}</div><h1>${esc(cap(now.toLocaleDateString('fr-FR', {weekday:'long'})))}</h1></div>
       <button type="button" class="rond" data-act="reglages" aria-label="Sauvegarde et réglages">${svg('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>', 20)}</button>
     </header>
+    <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     ${APPS.map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}`;
   $('#accueil').dataset.jour = iso(now);
+  alerteDrive();
 }
 let enCours = false, aRefaire = false, minuteur = 0;
 function planifierAccueil(ms){ clearTimeout(minuteur); minuteur = setTimeout(rafraichirAccueil, ms); }
@@ -566,8 +571,7 @@ $('#accueil').addEventListener('click', e => {
 });
 
 /* ---------- Sauvegarde globale ---------- */
-async function exporterTout(){
-  toast('Préparation de la sauvegarde…');
+async function collecter(){
   const bases = {};
   for(const app of APPS){
     if(!app.base) continue;
@@ -589,8 +593,12 @@ async function exporterTout(){
     const ks = clesLocales(app);
     if(ks.length) locaux[app.id] = Object.fromEntries(ks.map(k => [k, localStorage.getItem(k)]));
   }
+  return {bases, locaux, retours:lireRetours()};
+}
+async function exporterTout(){
+  toast('Préparation de la sauvegarde…');
+  const {bases, locaux, retours} = await collecter();
   if(!Object.keys(bases).length && !Object.keys(locaux).length){ toast('Aucune donnée à sauvegarder sur ce téléphone.'); return; }
-  const retours = lireRetours();
   const data = {app:'mon-quotidien-tout', version:2, date:new Date().toISOString(), bases, locaux, retours};
   const nom = `mon-quotidien-${iso(new Date())}.json`;
   const fichier = new File([JSON.stringify(data)], nom, {type:'application/json'});
@@ -608,7 +616,7 @@ async function exporterTout(){
 function planImport(data){
   if(!data || typeof data !== 'object') return null;
   const tab = v => Array.isArray(v) ? v : [];
-  if(data.app === 'mon-quotidien-tout' && (data.bases || data.locaux)){
+  if(data.app === 'mon-quotidien-tout' && (data.bases || data.locaux || Array.isArray(data.retours))){
     return [...Object.entries(data.bases || {}).map(([base, c]) => ({base, tables:Object.fromEntries(Object.entries(c.tables || {}).map(([n, t]) =>
       [n, t.cle == null ? {vider:true, paires:tab(t.paires)} : {vider:true, valeurs:tab(t.valeurs)}]))})),
       ...Object.entries(data.locaux || {}).map(([id, cles]) => ({local:id, vider:true, cles})),
@@ -703,6 +711,88 @@ async function importerFichiers(files){
 }
 $('#fichier').addEventListener('change', e => { const fs = [...e.target.files]; e.target.value = ''; if(fs.length) importerFichiers(fs); });
 
+/* ---------- Sauvegarde automatique sur Google Drive (via un script Google Apps Script) ----------
+   Dès que l'app est ouverte et que la dernière sauvegarde a plus de 12 h, chaque app est envoyée
+   dans un fichier séparé. Chaque fichier est une sauvegarde complète de son app : « Tout importer » le relit. */
+const CLE_DRIVE = 'quotidien-drive';
+const INTERVALLE_DRIVE = 12 * 3600e3, PAUSE_APRES_ECHEC = 30 * 60e3;
+function lireDrive(){ try{ return JSON.parse(localStorage.getItem(CLE_DRIVE) || '{}') || {}; }catch(e){ return {}; } }
+function ecrireDrive(maj){ const d = {...lireDrive(), ...maj}; try{ localStorage.setItem(CLE_DRIVE, JSON.stringify(d)); }catch(e){} return d; }
+const driveActif = d => !!(d.url && d.code);
+function ilYa(ts){
+  const m = Math.round((Date.now() - ts) / 60e3);
+  if(m < 1) return 'à l’instant';
+  if(m < 60) return `il y a ${m} min`;
+  const h = Math.round(m / 60); if(h < 48) return `il y a ${h} h`;
+  return `il y a ${Math.round(h / 24)} jours`;
+}
+async function envoyerDrive(d, corps){
+  const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 120e3);
+  try{
+    const r = await fetch(d.url, {method:'POST', body:JSON.stringify({code:d.code, ...corps}), headers:{'Content-Type':'text/plain;charset=utf-8'}, redirect:'follow', signal:ctrl.signal});
+    let j = null; try{ j = await r.json(); }catch(e){}
+    if(!j) throw new Error('réponse illisible (adresse du script correcte ? déployé avec l’accès « Tout le monde » ?)');
+    if(!j.ok) throw new Error(j.erreur || 'refusé par le script');
+    return j;
+  }catch(e){
+    throw new Error(e.name === 'AbortError' ? 'délai dépassé (connexion lente ?)' : (e.message || 'pas de connexion'));
+  }finally{ clearTimeout(to); }
+}
+let driveEnCours = false;
+async function sauvegarderDrive(manuel){
+  const d = lireDrive();
+  if(!driveActif(d) || driveEnCours) return;
+  driveEnCours = true; majEtatDrive('Sauvegarde en cours…');
+  ecrireDrive({essai:Date.now()});
+  try{
+    const {bases, locaux, retours} = await collecter(), date = new Date().toISOString(), envois = [];
+    for(const app of APPS){
+      if(app.base && bases[app.base]) envois.push({app:app.id, data:{app:'mon-quotidien-tout', version:2, date, bases:{[app.base]:bases[app.base]}}});
+      else if(estLocale(app) && locaux[app.id]) envois.push({app:app.id, data:{app:'mon-quotidien-tout', version:2, date, locaux:{[app.id]:locaux[app.id]}}});
+    }
+    if(retours.length) envois.push({app:'notes', data:{app:'mon-quotidien-tout', version:2, date, retours}});
+    if(!envois.length) throw new Error('aucune donnée sur ce téléphone');
+    for(const e of envois){
+      try{ await envoyerDrive(d, {app:e.app, contenu:JSON.stringify(e.data)}); }
+      catch(err){ throw new Error(`${(APPS.find(a => a.id === e.app) || {nom:'Notes'}).nom} : ${err.message}`); }
+    }
+    ecrireDrive({derniere:Date.now(), echecs:0, erreur:''});
+    if(manuel) majEtatDrive('Sauvegarde envoyée sur Drive ✓');
+  }catch(err){
+    const n = (lireDrive().echecs || 0) + 1;
+    ecrireDrive({echecs:n, erreur:err.message});
+    if(manuel) majEtatDrive('Échec : ' + err.message);
+  }finally{
+    driveEnCours = false; majEtatDrive(); alerteDrive();
+  }
+}
+function verifierDrive(){
+  const d = lireDrive();
+  if(!driveActif(d) || driveEnCours) return;
+  if(d.derniere && Date.now() - d.derniere < INTERVALLE_DRIVE) return;
+  if(d.essai && d.echecs && Date.now() - d.essai < PAUSE_APRES_ECHEC) return;
+  sauvegarderDrive(false);
+}
+function texteEtatDrive(){
+  const d = lireDrive();
+  if(!driveActif(d)) return 'Pas encore configurée.';
+  let s = d.derniere ? `Dernière sauvegarde : ${ilYa(d.derniere)} ✓` : 'Aucune sauvegarde envoyée pour l’instant.';
+  if(d.echecs) s += `\nDernier essai raté : ${d.erreur || 'erreur'}`;
+  return s;
+}
+function majEtatDrive(msg){
+  const el = $('#drive-etat'); if(!el) return;
+  el.textContent = msg || texteEtatDrive();
+}
+// Alerte sur l'accueil si aucune sauvegarde réussie depuis 2 jours (ou si les envois échouent)
+function alerteDrive(){
+  const el = $('#alerte-drive'); if(!el) return;
+  const d = lireDrive();
+  const enRetard = driveActif(d) && (d.echecs >= 2 || (d.derniere && Date.now() - d.derniere > 48 * 3600e3));
+  el.hidden = !enRetard;
+  if(enRetard) el.innerHTML = `<b>Sauvegarde Drive en retard</b><span>${d.derniere ? 'Dernière réussie ' + ilYa(d.derniere) : 'Aucune sauvegarde réussie'}${d.erreur ? ' · ' + esc(d.erreur.replace(/\.$/, '')) : ''}. Touche pour voir.</span>`;
+}
+
 /* ---------- Feuille « Sauvegarde et réglages » ---------- */
 async function majEtat(){
   const el = $('#etat'); if(!el) return;
@@ -724,6 +814,12 @@ function ouvrirReglages(){
     <p class="hint">Un seul fichier avec toutes les apps. Range-le dans Fichiers ou sur ton Drive.</p>
     <div class="ligne2"><button type="button" class="btn primaire" data-act="exporter">Tout exporter</button><button type="button" class="btn" data-act="importer">Tout importer</button></div>
     <p class="hint">« Tout importer » accepte aussi les sauvegardes faites dans chaque app (plusieurs fichiers à la fois).</p>
+    <h3>Sauvegarde automatique sur Drive</h3>
+    <p class="hint">Toutes les 12 h environ, dès que l’app est ouverte. Les 30 dernières sauvegardes de chaque app sont gardées dans ton Drive.</p>
+    <p class="msg" id="drive-etat" style="white-space:pre-line"></p>
+    <label class="champ">Adresse du script<input id="drive-url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(lireDrive().url || '')}"></label>
+    <label class="champ">Code secret<input id="drive-code" autocomplete="off" placeholder="le même que dans le script" value="${esc(lireDrive().code || '')}"></label>
+    <div class="ligne2"><button type="button" class="btn" data-act="drive-tester">Enregistrer et tester</button><button type="button" class="btn" data-act="drive-maintenant">Sauvegarder maintenant</button></div>
     <h3>Sur ce téléphone</h3>
     <div class="etat" id="etat"><div><span>Lecture…</span></div></div>
     <h3>Apparence</h3>
@@ -732,7 +828,7 @@ function ouvrirReglages(){
     <p class="version">Mon quotidien · version ${VERSION}</p>
   </div>`;
   dlg.showModal();
-  majEtat();
+  majEtat(); majEtatDrive();
 }
 $('#reglages').addEventListener('click', e => {
   const dlg = $('#reglages');
@@ -741,6 +837,19 @@ $('#reglages').addEventListener('click', e => {
   if(b.dataset.act === 'fermer') dlg.close();
   else if(b.dataset.act === 'exporter') exporterTout();
   else if(b.dataset.act === 'importer') $('#fichier').click();
+  else if(b.dataset.act === 'drive-tester'){
+    const url = $('#drive-url').value.trim(), code = $('#drive-code').value.trim();
+    if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(url)){ majEtatDrive('L’adresse doit commencer par https://script.google.com/…'); return; }
+    if(!code){ majEtatDrive('Indique le code secret choisi dans le script.'); return; }
+    const d = ecrireDrive({url, code, echecs:0, erreur:''});
+    majEtatDrive('Test en cours…');
+    envoyerDrive(d, {test:true}).then(() => { majEtatDrive('Connexion réussie ✓ Première sauvegarde en cours…'); sauvegarderDrive(true); })
+      .catch(err => majEtatDrive('Échec du test : ' + err.message));
+  }
+  else if(b.dataset.act === 'drive-maintenant'){
+    if(!driveActif(lireDrive())){ majEtatDrive('Remplis d’abord l’adresse et le code, puis « Enregistrer et tester ».'); return; }
+    sauvegarderDrive(true);
+  }
   else if(b.dataset.themeChoix){
     try{ localStorage.setItem(CLE_THEME, b.dataset.themeChoix); }catch(e){}
     appliquerPartout();
@@ -877,7 +986,12 @@ construireBarre();
 }
 if(actif !== 'accueil') rafraichirAccueil();
 precharger();
-document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && actif === 'accueil') rafraichirAccueil(); });
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState !== 'visible') return;
+  if(actif === 'accueil') rafraichirAccueil();
+  setTimeout(verifierDrive, 3000);
+});
+setTimeout(verifierDrive, 6000);   // laisse l'app s'ouvrir tranquillement avant d'envoyer
 if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
 // Un seul service worker pour tout Myself/ ; mise à jour automatique

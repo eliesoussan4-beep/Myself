@@ -3675,7 +3675,15 @@ window.quotidienGR = {
   jour(n){
     const k = keyIn(n || 0), o = S.outfits.get(plansOf()[k]); if(!o) return null;
     const pcs = planPieceIds(k).map(id => S.pieces.get(id)).filter(Boolean);
-    return {id:o.id, nom:o.name || 'Tenue', ...silQuotidien(withAdj(pcs, o.sizeAdj))};
+    return {id:o.id, nom:o.name || 'Tenue', ...silQuotidien(withAdj(pcs, o.sizeAdj)),
+      pieces:pcs.map(p => ({id:p.id, nom:p.name || catLabel(p.category), src:thumbSrc(p) || '', sale:!!p.dirty}))};
+  },
+  // Même chose que le bouton « au sale / propre » d'une pièce dans la garde-robe
+  sale(id){
+    const b = document.createElement('button');
+    b.type = 'button'; b.hidden = true; b.dataset.act = 'toggle-dirty'; b.dataset.id = id;
+    document.body.appendChild(b); b.click(); b.remove();
+    const p = S.pieces.get(id); return p ? !!p.dirty : null;
   },
   propositions(n){
     const k = keyIn(n || 0), wd = S.weatherDays && S.weatherDays[k];

@@ -945,9 +945,19 @@ function openReusePicker(title, items, onPick) {
 }
 // Placer une tâche sur un jour : une tâche « Libre » reste dans To-do et on en crée une copie datée
 function makeInstance(src, d, extra = {}) {
-  const inst = { id: uid(), info: !!src.info, time: src.time || '', title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: {}, created: today(), srcId: src.id, ...extra };
+  // Étapes déjà faites sur une copie retirée d'un jour : elles reviennent cochées
+  const reste = (src.subReste || []).filter(id => (src.subs || []).some(s => s.id === id));
+  const inst = { id: uid(), info: !!src.info, time: src.time || '', title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: reste.length ? { x: reste } : {}, created: today(), srcId: src.id, ...extra };
+  if (src.subReste) { const s2 = { ...src }; delete s2.subReste; save('tasks', s2); }
   save('tasks', inst);
   return inst;
+}
+// Retirer une copie datée d'un jour : ses étapes cochées sont gardées pour la prochaine fois qu'on la place
+function retirerCopie(inst) {
+  const src = S.tasks.find(x => x.id === inst.srcId);
+  const fait = ((inst.subDone || {}).x || []);
+  if (src && fait.length && !inst.done) save('tasks', { ...src, subReste: fait });
+  removeMany('tasks', [inst.id]);
 }
 function placeTask(t, d, extra = {}) {
   if (t.free) return makeInstance(t, d, extra);
@@ -2415,7 +2425,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
       } else {
         f.title = f.title.trim() || task.title;
         const snap = snapshot();
-        if (task.srcId) { removeMany('tasks', [task.id]); closeTop(); refresh(); toast('Retirée · le modèle reste dans To-do 📥', () => restore(snap)); return; }
+        if (task.srcId) { retirerCopie(task); closeTop(); refresh(); toast('Retirée · le modèle reste dans To-do 📥', () => restore(snap)); return; }
         save('tasks', { ...f, date: null, routineRun: null });
         closeTop(); refresh(); toast('Retirée · elle t\'attend dans To-do 📥', () => restore(snap));
       }
@@ -2602,7 +2612,8 @@ function reportTask(t, d, cible) {
   if (t.rep) {
     const cut = addDays(t0, -120);
     save('tasks', { ...t, skip: [...(t.skip || []).filter(x => x >= cut), d || t0] });
-    if (!occursOn(t, target)) save('tasks', { id: uid(), info: !!t.info, time: t.time || '', title: t.title, themeId: t.themeId || null, date: target, prio: false, rep: null, duration: t.duration || 0, seg: t.seg || null, note: t.note || '', done: false, doneDates: [], subs: (t.subs || []).map(x => ({ ...x })), subDone: {}, created: t0, fromRep: t.id });
+    const dejaFait = ((t.subDone || {})[d || t0] || []);   // étapes déjà cochées ce jour-là : elles suivent le report
+    if (!occursOn(t, target)) save('tasks', { id: uid(), info: !!t.info, time: t.time || '', title: t.title, themeId: t.themeId || null, date: target, prio: false, rep: null, duration: t.duration || 0, seg: t.seg || null, note: t.note || '', done: false, doneDates: [], subs: (t.subs || []).map(x => ({ ...x })), subDone: dejaFait.length ? { x: dejaFait } : {}, created: t0, fromRep: t.id });
   } else {
     save('tasks', { ...t, date: target, routineRun: null });
   }
@@ -3018,7 +3029,7 @@ const A = {
   'plan-on': (el, c) => {
     const t = S.tasks.find(x => x.id === c.id); if (!t) return;
     const ex = t.free && S.tasks.find(x => x.srcId === t.id && !x.done && x.date === c.d);
-    if (ex) { removeMany('tasks', [ex.id]); refresh(); toast(`Retirée ${whenLabel(c.d)}`); return; }
+    if (ex) { retirerCopie(ex); refresh(); toast(`Retirée ${whenLabel(c.d)}`); return; }
     placeTask(t, c.d); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`);
   },
   'routine-launch-on': (el, c) => { if (stack.length && stack[stack.length - 1].kind === 'dayadd') closeTop(); launchRoutine(c.id, c.d); },
@@ -3234,11 +3245,24 @@ window.quotidienAction = p => {
   if (p.action === 'rappel') {
     const ex = S.tasks.find(t => t.bsRappel === p.cle);
     if (!p.rythme) { if (ex) { removeMany('tasks', [ex.id]); refresh(); } return { ok: true }; }
-    const [unit, n] = String(p.rythme).split(':'), every = Math.max(1, +n || 1), t0 = today();
-    let start = unit === 'sem' ? addDays(t0, 7 * every) : addDays(t0, every);
-    if (unit === 'mois') { const x = parse(t0); x.setMonth(x.getMonth() + every); start = iso(x); }
-    const rep = unit === 'sem' ? { unit: 'sem', every, days: [dow(start)] } : unit === 'mois' ? { unit: 'mois', every, mode: 'dom', dom: parse(start).getDate() } : { unit: 'jour', every };
-    const same = ex && ex.rep && ex.rep.unit === rep.unit && (ex.rep.every || 1) === every;
+    // rythme : 'sem:N' · 'mois:dom:25' · 'mois:nth:1:2' (1er mercredi ; lundi = 0) · 'mois:last:2' · ancien 'mois:N'
+    const pr = String(p.rythme).split(':'), t0 = today();
+    let rep, start;
+    if (pr[0] === 'mois' && pr.length > 2) {
+      rep = pr[1] === 'dom' ? { unit: 'mois', every: 1, mode: 'dom', dom: Math.min(31, Math.max(1, +pr[2] || 1)) }
+        : pr[1] === 'nth' ? { unit: 'mois', every: 1, mode: 'nth', nth: Math.min(4, Math.max(1, +pr[2] || 1)), wd: (+pr[3] || 0) % 7 }
+        : { unit: 'mois', every: 1, mode: 'last', wd: (+pr[2] || 0) % 7 };
+      const x = parse(t0);
+      for (let i = 0; i < 14 && !start; i++) { const y = x.getFullYear(), m = x.getMonth() + i; const d = monthOcc(rep, y + Math.floor(m / 12), m % 12); if (d && d > t0) start = d; }
+      if (rep.mode !== 'dom') rep.dom = parse(start || t0).getDate();
+    } else {
+      const unit = pr[0], every = Math.max(1, +pr[1] || 1);
+      start = unit === 'sem' ? addDays(t0, 7 * every) : addDays(t0, every);
+      if (unit === 'mois') { const x = parse(t0); x.setMonth(x.getMonth() + every); start = iso(x); }
+      rep = unit === 'sem' ? { unit: 'sem', every, days: [dow(start)] } : unit === 'mois' ? { unit: 'mois', every, mode: 'dom', dom: parse(start).getDate() } : { unit: 'jour', every };
+    }
+    const cleRep = r => r ? JSON.stringify([r.unit, r.every || 1, r.unit === 'mois' ? r.mode || 'dom' : '', r.mode === 'dom' || !r.mode ? r.dom : '', r.nth || '', r.wd != null ? r.wd : '']) : '';
+    const same = ex && ex.rep && (rep.unit === 'sem' ? ex.rep.unit === 'sem' && (ex.rep.every || 1) === rep.every : cleRep(ex.rep) === cleRep(rep));
     const base = ex ? { ...ex } : { id: uid(), prio: false, duration: 0, note: '', done: false, doneDates: [], subs: [], subDone: {}, created: t0, bsRappel: p.cle };
     const themeId = p.themeId && S.themes.some(x => x.id === p.themeId) ? p.themeId : (base.themeId || null);
     save('tasks', { ...base, title: p.titre || base.title || 'Recontacter', themeId, rep: same ? ex.rep : rep, date: same ? ex.date : start });

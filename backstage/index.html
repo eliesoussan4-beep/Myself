@@ -1242,6 +1242,13 @@
   .modal-title{font-size:19px;font-weight:700}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);border:0;border-radius:12px;font-size:14px;font-weight:500}
   .orga-hint{margin:6px 2px 0;font-size:12.5px;color:var(--text-dim)}
+  .rc{display:flex;flex-direction:column;gap:8px}
+  .rc-row{display:flex;flex-wrap:wrap;gap:6px}
+  .rc-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+  .rc-chip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .rc-pas{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:6px}
+  .rc-pas span{flex:1;text-align:center;font-weight:600;font-size:15px}
+  .rc-b{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:20px;cursor:pointer}
   .agenda-noter{display:flex;flex-direction:column;gap:6px;margin:12px 0 4px}
   .agenda-noter-t{font-size:13px;font-weight:600;color:var(--text-dim)}
   .agenda-noter-b{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:14px;padding:11px 14px;font-size:15px;cursor:pointer}
@@ -1761,10 +1768,10 @@
             <input type="text" id="pl-instagram" placeholder="https://instagram.com/...">
           </div>
           <div class="field orga-lien" hidden>
-            <label for="pl-recontact">Recontacter pour jouer</label>
-            <select id="pl-recontact"><option value="">Jamais</option><option value="sem:1">Toutes les semaines</option><option value="sem:2">Toutes les 2 semaines</option><option value="sem:3">Toutes les 3 semaines</option><option value="mois:1">Tous les mois</option><option value="mois:2">Tous les 2 mois</option><option value="mois:3">Tous les 3 mois</option><option value="mois:6">Tous les 6 mois</option></select>
-            <select id="pl-recontact-theme" aria-label="Catégorie du rappel dans l’Organisation" style="margin-top:8px"></select>
-            <p class="orga-hint">Un rappel « Recontacter » sera créé dans l’Organisation, dans cette catégorie.</p>
+            <label>Recontacter pour jouer</label>
+            <div class="rc" id="pl-rc"></div>
+            <input type="hidden" id="pl-recontact" value="">
+            <p class="orga-hint" id="pl-rc-hint"></p>
           </div>
           <button class="save-btn" style="width:100%;" onclick="savePlateau()">Ajouter</button>
           <button class="backlink" style="width:100%;text-align:center;" onclick="closeAddPlateauForm()">Annuler</button>
@@ -1867,10 +1874,10 @@
             <input type="text" id="ple-instagram" placeholder="https://instagram.com/...">
           </div>
           <div class="field orga-lien" hidden>
-            <label for="ple-recontact">Recontacter pour jouer</label>
-            <select id="ple-recontact"><option value="">Jamais</option><option value="sem:1">Toutes les semaines</option><option value="sem:2">Toutes les 2 semaines</option><option value="sem:3">Toutes les 3 semaines</option><option value="mois:1">Tous les mois</option><option value="mois:2">Tous les 2 mois</option><option value="mois:3">Tous les 3 mois</option><option value="mois:6">Tous les 6 mois</option></select>
-            <select id="ple-recontact-theme" aria-label="Catégorie du rappel dans l’Organisation" style="margin-top:8px"></select>
-            <p class="orga-hint">Un rappel « Recontacter » sera créé dans l’Organisation, dans cette catégorie.</p>
+            <label>Recontacter pour jouer</label>
+            <div class="rc" id="ple-rc"></div>
+            <input type="hidden" id="ple-recontact" value="">
+            <p class="orga-hint" id="ple-rc-hint"></p>
           </div>
           <button class="save-btn" style="width:100%;" onclick="saveEditedPlateau()">Enregistrer</button>
           <button class="backlink" style="width:100%;text-align:center;" onclick="cancelPlateauEdit()">Annuler</button>
@@ -5802,16 +5809,61 @@ const RECONTACT_THEME_KEY = 'backstage_recontact_theme_v1';
 function normHeure(x){ const m = String(x || '').match(/(\d{1,2})\s*(?:[h:]\s*(\d{2}))?/); return m ? String(+m[1]).padStart(2, '0') + ':' + (m[2] || '00') : ''; }
 function lireRecontact(pfx){
   const box = document.getElementById(pfx + '-recontact'); if(!box || box.closest('.orga-lien').hidden) return {};
-  const theme = document.getElementById(pfx + '-recontact-theme').value || null;
+  const theme = box.dataset.theme || null;
   if(theme) try{ localStorage.setItem(RECONTACT_THEME_KEY, theme); }catch(e){}
   return {recontact: box.value || '', recontactTheme: theme};
 }
+/* Choix du rythme : Jamais · toutes les N semaines · chaque mois (le 25, ou le 1er/2e/3e/4e/dernier mercredi…)
+   Valeur : '' | 'sem:N' | 'mois:dom:25' | 'mois:nth:1:2' | 'mois:last:2'   (jours : lundi = 0) */
+const RC_JOURS = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+const RC_RANGS = ['1er','2e','3e','4e','dernier'];
+function rcEtat(v){
+  const p = String(v || '').split(':'), d = new Date(), wd = (d.getDay() + 6) % 7, rang = Math.min(4, Math.ceil(d.getDate() / 7));
+  if(p[0] === 'sem') return {mode:'sem', n:Math.max(1, +p[1] || 1), dom:d.getDate(), rang, wd, mm:'dom'};
+  if(p[0] === 'mois' && p[1] === 'dom') return {mode:'mois', mm:'dom', dom:+p[2] || d.getDate(), rang, wd, n:2};
+  if(p[0] === 'mois' && p[1] === 'nth') return {mode:'mois', mm:'jour', rang:Math.min(4, Math.max(1, +p[2] || 1)), wd:(+p[3] || 0) % 7, dom:d.getDate(), n:2};
+  if(p[0] === 'mois' && p[1] === 'last') return {mode:'mois', mm:'jour', rang:5, wd:(+p[2] || 0) % 7, dom:d.getDate(), n:2};
+  if(p[0] === 'mois') return {mode:'mois', mm:'dom', dom:d.getDate(), rang, wd, n:2};
+  return {mode:'', n:2, dom:d.getDate(), rang, wd, mm:'dom'};
+}
+function rcValeur(e){
+  if(e.mode === 'sem') return 'sem:' + e.n;
+  if(e.mode === 'mois') return e.mm === 'dom' ? 'mois:dom:' + e.dom : e.rang === 5 ? 'mois:last:' + e.wd : 'mois:nth:' + e.rang + ':' + e.wd;
+  return '';
+}
+function rcDessiner(pfx){
+  const box = document.getElementById(pfx + '-rc'), inp = document.getElementById(pfx + '-recontact');
+  const e = box._etat || (box._etat = rcEtat(inp.value));
+  const chip = (act, val, on, txt) => `<button type="button" class="rc-chip${on ? ' on' : ''}" data-rc="${act}" data-v="${val}">${txt}</button>`;
+  const pas = (act, txt) => `<div class="rc-pas"><button type="button" class="rc-b" data-rc="${act}" data-v="-1" aria-label="Moins">−</button><span>${txt}</span><button type="button" class="rc-b" data-rc="${act}" data-v="1" aria-label="Plus">+</button></div>`;
+  let h = `<div class="rc-row">${chip('mode', '', !e.mode, 'Jamais')}${chip('mode', 'sem', e.mode === 'sem', 'Semaines')}${chip('mode', 'mois', e.mode === 'mois', 'Chaque mois')}</div>`;
+  if(e.mode === 'sem') h += pas('n', e.n === 1 ? 'Toutes les semaines' : `Toutes les ${e.n} semaines`);
+  if(e.mode === 'mois'){
+    h += `<div class="rc-row">${chip('mm', 'dom', e.mm === 'dom', 'Un jour fixe')}${chip('mm', 'jour', e.mm === 'jour', 'Un jour de la semaine')}</div>`;
+    if(e.mm === 'dom') h += pas('dom', `Le ${e.dom === 1 ? '1er' : e.dom} de chaque mois`);
+    else h += pas('rang', `Le ${RC_RANGS[e.rang - 1]} ${RC_JOURS[e.wd]} du mois`) + `<div class="rc-row">${RC_JOURS.map((j, i) => chip('wd', i, e.wd === i, j.slice(0, 3))).join('')}</div>`;
+  }
+  box.innerHTML = h;
+  inp.value = rcValeur(e);
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-rc]'); if(!b) return;
+  const box = b.closest('.rc'), pfx = box.id.replace(/-rc$/, ''), e = box._etat, v = b.dataset.v;
+  if(b.dataset.rc === 'mode') e.mode = v;
+  if(b.dataset.rc === 'mm') e.mm = v;
+  if(b.dataset.rc === 'n') e.n = Math.max(1, Math.min(26, e.n + +v));
+  if(b.dataset.rc === 'dom') e.dom = ((e.dom - 1 + +v + 31) % 31) + 1;
+  if(b.dataset.rc === 'rang') e.rang = Math.max(1, Math.min(5, e.rang + +v));
+  if(b.dataset.rc === 'wd') e.wd = +v;
+  rcDessiner(pfx);
+});
 async function remplirRecontact(pfx, val, themeId){
   const q = quotidienParent(), blocEl = document.getElementById(pfx + '-recontact');
   if(!blocEl) return;
   const wrap = blocEl.closest('.orga-lien');
   if(!q || !q.demander){ wrap.hidden = true; return; }
   blocEl.value = val || '';
+  const box = document.getElementById(pfx + '-rc'); box._etat = null; rcDessiner(pfx);
   let themes = [];
   try{ themes = (await q.demander('organisation', {action:'themes'})) || []; }catch(e){}
   if(!themes.length){ wrap.hidden = true; return; }
@@ -5822,7 +5874,9 @@ async function remplirRecontact(pfx, val, themeId){
     def = (themes.find(x => su.test(x.parentName) && /contact|relance|book|d[ée]march|plateau/i.test(x.name))
       || themes.find(x => su.test(x.parentName)) || themes.find(x => su.test(x.name)) || themes[0]).id;
   }
-  document.getElementById(pfx + '-recontact-theme').innerHTML = themes.map(x => `<option value="${escapeHtml(x.id)}"${x.id === def ? ' selected' : ''}>${escapeHtml(x.label)}</option>`).join('');
+  blocEl.dataset.theme = def;
+  const th = themes.find(x => x.id === def);
+  document.getElementById(pfx + '-rc-hint').textContent = th ? `Rappel « Recontacter » dans ${th.label.replace(/^↳ /, '')}, dans l’Organisation.` : '';
   wrap.hidden = false;
 }
 async function lierPlateauOrga(p, opts){

@@ -79,19 +79,25 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bloc-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .bloc-t{font-family:var(--display);font-weight:700;font-size:17px}
 .bloc-t small{font-family:var(--body);font-weight:500;font-size:14px;color:var(--muted)}
-.bloc-lien{font-size:13px;font-weight:600;color:var(--c);white-space:nowrap;border:0;background:none;padding:4px 0}
+.bloc-ouvrir{border:0;background:none;color:var(--c);padding:4px;margin:-4px;display:flex}
 .vide{margin:0;font-size:14px;color:var(--muted)}
 .gr2{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:12px;align-items:stretch}
-.wx2{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;background:var(--sunk);border-radius:16px;padding:12px}
+.wx2{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;background:var(--sunk);border-radius:16px;padding:12px;height:100%;box-sizing:border-box}
 .wx2 .wx-ico{font-size:34px;margin-bottom:2px}
 .wx2 .pastille{margin-top:6px}
-.tenue2{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tenue2{display:flex;flex-direction:column;gap:6px;min-width:0}
+.tenue2 .slides.mini{flex:1}
+.tenue2 .slides.mini .slide{justify-content:space-between}
+.piece-img{flex:1;min-height:150px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.piece-img img{max-width:100%;max-height:170px;object-fit:contain}
+.slide.piece.sale .piece-img{opacity:.45}
+.ts-b.off{background:var(--line);color:var(--ink)}
 .tenue2 .tenue-n{font-size:14px;font-weight:600}
-.sil-box{--silh:170px;display:flex;justify-content:center}
+.sil-box{--silh:190px;display:flex;justify-content:center}
 .sil-box .sil-wrap{width:100%;box-sizing:border-box;padding:10px 8px}
 .slides.mini{margin:0;padding:0;gap:8px}
 .slides.mini .slide{padding:8px;gap:6px;align-items:stretch;background:var(--sunk)}
-.tslide .sil-box{--silh:150px}
+.tslide .sil-box{--silh:180px}
 .ts-n{font-size:13px;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ts-b{border:0;border-radius:10px;background:var(--c);color:var(--on-denim);font:600 13px/1 var(--body);padding:9px 10px}
 /* Silhouette de la garde-robe (mêmes règles que dans l'app) */
@@ -133,6 +139,16 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .oc-ev{background:var(--tomorrow-card)}
 .oc-ev b{font-size:13px;color:var(--tomorrow)}
 .oc.faite .oc-t{text-decoration:line-through;color:var(--muted);font-weight:500}
+.slide.tache{flex-direction:row;align-items:center;gap:12px;padding:14px;border-bottom:0}
+.slide-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.slide.tache .coche{width:40px;height:40px;border-radius:12px;border-color:var(--sc);margin:0}
+.slide.tache.faite .coche{background:var(--sc);border-color:var(--sc)}
+.slide.tache.faite .slide-n{text-decoration:line-through;color:var(--muted)}
+/* Couleurs des catégories de l'Organisation (mêmes valeurs que dans l'app) */
+:root{--c-forest:#1E5E33; --c-mint:#237A5C; --c-cyan:#0E7480; --c-indigo:#3A41A8; --c-plum:#7D2E68; --c-rose:#B03A5B; --c-red:#B42D2D; --c-orange:#B25A12; --c-amber:#946200; --c-olive:#66611C; --c-brown:#6E4426; --c-gray:#5F6670; --c-sky:#146C93; --c-lime:#5A7A12; --c-fuchsia:#96309F; --c-sand:#8A6334; --c-green:#2F7A4A; --c-pink:#A83E6E; --c-teal:#1F7C78; --c-yellow:#8A6A0E; --c-purple:#6A4BC4; --c-coral:#B4532F; --c-blue:#2F4C78;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c-forest:#4FAE6A; --c-mint:#8EE3C4; --c-cyan:#4FD8E6; --c-indigo:#8C93F0; --c-plum:#C77BB0; --c-rose:#F4A3B8; --c-red:#F07272; --c-orange:#F5A25D; --c-amber:#FFC24D; --c-olive:#BDB76B; --c-brown:#C29572; --c-gray:#C9CDD4; --c-sky:#63C7EE; --c-lime:#B8D65A; --c-fuchsia:#D47FE0; --c-sand:#D6B48C; --c-green:#7CC992; --c-pink:#E98BB5; --c-teal:#5EC4C0; --c-yellow:#E3C35A; --c-purple:#A58CF0; --c-coral:#EE9A7A; --c-blue:#8FB0E3;}}
+:root[data-theme="dark"]{--c-forest:#4FAE6A; --c-mint:#8EE3C4; --c-cyan:#4FD8E6; --c-indigo:#8C93F0; --c-plum:#C77BB0; --c-rose:#F4A3B8; --c-red:#F07272; --c-orange:#F5A25D; --c-amber:#FFC24D; --c-olive:#BDB76B; --c-brown:#C29572; --c-gray:#C9CDD4; --c-sky:#63C7EE; --c-lime:#B8D65A; --c-fuchsia:#D47FE0; --c-sand:#D6B48C; --c-green:#7CC992; --c-pink:#E98BB5; --c-teal:#5EC4C0; --c-yellow:#E3C35A; --c-purple:#A58CF0; --c-coral:#EE9A7A; --c-blue:#8FB0E3;}
+
 .evt{display:flex;align-items:center;gap:12px;background:var(--tomorrow-card);border-radius:12px;padding:9px 12px;font-size:15px}
 .evt b{font-size:14px;color:var(--tomorrow);min-width:44px}
 .taches{display:flex;flex-direction:column}
@@ -443,10 +459,15 @@ function blocGardeRobe(d, jours){
     ? `<div class="wx2"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><span class="wx-t">${w.max}°</span><span class="wx-s">min ${w.min}°</span><span class="wx-s">pluie ${w.pluie} %</span><span class="wx-s">${esc(d.ville.name)}</span>${d.demain ? '<span class="pastille demain">Demain</span>' : ''}</div>`
     : `<div class="wx2"><span class="wx-ico" aria-hidden="true">⛅</span><span class="wx-s">${jours === undefined ? 'Météo…' : 'Météo indisponible'}</span><span class="wx-s">${esc(d.ville.name)}</span></div>`;
   let droite;
-  if(d.tenue) droite = `<div class="tenue2"><div class="tenue-n">${esc(d.tenue.nom)}</div>${visuelTenue(d.tenue)}</div>`;
+  if(d.tenue){
+    const pcs = (d.tenue.pieces || []);
+    const sl = [`<div class="slide tslide">${visuelTenue(d.tenue)}<div class="ts-n">${esc(d.tenue.nom)}</div></div>`,
+      ...pcs.map(x => `<div class="slide tslide piece${x.sale ? ' sale' : ''}"><div class="piece-img">${x.src ? `<img src="${esc(x.src)}" alt="">` : svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 26)}</div><div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b${x.sale ? ' off' : ''}" data-sale="${esc(x.id)}">${x.sale ? 'Au sale · remettre propre' : '🧺 Au sale'}</button></div>`)];
+    droite = `<div class="tenue2"><div class="slides mini" data-ouvrir="garde-robe">${sl.join('')}</div>${sl.length > 1 ? `<div class="points" aria-hidden="true">${sl.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+  }
   else if(d.props.length){
-    droite = `<div class="tenue2"><div class="tenue-n">Choisis ta tenue${d.demain ? ' de demain' : ''}</div>
-      <div class="slides mini" data-ouvrir="garde-robe">${d.props.map(x => `<div class="slide tslide">${visuelTenue(x)}<div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b" data-choisir="${esc(x.id)}" data-n="${d.n}">${d.demain ? 'Demain' : 'Aujourd’hui'}</button></div>`).join('')}</div>
+    droite = `<div class="tenue2">
+      <div class="slides mini" data-ouvrir="garde-robe">${d.props.map(x => `<div class="slide tslide">${visuelTenue(x)}<div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b" data-choisir="${esc(x.id)}" data-n="${d.n}">Choisir pour ${d.demain ? 'demain' : 'aujourd’hui'}</button></div>`).join('')}</div>
       ${d.props.length > 1 ? `<div class="points" aria-hidden="true">${d.props.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
   }
   else droite = `<div class="tenue2"><p class="vide">${d.vide ? 'Ajoute tes vêtements dans la garde-robe.' : 'Aucune tenue propre à proposer.'}</p></div>`;
@@ -521,12 +542,13 @@ async function lireOrganisation(){
 function blocOrganisation(d){
   if(!d) return `<p class="vide">Pas encore d’organisation sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
   if(!d.evts.length && !d.restantes.length && !d.faites) return `<p class="vide">${d.faites ? `Tout est fait pour aujourd’hui (${plur(d.faites, 'tâche', 'tâches')}).` : 'Rien de prévu aujourd’hui.'}</p>`;
-  const emo = x => { const th = d.themes.get(x.themeId); return th && th.emoji ? th.emoji + ' ' : ''; };
-  // Une petite carte par élément, en carrousel : événements, tâches à faire, puis tâches faites (rayées)
-  const ev = d.evts.map(e => `<div class="oc oc-ev"><b>${esc(e.time || 'Journée')}</b><span class="oc-t">${esc(emo(e) + e.title)}</span></div>`).join('');
-  const lignes = [...d.restantes, ...d.faitesL];
-  const ta = lignes.map(e => `<div class="oc tache${e.t.prio ? ' prio' : ''}${e.fait ? ' faite' : ''}"><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="oc-t">${esc(emo(e.t) + e.t.title)}</span>${e.retard ? `<em>en retard · ${esc(shortDate(e.d))}</em>` : ''}</div>`).join('');
-  return `<div class="ocs" data-ouvrir="organisation">${ev}${ta}</div>`;
+  // Une carte par élément, en carrousel (même format que Sur scène), de la couleur de sa catégorie
+  const coul = x => { const th = d.themes.get(x.themeId); return th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : ''; };
+  const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
+  const ev = d.evts.map(e => `<div class="slide"${coul(e)}><div class="slide-n">${esc(e.title)}</div><div class="slide-h"><b>${esc(heure(e) || 'Toute la journée')}</b></div></div>`);
+  const ta = [...d.restantes, ...d.faitesL].map(e => `<div class="slide tache${e.fait ? ' faite' : ''}"${coul(e.t)}><div class="slide-l"><div class="slide-n">${esc(e.t.title)}</div><div class="slide-h"><b>${e.retard ? `en retard · ${esc(shortDate(e.d))}` : heure(e.t) || (e.fait ? 'Faite' : 'À faire')}</b></div></div><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 18) : ''}</button></div>`);
+  const tout = [...ev, ...ta];
+  return `<div class="slides" data-ouvrir="organisation">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
 }
 function titreOrganisation(d){
   if(!d || !d.restantes.length) return '';
@@ -647,7 +669,7 @@ const LECTEURS = {
 const styleCouleur = app => app.couleur ? ` style="--c-c:${app.couleur[0]};--c-s:${app.couleur[1]}"` : '';
 // Carte de l'accueil : toucher la carte ouvre l'app ; les cases à cocher et le carrousel restent utilisables dedans
 function carte(app, titre, corps){
-  return `<div class="bloc" data-ouvrir="${esc(app.id)}"${styleCouleur(app)}><div class="bloc-h"><span class="bloc-t"><span class="bloc-ico">${svg(app.icone, 18)}</span><span>${titre}</span></span><button type="button" class="bloc-lien" data-ouvrir="${esc(app.id)}">${esc(app.nom)} ›</button></div>${corps}</div>`;
+  return `<div class="bloc" data-ouvrir="${esc(app.id)}"${styleCouleur(app)} role="group" aria-label="${esc(app.nom)}"><div class="bloc-h"><span class="bloc-t"><span class="bloc-ico">${svg(app.icone, 18)}</span><span>${titre}</span></span><button type="button" class="bloc-ouvrir" data-ouvrir="${esc(app.id)}" aria-label="Ouvrir ${esc(app.nom)}">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button></div>${corps}</div>`;
 }
 function squeletteAccueil(){
   const now = new Date();
@@ -661,10 +683,14 @@ function squeletteAccueil(){
   $('#accueil').dataset.jour = iso(now);
   alerteDrive();
 }
+const positions = {};   // position de chaque carrousel, gardée quand la carte se redessine (après avoir coché…)
 function brancherSlides(el){
-  const s = el.querySelector('.slides'); if(!s) return;
-  const pts = el.querySelectorAll('.points span');
-  s.addEventListener('scroll', () => { const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); }, {passive:true});
+  el.querySelectorAll('.slides').forEach((s, n) => {
+    const box = s.parentElement, pts = box.querySelectorAll(':scope > .points span'), cle = (el.dataset.bloc || '') + n;
+    const maj = () => { const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); positions[cle] = s.scrollLeft; };
+    if(positions[cle]){ s.scrollLeft = positions[cle]; maj(); }
+    s.addEventListener('scroll', maj, {passive:true});
+  });
 }
 let enCours = false, aRefaire = false, minuteur = 0;
 function planifierAccueil(ms){ clearTimeout(minuteur); minuteur = setTimeout(rafraichirAccueil, ms); }
@@ -705,6 +731,12 @@ async function cocherOrganisation(btn){
   delete ligne.dataset.attente;
   planifierAccueil(350);
 }
+async function mettreAuSale(btn){
+  btn.disabled = true;
+  const w = await attendreApp('garde-robe', w => w.quotidienGR && w.quotidienGR.pret());
+  if(w){ const sale = w.quotidienGR.sale(btn.dataset.sale); toast(sale ? 'Au sale 🧺' : 'Remis au propre ✨'); }
+  planifierAccueil(300);
+}
 async function choisirTenue(btn){
   btn.disabled = true; btn.textContent = '…';
   const w = await attendreApp('garde-robe', w => w.quotidienGR && w.quotidienGR.pret());
@@ -716,6 +748,7 @@ $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
   const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
   const ch = e.target.closest('[data-choisir]'); if(ch){ choisirTenue(ch); return; }
+  const sa = e.target.closest('[data-sale]'); if(sa){ mettreAuSale(sa); return; }
   if(e.target.closest('.slides, .ocs')) { const s = e.target.closest('[data-ouvrir]'); if(s) montrer(s.dataset.ouvrir); return; }
   const b = e.target.closest('[data-ouvrir]'); if(b) montrer(b.dataset.ouvrir);
 });

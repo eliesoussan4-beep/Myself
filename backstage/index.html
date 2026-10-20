@@ -5908,6 +5908,13 @@ function prefillNotation(nom, date){
   if(nom){ n.value = nom; n.dispatchEvent(new Event('input')); }
   window.scrollTo(0, 0);
 }
+// Appelé par Mon quotidien quand on touche l'onglet Backstage : toujours son accueil
+window.quotidienAccueil = function(){
+  try{ if(document.getElementById('tests-detail-view').style.display !== 'none') closeTextDetail(); }catch(e){}
+  try{ if(document.getElementById('plateaux-detail-view').style.display !== 'none') closePlateauDetail(); }catch(e){}
+  document.querySelectorAll('.modal-overlay').forEach(m => { m.style.display = 'none'; });
+  goto('home', true);
+};
 // Appelé par Mon quotidien : « Noter dans Backstage » depuis une scène de l'agenda
 window.quotidienAction = function(p){
   if(!p) return;

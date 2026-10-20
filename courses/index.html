@@ -808,7 +808,16 @@ async function boot(){
   // Hors ligne et mises à jour : gérés par le service worker unique de « Mon quotidien » (../sw.js)
   window.quotidienCO = {
     pret: () => S.products.size > 0 || S.list.size > 0 || true,
-    emojis: () => Object.fromEntries([...S.products.values()].map(p => [p.id, emojiOf(p)]))
+    emojis: () => Object.fromEntries([...S.products.values()].map(p => [p.id, emojiOf(p)])),
+    // Liste rangée par rayon, comme dans l'app : quantités et prix calculés ici
+    liste: () => [...itemsByRayon([...S.list.values()])].filter(([r, arr]) => arr.length).map(([r, arr]) => ({
+      rayon: r, nom: RAYON[r],
+      articles: arr.slice().sort((a, b) => (a.it.checked - b.it.checked) || a.p.name.localeCompare(b.p.name, 'fr')).map(({it, p}) => {
+        const pr = itemPrice(it, p);
+        return {id: it.id, pid: p.id, nom: p.name, emoji: emojiOf(p), qte: it.label || fmtQty(it.qty, it.format ? {unit: p.unit, format: it.format} : p), prix: pr, coche: !!it.checked};
+      })
+    })),
+    cocher: (id, v) => { const it = S.list.get(id); if(!it) return null; it.checked = v == null ? !it.checked : !!v; saveL(it); render(); return it.checked; }
   };
   window.quotidienAction = q => {
     if(!q || q.action !== 'produit') return null;

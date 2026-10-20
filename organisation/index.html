@@ -3229,6 +3229,14 @@ async function start() {
 // Pour Mon quotidien : cocher une tâche depuis l'accueil, avec les règles de l'app
 window.toggleTask = (id, d, late) => toggleTask(id, d, late);
 window.quotidienPret = () => !!document.querySelector('#app .hero');
+// « Bientôt » pour l'accueil de Mon quotidien : exactement ce que l'app affiche (événements, jours fériés…)
+window.quotidienBientot = () => {
+  const t = today(), hols = [];
+  for (let i = 2; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
+  return [...soonItems().map(e => { const th = themeOf(e.t); return { d: e.d, id: e.t.id, titre: e.t.title, emoji: th ? th.emoji : '', color: th ? th.color || 'slate' : 'slate', quand: dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : '') }; }),
+    ...hols.map(x => ({ d: x.d, titre: x.n, emoji: '🇫🇷', color: null, quand: dayMonth(x.d) }))]
+    .sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+};
 // Demandes des autres apps (Backstage) : liste des catégories, plateau → événement « Scène », rappel pour recontacter
 window.quotidienAction = p => {
   if (!p) return null;

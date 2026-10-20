@@ -19,7 +19,7 @@
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 8;
+self.VERSION_QUOTIDIEN = 9;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;
@@ -53,6 +53,7 @@ self.APPS = [
     id: 'backstage',
     nom: 'Backstage',
     dossier: 'backstage/',
+    toujoursAccueil: true,   // l'onglet ramène toujours à l'accueil de Backstage
     couleur: ['#7B5CD6', '#A58CF0'],
     stockage: 'localStorage',
     prefixe: 'backstage_',

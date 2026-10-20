@@ -12,14 +12,14 @@
         — ou, si l'app range ses données dans localStorage :
         stockage: 'localStorage' et prefixe : le début commun de ses clés (ex. 'backstage_')
         icone   : le dessin de l'icône (contenu d'un <svg viewBox="0 0 24 24">, trait seulement)
-        couleur : [couleur en mode clair, couleur en mode sombre] — barre du bas et carte de l'accueil
+        couleur : [couleur en mode clair, couleur en mode sombre] — carte de l'accueil
    3. augmenter VERSION_QUOTIDIEN de 1 (l'app se mettra à jour toute seule sur le téléphone).
 
    La sauvegarde globale prend automatiquement toute la base de chaque app listée.
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 5;
+self.VERSION_QUOTIDIEN = 6;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;

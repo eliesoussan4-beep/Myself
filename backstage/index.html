@@ -1241,6 +1241,7 @@
   .modal-card{border-radius:22px}
   .modal-title{font-size:19px;font-weight:700}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);border:0;border-radius:12px;font-size:14px;font-weight:500}
+  .orga-hint{margin:6px 2px 0;font-size:12.5px;color:var(--text-dim)}
   .agenda-noter{display:flex;flex-direction:column;gap:6px;margin:12px 0 4px}
   .agenda-noter-t{font-size:13px;font-weight:600;color:var(--text-dim)}
   .agenda-noter-b{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:14px;padding:11px 14px;font-size:15px;cursor:pointer}
@@ -1759,6 +1760,12 @@
             <label for="pl-instagram">Lien Instagram</label>
             <input type="text" id="pl-instagram" placeholder="https://instagram.com/...">
           </div>
+          <div class="field orga-lien" hidden>
+            <label for="pl-recontact">Recontacter pour jouer</label>
+            <select id="pl-recontact"><option value="">Jamais</option><option value="sem:1">Toutes les semaines</option><option value="sem:2">Toutes les 2 semaines</option><option value="sem:3">Toutes les 3 semaines</option><option value="mois:1">Tous les mois</option><option value="mois:2">Tous les 2 mois</option><option value="mois:3">Tous les 3 mois</option><option value="mois:6">Tous les 6 mois</option></select>
+            <select id="pl-recontact-theme" aria-label="Catégorie du rappel dans l’Organisation" style="margin-top:8px"></select>
+            <p class="orga-hint">Un rappel « Recontacter » sera créé dans l’Organisation, dans cette catégorie.</p>
+          </div>
           <button class="save-btn" style="width:100%;" onclick="savePlateau()">Ajouter</button>
           <button class="backlink" style="width:100%;text-align:center;" onclick="closeAddPlateauForm()">Annuler</button>
         </div>
@@ -1858,6 +1865,12 @@
           <div class="field">
             <label for="ple-instagram">Lien Instagram</label>
             <input type="text" id="ple-instagram" placeholder="https://instagram.com/...">
+          </div>
+          <div class="field orga-lien" hidden>
+            <label for="ple-recontact">Recontacter pour jouer</label>
+            <select id="ple-recontact"><option value="">Jamais</option><option value="sem:1">Toutes les semaines</option><option value="sem:2">Toutes les 2 semaines</option><option value="sem:3">Toutes les 3 semaines</option><option value="mois:1">Tous les mois</option><option value="mois:2">Tous les 2 mois</option><option value="mois:3">Tous les 3 mois</option><option value="mois:6">Tous les 6 mois</option></select>
+            <select id="ple-recontact-theme" aria-label="Catégorie du rappel dans l’Organisation" style="margin-top:8px"></select>
+            <p class="orga-hint">Un rappel « Recontacter » sera créé dans l’Organisation, dans cette catégorie.</p>
           </div>
           <button class="save-btn" style="width:100%;" onclick="saveEditedPlateau()">Enregistrer</button>
           <button class="backlink" style="width:100%;text-align:center;" onclick="cancelPlateauEdit()">Annuler</button>
@@ -2170,6 +2183,7 @@ function confirmQuickAddPlateau(){
     instagram
   });
   savePlateaux(plateaux);
+  lierPlateauOrga(plateaux[plateaux.length - 1]);
 
   closeQuickAddPlateauModal();
   showToast('Plateau ajouté ✓ à compléter dans Agenda');
@@ -2425,6 +2439,7 @@ function resetPlateauForm(){
   renderPlExceptions();
   toggleAnchorField();
   populateAddressDatalists();
+  remplirRecontact('pl', '', null);
 }
 
 function openAddPlateauForm(){
@@ -2607,9 +2622,11 @@ function savePlateau(){
   };
   if(cachedGeo){ entry.lat = cachedGeo.lat; entry.lng = cachedGeo.lng; }
 
+  Object.assign(entry, lireRecontact('pl'));
   const list = loadPlateaux();
   list.push(entry);
   savePlateaux(list);
+  lierPlateauOrga(entry);
 
   closeAddPlateauForm();
   showToast('Plateau ajouté ✓');
@@ -2617,6 +2634,8 @@ function savePlateau(){
 }
 
 function deletePlateau(id){
+  const old = loadPlateaux().find(p=>p.id===id);
+  if(old && old.recontact) lierPlateauOrga({...old, recontact:''}, {modele:false});   // le rappel part avec le plateau
   const list = loadPlateaux().filter(p=>p.id!==id);
   savePlateaux(list);
   renderPlateauxView();
@@ -2822,6 +2841,7 @@ function openPlateauDetail(id){
   renderEditExceptions();
   toggleEditAnchorField();
   populateAddressDatalists();
+  remplirRecontact('ple', p.recontact || '', p.recontactTheme || null);
 
   renderPlateauHistory(p.name);
   renderPlateauThemes(p.name);
@@ -2897,13 +2917,15 @@ function saveEditedPlateau(){
     times: newTimes.length ? newTimes : [{time:'', type:null}],
     exceptions: editExceptions.filter(ex => ex.days.length && (ex.time || ex.type !== null)),
     address: newAddress,
-    instagram: document.getElementById('ple-instagram').value.trim()
+    instagram: document.getElementById('ple-instagram').value.trim(),
+    ...lireRecontact('ple')
   };
   if(addressChanged){
     if(cachedGeo){ list[idx].lat = cachedGeo.lat; list[idx].lng = cachedGeo.lng; }
     else { delete list[idx].lat; delete list[idx].lng; }
   }
   savePlateaux(list);
+  lierPlateauOrga(list[idx]);
   showToast('Modifications enregistrées ✓');
 
   cancelPlateauEdit();
@@ -5774,6 +5796,55 @@ renderHomeRating();
 generateRandomWord();
 
 // Hors ligne et mises à jour : gérés par le service worker unique de « Mon quotidien » (../sw.js)
+
+/* ---------- Plateaux → Organisation : un événement « Scène » à placer, et un rappel pour recontacter ---------- */
+const RECONTACT_THEME_KEY = 'backstage_recontact_theme_v1';
+function normHeure(x){ const m = String(x || '').match(/(\d{1,2})\s*(?:[h:]\s*(\d{2}))?/); return m ? String(+m[1]).padStart(2, '0') + ':' + (m[2] || '00') : ''; }
+function lireRecontact(pfx){
+  const box = document.getElementById(pfx + '-recontact'); if(!box || box.closest('.orga-lien').hidden) return {};
+  const theme = document.getElementById(pfx + '-recontact-theme').value || null;
+  if(theme) try{ localStorage.setItem(RECONTACT_THEME_KEY, theme); }catch(e){}
+  return {recontact: box.value || '', recontactTheme: theme};
+}
+async function remplirRecontact(pfx, val, themeId){
+  const q = quotidienParent(), blocEl = document.getElementById(pfx + '-recontact');
+  if(!blocEl) return;
+  const wrap = blocEl.closest('.orga-lien');
+  if(!q || !q.demander){ wrap.hidden = true; return; }
+  blocEl.value = val || '';
+  let themes = [];
+  try{ themes = (await q.demander('organisation', {action:'themes'})) || []; }catch(e){}
+  if(!themes.length){ wrap.hidden = true; return; }
+  // Par défaut : la catégorie choisie la dernière fois, sinon une sous-catégorie de Stand-up qui parle de contacts, sinon Stand-up
+  let def = themeId || localStorage.getItem(RECONTACT_THEME_KEY);
+  if(!themes.some(x => x.id === def)){
+    const su = /stand.?up/i;
+    def = (themes.find(x => su.test(x.parentName) && /contact|relance|book|d[ée]march|plateau/i.test(x.name))
+      || themes.find(x => su.test(x.parentName)) || themes.find(x => su.test(x.name)) || themes[0]).id;
+  }
+  document.getElementById(pfx + '-recontact-theme').innerHTML = themes.map(x => `<option value="${escapeHtml(x.id)}"${x.id === def ? ' selected' : ''}>${escapeHtml(x.label)}</option>`).join('');
+  wrap.hidden = false;
+}
+async function lierPlateauOrga(p, opts){
+  const q = quotidienParent(); if(!q || !q.demander || !p) return;
+  const modele = !opts || opts.modele !== false;
+  try{
+    if(modele){
+      const slot = (p.times || []).find(s => s.time) || {};
+      const r = await q.demander('organisation', {action:'modeleScene', nom:p.name, heure:normHeure(slot.time || p.time), adresse:p.address || ''});
+      if(r && r.ok && !r.existe && !(opts && opts.discret)) showToast('Ajouté aux événements « Scènes » de l’Organisation 🎤');
+    }
+    if(p.recontact !== undefined) await q.demander('organisation', {action:'rappel', cle:'bs-' + p.id, titre:'Recontacter ' + p.name, rythme:p.recontact || '', themeId:p.recontactTheme || null});
+  }catch(e){}
+}
+// Une seule fois : les plateaux déjà enregistrés deviennent aussi des événements « Scènes » dans l'Organisation
+async function synchroPlateauxOrga(){
+  const q = quotidienParent(); if(!q || !q.demander) return;
+  try{ if(localStorage.getItem('backstage_orga_sync_v1')) return; }catch(e){ return; }
+  for(const p of loadPlateaux()) await lierPlateauOrga({...p, recontact:undefined}, {discret:true});
+  try{ localStorage.setItem('backstage_orga_sync_v1', '1'); }catch(e){}
+}
+setTimeout(synchroPlateauxOrga, 4000);
 
 /* ---------- Lien avec l'Organisation (catégorie « Scène ») via Mon quotidien ---------- */
 function quotidienParent(){ try{ return window.parent !== window && window.parent.quotidien ? window.parent.quotidien : null; }catch(e){ return null; } }

@@ -556,6 +556,12 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .pick-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-family:inherit;font-weight:500;font-size:16px;line-height:1.35;padding:12px 4px;cursor:pointer}
 .pick-row:last-child{border-bottom:0}
 .task-wrap.big .t-title{font-size:17px;font-weight:600}
+.sub-cat{margin:10px 0 2px;padding-top:8px;border-top:1px dashed var(--line)}
+.sub-cat-h{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;padding:0 2px 4px}
+.sub-cat-h .ell{flex:1}
+.sub-cat-h .muted{font-weight:500;font-size:13px}
+.field-col{display:flex;flex-direction:column;gap:8px;padding:12px 0}
+.ord-row.sub{margin-left:22px}
 .reuse-x{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px 2px}
 .reuse-x::-webkit-scrollbar{display:none}
 .sc-lbl{max-width:76px}
@@ -877,6 +883,12 @@ function guessEmoji(kind, name) {
 }
 const themeOf = t => S.themes.find(x => x.id === t.themeId);
 const byOrder = (a, b) => (a.order || 0) - (b.order || 0);
+// Sous-catégories : une catégorie peut avoir des sous-catégories (un seul niveau, champ parentId)
+const parentOf = th => th && th.parentId ? S.themes.find(x => x.id === th.parentId) || null : null;
+const childrenOf = id => S.themes.filter(x => x.parentId === id).sort(byOrder);
+const topThemes = () => S.themes.filter(x => !parentOf(x)).sort(byOrder);
+// Liste à plat dans l'ordre : catégorie, puis ses sous-catégories (marquées « ↳ »)
+const themesTries = () => topThemes().flatMap(tp => [tp, ...childrenOf(tp.id).map(c => ({ ...c, emoji: '↳ ' + c.emoji }))]);
 function dayItems(d) {
   return S.tasks.filter(t => occursOn(t, d)).sort((a, b) =>
     ((isEvent(b) ? 1 : 0) - (isEvent(a) ? 1 : 0)) || (isEvent(a) && isEvent(b) ? ((a.time || '99') < (b.time || '99') ? -1 : (a.time || '99') > (b.time || '99') ? 1 : 0) : 0) ||
@@ -1415,28 +1427,41 @@ function confirmBox({ title, text, ok, cancel = 'Annuler', danger = true }) {
 
 /* ---------- To-do (catégories) ---------- */
 function themeCard(g) {
-  const { th, tasks, virtual } = g;
+  const { th, tasks, virtual } = g, subs = g.subs || [];
   const t0 = today();
   const evNext = t => { const n = nextOcc(t, t0); return n && n >= t0 ? n : null; };
-  const active = tasks.filter(t => isEvent(t) ? !!evNext(t) : (t.rep || !t.done));
+  const isActive = t => isEvent(t) ? !!evNext(t) : (t.rep || !t.done);
+  const isDue = t => !isEvent(t) && (t.rep ? (occursOn(t, t0) && !isDone(t, t0)) : (t.date && t.date <= t0));
+  const sortRows = list => list.map(t => ({ t, k: isEvent(t) ? evNext(t) : t.rep ? nextOcc(t, t0) : t.date })).sort((a, b) => {
+    if (!a.k !== !b.k) return a.k ? -1 : 1;
+    if (a.k && b.k && a.k !== b.k) return a.k < b.k ? -1 : 1;
+    return (b.t.prio ? 1 : 0) - (a.t.prio ? 1 : 0) || ((a.t.created || '') < (b.t.created || '') ? -1 : 1);
+  });
+  const subActive = subs.reduce((n, sg) => n + sg.tasks.filter(isActive).length, 0);
+  const subDue = subs.reduce((n, sg) => n + sg.tasks.filter(isActive).filter(isDue).length, 0);
+  const active = tasks.filter(isActive);
   const doneOnes = tasks.filter(t => !isEvent(t) && !t.rep && t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
-  const due = active.filter(t => !isEvent(t) && (t.rep ? (occursOn(t, t0) && !isDone(t, t0)) : (t.date && t.date <= t0))).length;
+  const due = active.filter(isDue).length + subDue;
   const open = U.openThemes.has(th.id);
   let html = `<div class="gcard${virtual ? '' : ' tint c-' + (th.color || 'slate')}"><div class="gcard-head split">
     <button type="button" class="gcard-toggle" data-a="theme-toggle" data-id="${th.id}" aria-expanded="${open}">
       <span class="g-emoji">${h(th.emoji)}</span><span class="title g-name">${h(th.name)}</span>
-      ${due ? `<span class="gbadge" title="À faire aujourd'hui">${due}</span>` : `<span class="g-count">${active.length || ''}</span>`}${chev(open)}</button>
+      ${due ? `<span class="gbadge" title="À faire aujourd'hui">${due}</span>` : `<span class="g-count">${(active.length + subActive) || ''}</span>`}${chev(open)}</button>
     <button type="button" class="g-add" data-a="new-task-theme" data-id="${virtual ? '' : th.id}" aria-label="Ajouter une tâche dans ${h(th.name)}">${ic(P.plus, 18, 2)}</button></div>`;
   if (open) {
-    const rows = active.map(t => ({ t, k: isEvent(t) ? evNext(t) : t.rep ? nextOcc(t, t0) : t.date })).sort((a, b) => {
-      if (!a.k !== !b.k) return a.k ? -1 : 1;
-      if (a.k && b.k && a.k !== b.k) return a.k < b.k ? -1 : 1;
-      return (b.t.prio ? 1 : 0) - (a.t.prio ? 1 : 0) || ((a.t.created || '') < (b.t.created || '') ? -1 : 1);
-    });
+    const rows = sortRows(active);
     const showDone = U.doneThemes.has(th.id);
-    html += `<div class="gcard-body">${rows.map(r => taskRow(r.t, r.k || '', { ctx: 'todo' })).join('')}
+    const subsHTML = subs.map(sg => {
+      const act = sg.tasks.filter(isActive);
+      return `<div class="sub-cat"><div class="sub-cat-h"><span class="ell">${h(sg.th.emoji + ' ' + sg.th.name)}</span><span class="muted">${act.length || ''}</span>
+        <button type="button" class="icon-btn" data-a="theme-edit" data-id="${sg.th.id}" aria-label="Modifier la sous-catégorie ${h(sg.th.name)}">${ic(P.pencil, 16)}</button>
+        <button type="button" class="icon-btn" data-a="new-task-theme" data-id="${sg.th.id}" aria-label="Ajouter une tâche dans ${h(sg.th.name)}">${ic(P.plus, 18, 2)}</button></div>
+        ${sortRows(act).map(r => taskRow(r.t, r.k || '', { ctx: 'todo' })).join('')}</div>`;
+    }).join('');
+    html += `<div class="gcard-body">${rows.map(r => taskRow(r.t, r.k || '', { ctx: 'todo' })).join('')}${subsHTML}
       <div class="gcard-foot">
         <button type="button" class="foot-btn add" data-a="new-task-theme" data-id="${virtual ? '' : th.id}">${ic(P.plus, 18, 2)}Tâche</button>
+        ${virtual ? '' : `<button type="button" class="foot-btn add" data-a="new-subtheme" data-id="${th.id}">${ic(P.plus, 18, 2)}Sous-catégorie</button>`}
         ${doneOnes.length ? `<button type="button" class="foot-btn" data-a="theme-done" data-id="${th.id}" aria-expanded="${showDone}">Faites · ${doneOnes.length}${ic(showDone ? P.up : P.down, 16)}</button>` : ''}
         ${virtual ? '' : `<button type="button" class="icon-btn" data-a="theme-edit" data-id="${th.id}" aria-label="Modifier la catégorie">${ic(P.pencil, 18)}</button>`}
       </div>
@@ -1451,7 +1476,8 @@ function renderTodo() {
   const tabs = `<div class="chips tabs">${[['cats', 'Catégories'], ['nodate', 'Sans date' + (nd.length ? ' · ' + nd.length : '')], ['events', 'Événements']].map(([k, l]) => `<button type="button" class="chip${v === k ? ' on' : ''}" data-a="todo-view" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>`;
   let body = '';
   if (v === 'cats') {
-    const groups = S.themes.slice().sort(byOrder).map(th => ({ th, tasks: S.tasks.filter(t => t.themeId === th.id && !t.srcId && (t.kind !== 'event' || nextOcc(t, today()))) }));
+    const tasksOf = id => S.tasks.filter(t => t.themeId === id && !t.srcId && (t.kind !== 'event' || nextOcc(t, today())));
+    const groups = topThemes().map(th => ({ th, tasks: tasksOf(th.id), subs: childrenOf(th.id).map(c => ({ th: c, tasks: tasksOf(c.id) })) }));
     const orphans = S.tasks.filter(t => !t.srcId && (t.kind !== 'event' || nextOcc(t, today())) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
     if (orphans.length) groups.push({ th: { id: '_none', emoji: '📌', name: 'Sans catégorie' }, tasks: orphans, virtual: true });
     body = `${groups.map(themeCard).join('')}<button type="button" class="dashed-add" data-a="new-theme">${ic(P.plus, 18, 2)}Nouvelle catégorie</button>${S.themes.length > 1 ? `<button type="button" class="dashed-add" data-a="theme-order">${ic('M8 4v16M8 4 4 8M8 4l4 4M16 20V4M16 20l-4-4M16 20l4-4', 18, 1.8)}Réorganiser les catégories</button>` : ''}`;
@@ -1721,7 +1747,7 @@ function openRoutineForm(obj, withTasks, after) {
     const tot = routineTotal(f);
     const mc = (k, icon, val, muted) => `<button type="button" class="mcase${panel === k ? ' on' : ''}${muted ? ' empty' : ''}" data-f="panel" data-p="${k}" aria-expanded="${panel === k}">${icon}<span class="mval">${val}</span></button>`;
     let pan = '';
-    if (panel === 'cat') pan = `<div class="panel"><div class="chips">${S.themes.slice().sort(byOrder).map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button><button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
+    if (panel === 'cat') pan = `<div class="panel"><div class="chips">${themesTries().map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button><button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
     if (panel === 'emoji') pan = `<div class="panel"><div class="emoji-grid">${R_EMOJIS.map(e => `<button type="button" class="${e === f.emoji ? 'on' : ''}" data-f="pick" data-e="${e}" aria-label="${e}">${e}</button>`).join('')}</div>
       <div class="quick-add"><input type="text" data-f="emoji" maxlength="8" placeholder="Autre emoji…" autocomplete="off" aria-label="Autre emoji"></div></div>`;
     const stepRow = (x, i) => {
@@ -1848,7 +1874,7 @@ function openEventForm(ev, preset = {}) {
       ${calendarHTML(cm, [...sel], t0)}</div>`;
     if (panel === 'time') pan = `<div class="panel"><div class="rowline"><span>Heure</span><span class="f-grow"></span><input type="time" class="num-in time-in" data-f="time" value="${f.time || ''}" aria-label="Heure"></div>
       <div class="chips"><button type="button" class="chip${!f.time ? ' on' : ''}" data-f="notime">Toute la journée</button></div></div>`;
-    if (panel === 'cat') pan = `<div class="panel"><div class="chips">${S.themes.slice().sort(byOrder).map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button><button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
+    if (panel === 'cat') pan = `<div class="panel"><div class="chips">${themesTries().map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button><button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
     const list = isNew && preset.fromDay ? tpls() : [];
     s.body.innerHTML = `${isNew ? kindSwitch('event') : `<h2 class="sheet-title">${title}</h2>`}
       ${list.length ? (tpl ? `<div class="chips reuse"><button type="button" class="chip on" data-f="tpl" data-v="${tpl}" aria-pressed="true">${h((S.tasks.find(y => y.id === tpl) || {}).title || '')} ✕</button></div>` : `<button type="button" class="btn wide reuse-btn" data-f="tpl-open">${ic(IC.cal, 18, 1.8)}Choisir parmi mes événements<span class="muted">${list.length}</span></button>`) : ''}
@@ -2047,7 +2073,7 @@ function openFeedForm(feed) {
       <input class="name-in" data-f="name" value="${h(f.name)}" placeholder="Nom (ex. Matchs du club)" autocomplete="off" aria-label="Nom">
       <input class="note-in" data-f="url" value="${h(f.url)}" placeholder="Lien de l'agenda (https://… ou webcal://…)" autocomplete="off" inputmode="url" aria-label="Lien de l'agenda">
       <button type="button" class="mcase wide${panel ? ' on' : ''}${th ? '' : ' empty'}" data-f="panel">${ic(IC.cat, 18, 1.7)}<span class="mval">${th ? `<span class="cdot c-${th.color || 'slate'}"></span> ${h(th.emoji + ' ' + th.name)}` : 'Catégorie'}</span></button>
-      ${panel ? `<div class="panel"><div class="chips">${S.themes.slice().sort(byOrder).map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>` : ''}
+      ${panel ? `<div class="panel"><div class="chips">${themesTries().map(x => `<button type="button" class="chip${x.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}<button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>` : ''}
       <p class="panel-note feed-hint">${hint()}</p>
       ${isNew ? '' : '<button type="button" class="btn danger wide del-btn" data-f="del">Se désabonner</button>'}`;
   };
@@ -2194,7 +2220,7 @@ function openTaskForm(task, preset = {}, dayCtx) {
   const panelHTML = () => {
     const r = f.rep, tom = addDays(t0, 1);
     if (panel === 'cat') {
-      return `<div class="panel"><div class="chips">${S.themes.slice().sort(byOrder).map(th => `<button type="button" class="chip${th.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${th.id}"><span class="cdot c-${th.color || 'slate'}"></span>${h(th.emoji + ' ' + th.name)}</button>`).join('')}
+      return `<div class="panel"><div class="chips">${themesTries().map(th => `<button type="button" class="chip${th.id === f.themeId ? ' on' : ''}" data-f="cat" data-v="${th.id}"><span class="cdot c-${th.color || 'slate'}"></span>${h(th.emoji + ' ' + th.name)}</button>`).join('')}
         <button type="button" class="chip${!f.themeId ? ' on' : ''}" data-f="cat" data-v="">Sans catégorie</button>
         <button type="button" class="chip" data-f="cat-new">${ic(P.plus, 14, 2.2)}Nouvelle catégorie</button></div></div>`;
     }
@@ -2414,10 +2440,11 @@ const EMOJIS = {
   themes: ['📌', '🎤', '🏠', '💬', '📄', '💪', '🎨', '💼', '🧘', '🛠️', '🎯', '🌱'],
   lists: ['📝', '🎬', '📍', '📚', '🍜', '🎵', '🎮', '🎁', '✈️', '🍷', '🏕️', '⭐']
 };
-function openGroupForm(kind, obj, onSaved) {
+function openGroupForm(kind, obj, onSaved, preset = {}) {
   const isNew = !obj;
   const store = kind;
   const f = obj ? { ...obj } : { id: uid(), name: '', emoji: EMOJIS[kind][0], color: nextColor(S[store]), autoEmoji: true, order: Math.max(-1, ...S[store].map(x => x.order || 0)) + 1 };
+  if (isNew && preset.parentId) { const par = S.themes.find(x => x.id === preset.parentId); if (par) { f.parentId = par.id; f.color = par.color || f.color; } }
   if (!f.color) f.color = 'slate';
   const isCat = kind === 'themes';
   let openEmoji = false, openColor = false;
@@ -2436,6 +2463,9 @@ function openGroupForm(kind, obj, onSaved) {
         <button type="button" class="field" data-f="toggle-color" aria-expanded="${openColor}"><span class="f-label">Couleur</span><span class="f-value"><span class="f-dot c-${f.color}"></span>${COLOR_NAMES[f.color] || ''}</span>${chev(openColor)}</button>
         ${openColor ? `<div class="case-more"><div class="swatches">${SWATCHES.map(c => `<button type="button" class="swatch c-${c}${c === f.color ? ' on' : ''}" data-f="color" data-c="${c}" aria-label="${COLOR_NAMES[c]}" aria-pressed="${c === f.color}"></button>`).join('')}</div></div>` : ''}
       </div>
+      ${isCat && !childrenOf(f.id).length ? `<div class="field-col"><span class="f-label">Dans la catégorie</span><div class="chips">
+        <button type="button" class="chip${!f.parentId ? ' on' : ''}" data-f="parent" data-v="">Aucune (catégorie principale)</button>
+        ${topThemes().filter(x => x.id !== f.id).map(x => `<button type="button" class="chip${f.parentId === x.id ? ' on' : ''}" data-f="parent" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}</div></div>` : ''}
       ${isCat ? `<div class="field"><span class="f-label">Toujours dans « Bientôt »</span><button type="button" class="switch${isPinned(f) ? ' on' : ''}" role="switch" aria-checked="${isPinned(f)}" aria-label="Toujours afficher dans Bientôt" data-f="pin"><span class="knob"></span></button></div>` : ''}
       ${isNew ? '' : `<button type="button" class="btn danger wide del-btn" data-f="del">Supprimer ${isCat ? 'la catégorie' : 'la liste'}</button>`}`;
   };
@@ -2465,13 +2495,14 @@ function openGroupForm(kind, obj, onSaved) {
     if (k === 'pick') { f.emoji = b.dataset.e; f.autoEmoji = false; draw(); }
     if (k === 'color') { f.color = b.dataset.c; draw(); }
     if (k === 'pin') { f.pin = !isPinned(f); draw(); }
+    if (k === 'parent') { f.parentId = b.dataset.v || null; const par = parentOf(f); if (par && isNew) f.color = par.color || f.color; draw(); }
     if (k === 'cancel') closeTop();
     if (k === 'save') {
       f.name = f.name.trim();
       if (!f.name) { shakeField($('[data-f="name"]', s.body)); return; }
       if (!f.emoji) f.emoji = EMOJIS[kind][0];
       save(store, f);
-      if (isNew) (isCat ? U.openThemes : U.openLists).add(f.id);
+      if (isNew) (isCat ? U.openThemes : U.openLists).add(f.parentId || f.id);
       closeTop(); refresh(); if (onSaved) onSaved(f);
       toast(isNew ? (isCat ? 'Catégorie créée ✨' : 'Liste créée ✨') : 'Modifié ✅');
     }
@@ -2483,6 +2514,7 @@ function openGroupForm(kind, obj, onSaved) {
       if (!ok) return;
       const snap = snapshot();
       removeMany(isCat ? 'tasks' : 'items', children.map(c => c.id));
+      if (isCat) childrenOf(f.id).forEach(c => save('themes', { ...c, parentId: null }));   // ses sous-catégories deviennent des catégories
       removeMany(store, [f.id]);
       closeTop(); refresh(); toast('Supprimé 🗑️', () => restore(snap));
     }
@@ -2588,8 +2620,9 @@ function reportAll(d) {
 }
 // Appui long sur une tâche de l'agenda : actions rapides
 // Scène (plateaux où je joue) : lien avec Backstage, quand l'app est dans Mon quotidien
-const SCENE_RE = /sc[eè]ne|plateau|stand.?up|open.?mic/i;
-const isScene = t => { const th = themeOf(t); return !!th && (SCENE_RE.test(th.name || '') || th.emoji === '🎤'); };
+const SCENE_RE = /sc[eè]ne/i;
+const isSceneTheme = th => !!th && (SCENE_RE.test(th.name || '') || SCENE_RE.test((parentOf(th) || {}).name || ''));
+const isScene = t => isSceneTheme(themeOf(t));
 const quotidien = () => { try { return window.parent !== window && window.parent.quotidien ? window.parent.quotidien : null; } catch (e) { return null; } };
 function openQuick(id, d) {
   const t = S.tasks.find(x => x.id === id); if (!t) return;
@@ -3004,15 +3037,18 @@ const A = {
   'theme-done': (el, c) => { U.doneThemes.has(c.id) ? U.doneThemes.delete(c.id) : U.doneThemes.add(c.id); refresh(); },
   'theme-edit': (el, c) => { const th = S.themes.find(x => x.id === c.id); if (th) openGroupForm('themes', th); },
   'new-theme': () => openGroupForm('themes'),
+  'new-subtheme': (el, c) => openGroupForm('themes', null, null, { parentId: c.id }),
   'theme-order': () => openSheet({ label: 'Ordre des catégories', render: () => {
-    const ths = S.themes.slice().sort(byOrder);
-    return `<h2 class="sheet-title">Ordre des catégories</h2><p class="panel-note">La première s'affiche en haut du Planning.</p>
-      ${ths.map((th, i) => `<div class="ord-row"><span class="cdot c-${th.color || 'slate'}"></span><span class="ell">${h(th.emoji + ' ' + th.name)}</span>
+    const row = (th, i, n, sub) => `<div class="ord-row${sub ? ' sub' : ''}"><span class="cdot c-${th.color || 'slate'}"></span><span class="ell">${sub ? '↳ ' : ''}${h(th.emoji + ' ' + th.name)}</span>
         <button type="button" class="btn-ico sm" data-a="theme-move" data-id="${th.id}" data-s="-1" aria-label="Monter"${i ? '' : ' disabled'}>${ic(P.up, 18)}</button>
-        <button type="button" class="btn-ico sm" data-a="theme-move" data-id="${th.id}" data-s="1" aria-label="Descendre"${i < ths.length - 1 ? '' : ' disabled'}>${ic(P.down, 18)}</button></div>`).join('')}`;
+        <button type="button" class="btn-ico sm" data-a="theme-move" data-id="${th.id}" data-s="1" aria-label="Descendre"${i < n - 1 ? '' : ' disabled'}>${ic(P.down, 18)}</button></div>`;
+    const tops = topThemes();
+    return `<h2 class="sheet-title">Ordre des catégories</h2><p class="panel-note">La première s'affiche en haut du Planning. Les sous-catégories se rangent à l'intérieur de leur catégorie.</p>
+      ${tops.map((th, i) => { const ch = childrenOf(th.id); return row(th, i, tops.length, false) + ch.map((c, j) => row(c, j, ch.length, true)).join(''); }).join('')}`;
   } }),
   'theme-move': (el, c) => {
-    const ths = S.themes.slice().sort(byOrder);
+    const me = S.themes.find(x => x.id === c.id); if (!me) return;
+    const ths = parentOf(me) ? childrenOf(me.parentId) : topThemes();
     const i = ths.findIndex(x => x.id === c.id), j = i + +el.dataset.s;
     if (i < 0 || j < 0 || j >= ths.length) return;
     [ths[i], ths[j]] = [ths[j], ths[i]];
@@ -3181,6 +3217,35 @@ async function start() {
 }
 // Pour Mon quotidien : cocher une tâche depuis l'accueil, avec les règles de l'app
 window.toggleTask = (id, d, late) => toggleTask(id, d, late);
+window.quotidienPret = () => !!document.querySelector('#app .hero');
+// Demandes des autres apps (Backstage) : liste des catégories, plateau → événement « Scène », rappel pour recontacter
+window.quotidienAction = p => {
+  if (!p) return null;
+  if (p.action === 'themes') return themesTries().map(x => ({ id: x.id, label: x.emoji + ' ' + x.name, parentId: x.parentId || null, name: x.name, parentName: (parentOf(x) || {}).name || '' }));
+  if (p.action === 'modeleScene') {
+    const nom = String(p.nom || '').trim(); if (!nom) return null;
+    let th = topThemes().find(isSceneTheme) || S.themes.find(isSceneTheme);
+    if (!th) { th = { id: uid(), name: 'Scènes', emoji: '🎤', color: 'purple', autoEmoji: false, order: Math.max(-1, ...S.themes.map(x => x.order || 0)) + 1 }; save('themes', th); }
+    const ex = S.tasks.find(t => t.info && t.free && isSceneTheme(themeOf(t)) && t.title.trim().toLowerCase() === nom.toLowerCase());
+    if (ex) return { ok: true, existe: true };
+    save('tasks', { id: uid(), info: true, free: true, freeLog: [], title: nom, themeId: th.id, time: p.heure || '', note: p.adresse || '', date: null, rep: null, created: today() });
+    refresh(); return { ok: true };
+  }
+  if (p.action === 'rappel') {
+    const ex = S.tasks.find(t => t.bsRappel === p.cle);
+    if (!p.rythme) { if (ex) { removeMany('tasks', [ex.id]); refresh(); } return { ok: true }; }
+    const [unit, n] = String(p.rythme).split(':'), every = Math.max(1, +n || 1), t0 = today();
+    let start = unit === 'sem' ? addDays(t0, 7 * every) : addDays(t0, every);
+    if (unit === 'mois') { const x = parse(t0); x.setMonth(x.getMonth() + every); start = iso(x); }
+    const rep = unit === 'sem' ? { unit: 'sem', every, days: [dow(start)] } : unit === 'mois' ? { unit: 'mois', every, mode: 'dom', dom: parse(start).getDate() } : { unit: 'jour', every };
+    const same = ex && ex.rep && ex.rep.unit === rep.unit && (ex.rep.every || 1) === every;
+    const base = ex ? { ...ex } : { id: uid(), prio: false, duration: 0, note: '', done: false, doneDates: [], subs: [], subDone: {}, created: t0, bsRappel: p.cle };
+    const themeId = p.themeId && S.themes.some(x => x.id === p.themeId) ? p.themeId : (base.themeId || null);
+    save('tasks', { ...base, title: p.titre || base.title || 'Recontacter', themeId, rep: same ? ex.rep : rep, date: same ? ex.date : start });
+    refresh(); return { ok: true };
+  }
+  return null;
+};
 start();
 })();
 </script>

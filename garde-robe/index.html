@@ -3661,6 +3661,36 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 // Demande à Chrome de ne jamais effacer tes photos et tenues
 if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 // Hors ligne et mises à jour : gérés par le service worker unique de « Mon quotidien » (../sw.js)
+
+// Pour Mon quotidien : l'accueil affiche la tenue (silhouette avec la tête emoji) et les propositions,
+// calculées ici, avec les règles de la garde-robe. n = 0 (aujourd'hui) ou 1 (demain).
+function silQuotidien(pcs){
+  const key = pcs.map(p => p.id).join('|');
+  const mode = (S.openBy && S.openBy[key]) || (openMode() === 'closed' ? 'closed' : 'open');
+  let html = null; try{ html = silhouette(pcs, mode, key); }catch(e){}
+  return {html, vignettes:pcs.map(thumbSrc).filter(Boolean).slice(0, 4)};
+}
+window.quotidienGR = {
+  pret: () => !!S.ready,
+  jour(n){
+    const k = keyIn(n || 0), o = S.outfits.get(plansOf()[k]); if(!o) return null;
+    const pcs = planPieceIds(k).map(id => S.pieces.get(id)).filter(Boolean);
+    return {id:o.id, nom:o.name || 'Tenue', ...silQuotidien(withAdj(pcs, o.sizeAdj))};
+  },
+  propositions(n){
+    const k = keyIn(n || 0), wd = S.weatherDays && S.weatherDays[k];
+    const w = wd ? {band:bandFor(wd.max), rain:wd.rain} : tomorrowWeather();
+    let ok = []; try{ ok = rankOutfits(w).ok; }catch(e){}
+    return ok.slice(0, 8).map(x => ({id:x.o.id, nom:x.o.name || 'Tenue', ...silQuotidien(withAdj(x.all, x.o.sizeAdj))}));
+  },
+  // Même chose que le bouton « Aujourd'hui » / « Demain » d'une tenue dans la garde-robe
+  choisir(id, n){
+    const b = document.createElement('button');
+    b.type = 'button'; b.hidden = true; b.dataset.act = 'plan'; b.dataset.id = id; b.dataset.day = String(n || 0);
+    document.body.appendChild(b); b.click(); b.remove();
+  },
+  nbPieces: () => S.pieces.size
+};
 </script>
 </body>
 </html>

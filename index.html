@@ -56,25 +56,18 @@ button{font:inherit;color:inherit;cursor:pointer}
 #v-accueil{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 
 /* ---------- Barre du bas ---------- */
-/* Couleur de l'app ouverte : --app (clair/sombre) et --app-mix (0 % sur l'accueil) */
-:root{--app:var(--app-c,var(--denim));--app-mix:0%}
-:root[data-theme="dark"]{--app:var(--app-s,var(--denim))}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--app:var(--app-s,var(--denim))}}
-#barre{position:fixed;left:0;right:0;bottom:0;z-index:10;background-color:color-mix(in srgb,var(--app) var(--app-mix),var(--surface));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid color-mix(in srgb,var(--app) calc(var(--app-mix) * 2.5),var(--line));padding-bottom:env(safe-area-inset-bottom,0px);transition:background-color .45s ease,border-color .45s ease}
+#barre{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 #onglets{display:grid;max-width:640px;margin:0 auto;height:var(--nav-h)}
 #onglets button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;padding:0 2px}
 #onglets button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-#onglets button{transition:color .3s ease}
-#onglets button[aria-current="page"]{color:var(--app)}
-#onglets button[data-id="accueil"][aria-current="page"]{color:var(--ink)}
-#onglets button[aria-current="page"] svg{transform:scale(1.08);transition:transform .25s ease}
+#onglets button[aria-current="page"]{color:var(--denim)}
 #onglets.serre button{font-size:10.5px;letter-spacing:-.02em}
 
 /* ---------- Accueil ---------- */
 main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-direction:column;gap:12px}
 .tete{display:flex;justify-content:space-between;align-items:flex-end;padding:0 2px 6px}
-.tete .date{font-size:15px;color:var(--muted)}
-.tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(38px,12vw,52px);line-height:.95;letter-spacing:-.03em}
+.tete{align-items:center}
+.tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(28px,8.4vw,40px);line-height:1;letter-spacing:-.025em}
 .rond{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
 .bloc{--c:var(--c-c,var(--denim));width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--ink);transition:transform .12s;cursor:pointer;position:relative;overflow:hidden}
 :root[data-theme="dark"] .bloc{--c:var(--c-s,var(--denim))}
@@ -88,6 +81,36 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bloc-t small{font-family:var(--body);font-weight:500;font-size:14px;color:var(--muted)}
 .bloc-lien{font-size:13px;font-weight:600;color:var(--c);white-space:nowrap;border:0;background:none;padding:4px 0}
 .vide{margin:0;font-size:14px;color:var(--muted)}
+.gr2{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:12px;align-items:stretch}
+.wx2{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;background:var(--sunk);border-radius:16px;padding:12px}
+.wx2 .wx-ico{font-size:34px;margin-bottom:2px}
+.wx2 .pastille{margin-top:6px}
+.tenue2{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tenue2 .tenue-n{font-size:14px;font-weight:600}
+.sil-box{--silh:170px;display:flex;justify-content:center}
+.sil-box .sil-wrap{width:100%;box-sizing:border-box;padding:10px 8px}
+.slides.mini{margin:0;padding:0;gap:8px}
+.slides.mini .slide{padding:8px;gap:6px;align-items:stretch;background:var(--sunk)}
+.tslide .sil-box{--silh:150px}
+.ts-n{font-size:13px;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-b{border:0;border-radius:10px;background:var(--c);color:var(--on-denim);font:600 13px/1 var(--body);padding:9px 10px}
+/* Silhouette de la garde-robe (mêmes règles que dans l'app) */
+:root{--rod1:#e9ecef;--rod2:#a7aeb7}
+:root[data-theme="dark"]{--rod1:#9aa1aa;--rod2:#5d646d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rod1:#9aa1aa;--rod2:#5d646d}}
+.sil-wrap{background:var(--sunk);border-radius:16px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;box-sizing:content-box;height:var(--silh,58vh)}
+.sil-wrap .sil{flex:none}
+.sil{position:relative;margin:0 auto;container-type:inline-size}
+.sil .legs,.sil .head{position:absolute;border:0;background:none;padding:0;pointer-events:none}
+.sil .legs svg{display:block;overflow:visible}
+.sil .head{display:flex;align-items:center;justify-content:center;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.sil img{position:absolute;max-width:none;object-fit:fill}
+.sil .part{position:absolute;overflow:hidden}
+.sil .sh{position:absolute;filter:drop-shadow(0 0 2px rgba(0,0,0,.35))}
+.sil .mk{position:absolute;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.sil-wrap .strip{display:flex;gap:6px;margin-top:8px}
+.sil-wrap .th{width:28px;height:28px;border-radius:8px;background:var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.sil-wrap .th img{width:100%;height:100%;object-fit:contain}
 .wx{display:flex;align-items:center;gap:14px}
 .wx-ico{font-size:40px;line-height:1}
 .wx-t{font-family:var(--display);font-weight:800;font-size:40px;line-height:1;letter-spacing:-.02em}
@@ -102,11 +125,20 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .vignettes img{width:100%;height:100%;object-fit:contain}
 .vignettes .plus{background:none;border:1px dashed var(--line)}
 .evts{display:flex;flex-direction:column;gap:6px}
+.ocs{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:2px 16px;overscroll-behavior-x:contain}
+.ocs::-webkit-scrollbar{display:none}
+.oc{flex:0 0 calc(45% - 4px);scroll-snap-align:start;min-height:84px;border-radius:14px;background:var(--sunk);padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;border:0;font-size:14.5px;min-width:0}
+.oc .oc-t{font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;width:100%}
+.oc em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--warn)}
+.oc-ev{background:var(--tomorrow-card)}
+.oc-ev b{font-size:13px;color:var(--tomorrow)}
+.oc.faite .oc-t{text-decoration:line-through;color:var(--muted);font-weight:500}
 .evt{display:flex;align-items:center;gap:12px;background:var(--tomorrow-card);border-radius:12px;padding:9px 12px;font-size:15px}
 .evt b{font-size:14px;color:var(--tomorrow);min-width:44px}
 .taches{display:flex;flex-direction:column}
 .tache{display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:15px}
 .tache:last-child{border-bottom:0}
+.oc.tache{border-bottom:0;padding:10px 12px}
 .coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--box);flex:none;background:none;padding:0;display:flex;align-items:center;justify-content:center;color:var(--on-denim);margin:-3px 0}
 .tache.prio .coche{border-color:var(--today)}
 .tache.faite .coche{background:var(--c);border-color:var(--c)}
@@ -129,15 +161,22 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .alerte span{font-size:13px;color:var(--muted)}
 .slides{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px;overscroll-behavior-x:contain}
 .slides::-webkit-scrollbar{display:none}
-.slide{flex:0 0 100%;scroll-snap-align:center;background:color-mix(in srgb,var(--c) 12%,var(--sunk));border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+/* Couleur de la catégorie du plateau (comme dans Backstage) : 0 rouge, 1 jaune, 2 vert */
+.slide{--sc:var(--c)}
+.slide.t0{--sc:#B84A3E}.slide.t1{--sc:#B7832F}.slide.t2{--sc:#2F7A4A}
+:root[data-theme="dark"] .slide.t0{--sc:#E58A84}:root[data-theme="dark"] .slide.t1{--sc:#E0B266}:root[data-theme="dark"] .slide.t2{--sc:#7CC992}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .slide.t0{--sc:#E58A84}:root:not([data-theme="light"]) .slide.t1{--sc:#E0B266}:root:not([data-theme="light"]) .slide.t2{--sc:#7CC992}}
+.slide{flex:0 0 100%;scroll-snap-align:center;background:color-mix(in srgb,var(--sc) 22%,var(--sunk));border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .slide-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.slide-h b{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;color:var(--c)}
+.slide-h b{font-size:16px;font-weight:700;color:var(--sc)}
+.slide-tag{font-size:12px;font-weight:600;color:var(--muted)}
 .slide-type{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface);border-radius:99px;padding:3px 10px;white-space:nowrap}
-.slide-n{font-size:17px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slide-n{font-family:var(--display);font-size:24px;font-weight:800;line-height:1.1;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slide-a{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .points{display:flex;justify-content:center;gap:6px;margin-top:-4px}
 .points span{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
 .points span.on{background:var(--c);width:16px;border-radius:3px}
+.slides.mini .slide{--sc:var(--c)}
 .bilan{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .bilan b{color:var(--ink);font-weight:600}
 .etoiles{color:var(--today);letter-spacing:1px;white-space:nowrap}
@@ -295,10 +334,7 @@ function montrer(id, {query = '', historique = false} = {}){
     cacheeDepuis.delete(id);
   }
   v.classList.add('on'); v.inert = false;
-  // Couleur de l'app ouverte (barre du bas)
-  const appC = APPS.find(a => a.id === id), rs = document.documentElement.style;
-  if(appC && appC.couleur){ rs.setProperty('--app-c', appC.couleur[0]); rs.setProperty('--app-s', appC.couleur[1]); rs.setProperty('--app-mix', '16%'); }
-  else rs.setProperty('--app-mix', '0%');
+
   document.querySelectorAll('#onglets button').forEach(b => { if(b.dataset.id === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   // Bouton « retour » d'Android : depuis une app, il ramène à l'Accueil (au lieu de fermer Mon quotidien)
   if(!historique){
@@ -377,41 +413,44 @@ async function meteo(v){
     return jours;
   }catch(e){ return null; } finally{ clearTimeout(to); }
 }
-async function lireGardeRobe(){
-  return lire('garde-robe', async db => {
-    const reg = (await un(db, 'kv', 'settings')) || {};
-    const plans = {...(reg.plans || {})};
-    if(reg.planned && reg.planned.date && !plans[reg.planned.date]) plans[reg.planned.date] = reg.planned.outfitId;
-    const k0 = iso(new Date()), dm = new Date(); dm.setDate(dm.getDate() + 1); const k1 = iso(dm);
-    // comme dans la garde-robe : l'après-midi, on montre la tenue de demain si celle d'aujourd'hui n'est pas prévue
-    let k = k0, demain = false;
-    if(!plans[k0] && new Date().getHours() >= 12 && plans[k1]){ k = k1; demain = true; }
-    let tenue = null;
-    const o = plans[k] ? await un(db, 'outfits', plans[k]) : null;
-    if(o){
-      const ex = (reg.planExtras || {})[k] || {};
-      const base = Array.isArray(ex.core) && ex.core.length ? ex.core : (o.pieceIds || []);
-      const ids = [...new Set([...base, ...[].concat(ex.under || []), ex.outer, ex.shoes, ...(ex.thermal || [])].filter(x => typeof x === 'string'))];
-      const pieces = (await Promise.all(ids.map(id => un(db, 'pieces', id)))).filter(Boolean);
-      tenue = {nom:o.name || 'Tenue prévue', pieces:pieces.map(p => (p.photo && ((p.photo.cut && p.photo.cut.dataUrl) || p.photo.dataUrl)) || '')};
-    }
-    return {jour:k, demain, ville:reg.city || {name:'Paris', lat:48.8566, lon:2.3522}, tenue};
-  });
+// La garde-robe calcule elle-même la tenue (silhouette avec la tête emoji) et ses propositions
+async function attendreApp(id, test){
+  const app = APPS.find(a => a.id === id); if(!app) return null;
+  const f = creerFrame(app); await f.charge;
+  for(let i = 0; i < 40; i++){ try{ const w = f.contentWindow; if(test(w)) return w; }catch(e){} await pause(150); }
+  return null;
 }
+async function lireGardeRobe(){
+  const reg = await lire('garde-robe', db => un(db, 'kv', 'settings'));
+  if(reg === null) return null;   // pas de garde-robe sur ce téléphone
+  const n = new Date().getHours() >= 18 ? 1 : 0;   // le soir, on prépare demain
+  const dj = new Date(); dj.setDate(dj.getDate() + n);
+  const w = await attendreApp('garde-robe', w => w.quotidienGR && w.quotidienGR.pret());
+  let tenue = null, props = [], vide = false;
+  if(w){
+    tenue = w.quotidienGR.jour(n);
+    if(!tenue) props = w.quotidienGR.propositions(n);
+    vide = !w.quotidienGR.nbPieces();
+  }
+  return {n, jour:iso(dj), demain:n === 1, ville:(reg && reg.city) || {name:'Paris', lat:48.8566, lon:2.3522}, tenue, props, vide};
+}
+const visuelTenue = x => x.html ? `<div class="sil-box">${x.html}</div>`
+  : `<div class="vignettes">${(x.vignettes || []).map(src => `<div><img src="${esc(src)}" alt=""></div>`).join('') || `<div>${svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 22)}</div>`}</div>`;
 function blocGardeRobe(d, jours){
   if(!d) return `<p class="vide">Pas encore de garde-robe sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
   const w = jours && jours[d.jour], desc = w && WMO(w.code);
   const wx = w
-    ? `<div class="wx"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><div><div class="wx-t">${w.max}°</div><div class="wx-s">${d.demain ? 'Demain · ' : ''}min ${w.min}° · pluie ${w.pluie} % · ${esc(d.ville.name)}</div></div></div>`
-    : `<p class="vide">${jours === undefined ? 'Météo en cours de chargement…' : 'Météo indisponible pour l’instant (connexion ?).'}</p>`;
-  let t;
-  if(d.tenue){
-    const ps = d.tenue.pieces, max = ps.length > 4 ? 3 : 4;
-    const vig = ps.slice(0, max).map(src => src ? `<div><img src="${esc(src)}" alt=""></div>` : `<div>${svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 22)}</div>`).join('')
-      + (ps.length > max ? `<div class="plus">+${ps.length - max}</div>` : '');
-    t = `<div class="tenue"><div class="tenue-h"><span class="tenue-n">${esc(d.tenue.nom)}</span><span class="pastille${d.demain ? ' demain' : ''}">Prévue ${d.demain ? 'demain' : 'aujourd’hui'}</span></div>${ps.length ? `<div class="vignettes">${vig}</div>` : ''}</div>`;
-  } else t = `<p class="vide">Aucune tenue prévue aujourd’hui. Touche pour en choisir une.</p>`;
-  return wx + t;
+    ? `<div class="wx2"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><span class="wx-t">${w.max}°</span><span class="wx-s">min ${w.min}°</span><span class="wx-s">pluie ${w.pluie} %</span><span class="wx-s">${esc(d.ville.name)}</span>${d.demain ? '<span class="pastille demain">Demain</span>' : ''}</div>`
+    : `<div class="wx2"><span class="wx-ico" aria-hidden="true">⛅</span><span class="wx-s">${jours === undefined ? 'Météo…' : 'Météo indisponible'}</span><span class="wx-s">${esc(d.ville.name)}</span></div>`;
+  let droite;
+  if(d.tenue) droite = `<div class="tenue2"><div class="tenue-n">${esc(d.tenue.nom)}</div>${visuelTenue(d.tenue)}</div>`;
+  else if(d.props.length){
+    droite = `<div class="tenue2"><div class="tenue-n">Choisis ta tenue${d.demain ? ' de demain' : ''}</div>
+      <div class="slides mini" data-ouvrir="garde-robe">${d.props.map(x => `<div class="slide tslide">${visuelTenue(x)}<div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b" data-choisir="${esc(x.id)}" data-n="${d.n}">${d.demain ? 'Demain' : 'Aujourd’hui'}</button></div>`).join('')}</div>
+      ${d.props.length > 1 ? `<div class="points" aria-hidden="true">${d.props.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+  }
+  else droite = `<div class="tenue2"><p class="vide">${d.vide ? 'Ajoute tes vêtements dans la garde-robe.' : 'Aucune tenue propre à proposer.'}</p></div>`;
+  return `<div class="gr2">${wx}${droite}</div>`;
 }
 
 /* ---------- Organisation : événements et tâches du jour (mêmes règles que l'app) ---------- */
@@ -483,13 +522,11 @@ function blocOrganisation(d){
   if(!d) return `<p class="vide">Pas encore d’organisation sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
   if(!d.evts.length && !d.restantes.length && !d.faites) return `<p class="vide">${d.faites ? `Tout est fait pour aujourd’hui (${plur(d.faites, 'tâche', 'tâches')}).` : 'Rien de prévu aujourd’hui.'}</p>`;
   const emo = x => { const th = d.themes.get(x.themeId); return th && th.emoji ? th.emoji + ' ' : ''; };
-  const ev = d.evts.slice(0, 4).map(e => `<div class="evt"><b>${esc(e.time || 'Journée')}</b><span>${esc(emo(e) + e.title)}</span></div>`).join('')
-    + (d.evts.length > 4 ? `<div class="encore">et ${plur(d.evts.length - 4, 'autre événement', 'autres événements')}</div>` : '');
-  // Les tâches faites restent visibles, rayées (on peut les décocher)
-  const lignes = [...d.restantes, ...d.faitesL], vues = lignes.slice(0, 7);
-  const ta = vues.map(e => `<div class="tache${e.t.prio ? ' prio' : ''}${e.fait ? ' faite' : ''}"><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span>${esc(emo(e.t) + e.t.title)}</span>${e.retard ? `<em>en retard · ${esc(shortDate(e.d))}</em>` : ''}</div>`).join('')
-    + (lignes.length > 7 ? `<div class="encore">et ${plur(lignes.length - 7, 'autre tâche', 'autres tâches')}</div>` : '');
-  return (ev ? `<div class="evts">${ev}</div>` : '') + (ta ? `<div class="taches">${ta}</div>` : '');
+  // Une petite carte par élément, en carrousel : événements, tâches à faire, puis tâches faites (rayées)
+  const ev = d.evts.map(e => `<div class="oc oc-ev"><b>${esc(e.time || 'Journée')}</b><span class="oc-t">${esc(emo(e) + e.title)}</span></div>`).join('');
+  const lignes = [...d.restantes, ...d.faitesL];
+  const ta = lignes.map(e => `<div class="oc tache${e.t.prio ? ' prio' : ''}${e.fait ? ' faite' : ''}"><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="oc-t">${esc(emo(e.t) + e.t.title)}</span>${e.retard ? `<em>en retard · ${esc(shortDate(e.d))}</em>` : ''}</div>`).join('');
+  return `<div class="ocs" data-ouvrir="organisation">${ev}${ta}</div>`;
 }
 function titreOrganisation(d){
   if(!d || !d.restantes.length) return '';
@@ -558,7 +595,7 @@ async function lireBackstage(){
   let plats = [];
   try{
     plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === 'Paris' && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
-      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:(slot && w.typeLabelText ? w.typeLabelText(slot.type) : ''), adresse:p.address || ''}));
+      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:slot && slot.type != null ? slot.type : null, adresse:p.address || ''}));
   }catch(e){ console.warn(e); }
   const mois = new Date().toISOString().slice(0, 7);
   const scenes = toutes.filter(s => s.date && s.date.slice(0, 7) === mois);
@@ -568,11 +605,12 @@ async function lireBackstage(){
   return {plats, agenda, nb:scenes.length, net, etoiles};
 }
 // Scènes prévues dans l'Organisation (catégorie « Scène » ou 🎤), sur une période
-const SCENE_RE = /sc[eè]ne|plateau|stand.?up|open.?mic/i;
+const SCENE_RE = /sc[eè]ne/i;   // pas « Stand-up » (écriture…) : seulement les scènes
 async function lireScenesAgenda(avant, apres){
   const r = await lire('organisation', async db => {
     const [tasks, themes] = await Promise.all([tout(db, 'tasks'), tout(db, 'themes')]);
-    const ids = new Set(themes.filter(th => SCENE_RE.test(th.name || '') || th.emoji === '🎤').map(th => th.id));
+    const nomDe = id => (themes.find(x => x.id === id) || {}).name || '';
+    const ids = new Set(themes.filter(th => SCENE_RE.test(th.name || '') || (th.parentId && SCENE_RE.test(nomDe(th.parentId)))).map(th => th.id));
     if(!ids.size) return [];
     const out = [], t0 = new Date();
     for(let i = -avant + 1; i <= apres; i++){
@@ -588,11 +626,11 @@ function blocBackstage(d){
   // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
   const memes = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
   const slides = [
-    ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : '', adresse:p ? p.adresse : '', prevu:true}; }),
+    ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : null, adresse:p ? p.adresse : '', prevu:true}; }),
     ...d.plats.filter(p => !d.agenda.some(a => memes(a.titre, p.nom)))
   ];
   const pl = slides.length
-    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide"><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="pastille demain">Prévu dans ton agenda</span>' : s.type ? `<span class="slide-type">${esc(s.type)}</span>` : ''}</div><div class="slide-n">${esc(s.nom)}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
+    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
     : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
   const signe = d.net >= 0 ? '+' : '−';
   const et = d.etoiles == null ? '' : `<span class="etoiles" aria-label="${(Math.round(d.etoiles * 2) / 2).toString().replace('.', ',')} étoiles sur 5">${'★'.repeat(Math.round(d.etoiles))}<i>${'★'.repeat(5 - Math.round(d.etoiles))}</i></span>`;
@@ -615,7 +653,7 @@ function squeletteAccueil(){
   const now = new Date();
   $('#accueil').innerHTML = `
     <header class="tete">
-      <div><div class="date">${esc(now.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}))}</div><h1>${esc(cap(now.toLocaleDateString('fr-FR', {weekday:'long'})))}</h1></div>
+      <h1>${esc(cap(now.toLocaleDateString('fr-FR', {weekday:'long'})) + ' ' + now.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}))}</h1>
       <button type="button" class="rond" data-act="reglages" aria-label="Sauvegarde et réglages">${svg('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>', 20)}</button>
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
@@ -643,7 +681,7 @@ async function rafraichirAccueil(){
       if(a.id === 'garde-robe' && d){
         const jours = await meteo(d.ville);
         const el2 = $(`[data-bloc="${a.id}"]`);
-        if(el2) el2.innerHTML = carte(a, L.titre(d), blocGardeRobe(d, jours));
+        if(el2){ el2.innerHTML = carte(a, L.titre(d), blocGardeRobe(d, jours)); brancherSlides(el2); }
       }
     }));
   } finally{
@@ -667,10 +705,18 @@ async function cocherOrganisation(btn){
   delete ligne.dataset.attente;
   planifierAccueil(350);
 }
+async function choisirTenue(btn){
+  btn.disabled = true; btn.textContent = '…';
+  const w = await attendreApp('garde-robe', w => w.quotidienGR && w.quotidienGR.pret());
+  if(w){ w.quotidienGR.choisir(btn.dataset.choisir, +btn.dataset.n || 0); toast('Tenue choisie 👌'); }
+  else toast('Garde-robe pas prête, réessaie.');
+  planifierAccueil(400);
+}
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
   const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
-  if(e.target.closest('.slides')) { const s = e.target.closest('[data-ouvrir]'); if(s) montrer(s.dataset.ouvrir); return; }
+  const ch = e.target.closest('[data-choisir]'); if(ch){ choisirTenue(ch); return; }
+  if(e.target.closest('.slides, .ocs')) { const s = e.target.closest('[data-ouvrir]'); if(s) montrer(s.dataset.ouvrir); return; }
   const b = e.target.closest('[data-ouvrir]'); if(b) montrer(b.dataset.ouvrir);
 });
 
@@ -1084,7 +1130,13 @@ window.quotidien = {
     const f = frames.get(id); await f.charge;
     try{ const fn = f.contentWindow.quotidienAction; if(typeof fn === 'function') fn(params || {}); }catch(e){}
   },
-  scenesAgenda: jours => lireScenesAgenda(jours || 7, 0)
+  scenesAgenda: jours => lireScenesAgenda(jours || 7, 0),
+  // Demande à une app (chargée en arrière-plan si besoin) : ex. Backstage → Organisation
+  async demander(id, params){
+    const w = await attendreApp(id, w => typeof w.quotidienAction === 'function' && (!w.quotidienPret || w.quotidienPret()));
+    if(!w) return null;
+    try{ return await w.quotidienAction(params || {}); }catch(e){ console.warn(e); return null; }
+  }
 };
 
 /* ---------- Démarrage ---------- */

@@ -822,6 +822,8 @@ async function boot(){
     ajouter: pid => { const p = S.products.get(pid); if(!p) return false; const ok = addToList(p); render(); return ok; },
     cocher: (id, v) => { const it = S.list.get(id); if(!it) return null; it.checked = v == null ? !it.checked : !!v; saveL(it); render(); return it.checked; }
   };
+  // Toucher l'onglet Courses : toujours la liste (on ferme les fiches ouvertes)
+  window.quotidienAccueil = () => { document.querySelectorAll('dialog[open]').forEach(d => { try{ d.close(); }catch(e){} }); window.scrollTo(0, 0); };
   window.quotidienAction = q => {
     if(q && q.action === 'ajouter'){
       // Produit inconnu tapé sur l'accueil : on ouvre « Ajouter » des Courses avec ce nom déjà écrit

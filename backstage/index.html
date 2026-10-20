@@ -5916,8 +5916,14 @@ window.quotidienAccueil = function(){
   goto('home', true);
 };
 // Appelé par Mon quotidien : « Noter dans Backstage » depuis une scène de l'agenda
+// Liens Notion de l'accueil de Backstage (lus tels qu'ils sont dans l'app)
+window.quotidienNotion = () => [...document.querySelectorAll('#notion-buttons .row-btn')].map(x => {
+  const m = (x.getAttribute('onclick') || '').match(/window\.open\('([^']+)'/), s = x.querySelector('svg'), l = x.querySelector('.label-group');
+  return {nom:(l ? l.textContent : x.textContent).trim(), url:m ? m[1] : '', svg:s ? s.innerHTML : ''};
+}).filter(x => x.url);
 window.quotidienAction = function(p){
   if(!p) return;
+  if(p.action === 'ajouterPlateau'){ goto('plateaux'); openAddPlateauForm(); setTimeout(() => { const f = document.getElementById('pl-add-form'); if(f) f.scrollIntoView({block:'start'}); const n = document.getElementById('pl-name'); if(n) n.focus(); }, 80); return; }
   if(p.action === 'plateau'){
     const pl = loadPlateaux().find(x => (x.name || '').trim().toLowerCase() === String(p.nom || '').trim().toLowerCase());
     if(pl){ goto('plateaux'); openPlateauDetail(pl.id); return; }

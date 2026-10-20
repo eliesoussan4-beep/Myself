@@ -86,6 +86,10 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 /* Carte du haut et carte de la tenue : même hauteur, compacte */
 :root{--carte-h:132px}
 .gr2.compact{align-items:center}
+[data-bloc="jour"] .gr2.compact{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+.bientot.defile{height:138px;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;scroll-snap-type:y proximity;scrollbar-width:none}
+.bientot.defile::-webkit-scrollbar{display:none}
+.bientot.defile .bt{scroll-snap-align:start;flex:none}
 .mt-wrap{display:flex;flex-direction:column;gap:4px;min-width:0}
 .mt-slides{height:var(--carte-h)}
 .slide.meteo{background:var(--sunk);padding:8px 6px;gap:2px;align-items:center;justify-content:center;text-align:center}
@@ -95,7 +99,11 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .mt-i{font-size:24px;line-height:1;align-self:center}
 .mt-l b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1}
 .mt-min{font-size:13px;color:var(--muted);font-weight:600}
-.mt-p{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--rain)}
+.mt-p{display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%;padding:0 4px;font-size:12px;font-weight:600;color:var(--rain);margin-top:4px}
+.mt-p span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.mt-p .mt-vent{color:var(--muted)}
+.mt-p small{font-size:9.5px;font-weight:600;margin-left:1px}
+@media (max-width:400px){.mt-p{font-size:11px;padding:0}}
 .bt{--sc:var(--muted);display:flex;flex-direction:column;border-left:3px solid var(--sc);padding:2px 0 2px 9px;min-width:0}
 .bt-t{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bt-q{font-size:12px;color:var(--muted)}
@@ -108,7 +116,13 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .tenue2 .slides.mini{flex:1}
 [data-bloc="garde-robe"] .slides.mini{height:var(--carte-h);flex:none}
 [data-bloc="garde-robe"] .tenue2{gap:4px}
-[data-bloc="garde-robe"] .slides.mini .slide{flex-basis:calc(50% - 4px);scroll-snap-align:start;padding:6px;gap:4px}
+[data-bloc="garde-robe"] .slides.mini .slide{flex-basis:100%;scroll-snap-align:start;padding:6px;gap:4px}
+.tenue-notion{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.notion4{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;height:calc(var(--carte-h) + 10px)}
+.n4{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;background:var(--sunk);color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:600;min-width:0}
+.n4 svg{color:var(--c)}
+.n4 span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
+.n4:active{transform:scale(.97)}
 [data-bloc="garde-robe"] .sil-box{--silh:calc(var(--carte-h) - 46px);flex:1;min-height:0}
 [data-bloc="garde-robe"] .sil-box .sil-wrap{padding:4px;background:none}
 [data-bloc="garde-robe"] .tslide:first-child:not(:has(.ts-b)) .sil-box{--silh:calc(var(--carte-h) - 20px)}
@@ -178,6 +192,24 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .obar{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .obar .total{min-width:0}
 .slide.nav-jour{align-items:center;justify-content:center;background:var(--sunk);min-height:96px}
+.obar-j{font-size:13px;font-weight:700;color:var(--c)}
+/* Listes dans une diapo (Aujourd'hui, Courses) : 2 lignes visibles, le reste en faisant défiler vers le bas */
+.slide.groupe,.slide.rayon{gap:4px;justify-content:flex-start;padding:12px 14px}
+.slide.groupe .slide-cat,.slide.rayon .slide-cat{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
+.slide.groupe .slide-cat span,.slide.rayon .slide-cat span{color:var(--muted);font-weight:600}
+.liste{height:88px;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y proximity;scrollbar-width:none;display:flex;flex-direction:column}
+.liste::-webkit-scrollbar{display:none}
+.liste > *{scroll-snap-align:start;flex:none;min-height:44px}
+.ligne{display:flex;align-items:center;gap:10px;border-top:1px solid color-mix(in srgb,var(--sc) 25%,transparent);min-width:0}
+.ligne:first-child{border-top:0}
+.ligne .coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--sc);margin:0;color:var(--on-denim)}
+.ligne.faite .coche{background:var(--sc)}
+.l-t{flex:1;min-width:0;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ligne.faite .l-t{text-decoration:line-through;color:var(--muted);font-weight:500}
+.l-h{font-size:13px;font-weight:700;color:var(--sc);white-space:nowrap}
+.ligne.ev .l-h{min-width:42px}
+.l-r{font-style:normal;font-size:12px;font-weight:700;color:var(--warn);white-space:nowrap}
+.ligne .minut{margin-left:0;padding:5px 8px;font-size:11px}
 .obtn.grand{font-size:15px;padding:12px 20px}
 .obtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:99px;padding:7px 13px;font:600 13px/1 var(--body)}
 .obtn svg{color:var(--c)}
@@ -238,10 +270,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 :root[data-theme="dark"] .slide.rc{--sc:var(--scd)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .slide.rc{--sc:var(--scd)}}
 .slide-n .pe{margin-right:8px}
-.slide.rayon{gap:2px;justify-content:flex-start}
-.slide.rayon .slide-cat{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:4px}
-.slide.rayon .slide-cat span{color:var(--muted);font-weight:600}
-.art{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--sc) 25%,transparent);min-width:0}
+.art{display:flex;align-items:center;gap:10px;padding:0;border-top:1px solid color-mix(in srgb,var(--sc) 25%,transparent);min-width:0}
 .art:first-of-type{border-top:0}
 .art .coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--sc);margin:0;color:var(--on-denim)}
 .art.coche .coche{background:var(--sc)}
@@ -486,9 +515,9 @@ async function meteo(v){
   if(meteoMem && meteoMem.cle === cle && Date.now() - meteoMem.t < 20 * 60e3) return meteoMem.jours;
   const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 8000);
   try{
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${v.lat}&longitude=${v.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=2`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${v.lat}&longitude=${v.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=2`;
     const d = (await (await fetch(url, {signal:ctrl.signal})).json()).daily, jours = {};
-    d.time.forEach((j, i) => { jours[j] = {max:Math.round(d.temperature_2m_max[i]), min:Math.round(d.temperature_2m_min[i]), pluie:d.precipitation_probability_max[i] ?? 0, code:d.weather_code[i]}; });
+    d.time.forEach((j, i) => { jours[j] = {max:Math.round(d.temperature_2m_max[i]), min:Math.round(d.temperature_2m_min[i]), pluie:d.precipitation_probability_max[i] ?? 0, code:d.weather_code[i], vent:d.wind_speed_10m_max ? Math.round(d.wind_speed_10m_max[i]) : null}; });
     meteoMem = {cle, t:Date.now(), jours};
     return jours;
   }catch(e){ return null; } finally{ clearTimeout(to); }
@@ -512,7 +541,9 @@ async function lireGardeRobe(){
     if(!tenue) props = w.quotidienGR.propositions(n);
     vide = !w.quotidienGR.nbPieces();
   }
-  return {n, jour:iso(dj), demain:n === 1, ville:(reg && reg.city) || {name:'Paris', lat:48.8566, lon:2.3522}, tenue, props, vide};
+  let notion = [];
+  try{ const wb = await attendreApp('backstage', w => typeof w.quotidienNotion === 'function'); if(wb) notion = wb.quotidienNotion(); }catch(e){}
+  return {n, jour:iso(dj), demain:n === 1, ville:(reg && reg.city) || {name:'Paris', lat:48.8566, lon:2.3522}, tenue, props, vide, notion};
 }
 const visuelTenue = x => x.html ? `<div class="sil-box">${x.html}</div>`
   : `<div class="vignettes">${(x.vignettes || []).map(src => `<div><img src="${esc(src)}" alt=""></div>`).join('') || `<div>${svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 22)}</div>`}</div>`;
@@ -535,7 +566,11 @@ function blocGardeRobe(d, jours){
       ${d.props.length > 1 ? `<div class="points" aria-hidden="true">${d.props.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
   }
   else droite = `<div class="tenue2"><p class="vide">${d.vide ? 'Ajoute tes vêtements dans la garde-robe.' : 'Aucune tenue propre à proposer.'}</p></div>`;
-  return droite;
+  // À droite : 4 pages Notion de Backstage (Textes, Vrac, Sujets, Notes)
+  const voulus = ['texte', 'vrac', 'sujet', 'note'];
+  const liens = voulus.map(v => (d.notion || []).find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean);
+  const grille = liens.length ? `<div class="notion4">${liens.map(x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`).join('')}</div>` : '';
+  return grille ? `<div class="gr2 compact tenue-notion">${droite}${grille}</div>` : droite;
 }
 
 /* ---------- Organisation : événements et tâches du jour (mêmes règles que l'app) ---------- */
@@ -613,19 +648,26 @@ let dernierOrga = null;
 function blocOrganisation(d0){
   dernierOrga = d0;
   const d = d0 && jourOrga === 1 ? {...d0, ...d0.demain} : d0;
-  const barre = `<div class="obar"><button type="button" class="obtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 16)}À faire</button><button type="button" class="obtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 16)}Mois</button></div>`;
+  const barre = `<div class="obar"><button type="button" class="obtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 16)}À faire</button><span class="obar-j">${jourOrga ? 'Demain' : ''}</span><button type="button" class="obtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 16)}Mois</button></div>`;
   if(!d) return `<p class="vide">Pas encore d’organisation sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
   const vers = (j, txt, sens) => `<div class="slide nav-jour"><button type="button" class="obtn grand" data-bascule="${j}">${sens < 0 ? '← ' : ''}${txt}${sens > 0 ? ' →' : ''}</button></div>`;
-  if(!d.evts.length && !d.restantes.length && !d.faitesL.length) return barre + `<div class="slides" data-ouvrir="organisation">${jourOrga ? vers(0, 'Aujourd’hui', -1) : ''}<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>${jourOrga ? '' : vers(1, 'Voir demain', 1)}</div>`;
-  // Une carte par élément, en carrousel (même format que Sur scène), de la couleur de sa catégorie
-  const coul = x => { const th = d.themes.get(x.themeId); return th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : ''; };
-  const cat = x => { const th = d.themes.get(x.themeId); return th ? `<div class="slide-cat">${esc((th.emoji ? th.emoji + ' ' : '') + th.name)}</div>` : ''; };
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
-  const lien = (x, dd) => ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(dd)}"`;
-  const minut = (x, dd) => x.duration && x.timer !== false && !isEvent(x) ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(dd)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 14)}${x.duration} min</button>` : '';
-  const ev = d.evts.map(e => `<div class="slide"${coul(e)}${lien(e, d.d)}>${cat(e)}<div class="slide-n">${esc(e.title)}</div><div class="slide-h"><b>${esc(heure(e) || 'Toute la journée')}</b></div></div>`);
-  const ta = [...d.restantes, ...d.faitesL].map(e => `<div class="slide tache${e.fait ? ' faite' : ''}"${coul(e.t)}${lien(e.t, e.d)}><div class="slide-l">${cat(e.t)}<div class="slide-n">${esc(e.t.title)}</div><div class="slide-h"><b>${e.retard ? `en retard · ${esc(shortDate(e.d))}` : heure(e.t) || (e.fait ? 'Faite' : 'À faire')}</b>${e.fait ? '' : minut(e.t, e.d)}</div></div><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 18) : ''}</button></div>`);
-  const tout = jourOrga ? [vers(0, 'Aujourd’hui', -1), ...ev, ...ta] : [...ev, ...ta, vers(1, 'Voir demain', 1)];
+  // Regroupement par catégorie, dans l'ordre des catégories de l'Organisation (sous-catégories après leur parent)
+  const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
+  const groupes = new Map();
+  const mettre = (x, ligne) => { const k = x.themeId && d.themes.has(x.themeId) ? x.themeId : '_'; if(!groupes.has(k)) groupes.set(k, []); groupes.get(k).push(ligne); };
+  d.evts.forEach(e => mettre(e, `<div class="ligne ev" data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e) || 'Journée')}</b><span class="l-t">${esc(e.title)}</span></div>`));
+  [...d.restantes, ...d.faitesL].forEach(e => {
+    const x = e.t, minut = !e.fait && x.duration && x.timer !== false ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(e.d)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 12)}${x.duration} min</button>` : '';
+    mettre(x, `<div class="ligne tache${e.fait ? ' faite' : ''}" data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(e.d)}"><button type="button" class="coche" data-coche="${esc(x.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(x.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="l-t">${esc(x.title)}</span>${e.retard ? `<em class="l-r">en retard</em>` : heure(x) ? `<b class="l-h">${esc(heure(x))}</b>` : ''}${minut}</div>`);
+  });
+  const cats = [...groupes.entries()].sort((a, b) => rang(d.themes.get(a[0])) - rang(d.themes.get(b[0])));
+  const diapos = cats.map(([k, lignes]) => {
+    const th = d.themes.get(k);
+    return `<div class="slide groupe"${th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : ''}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste">${lignes.join('')}</div></div>`;
+  });
+  if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
+  const tout = jourOrga ? [vers(0, 'Aujourd’hui', -1), ...diapos] : [...diapos, vers(1, 'Voir demain', 1)];
   return barre + `<div class="slides" data-ouvrir="organisation" data-jour-orga="${jourOrga}">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
 }
 function basculerJour(j){
@@ -694,8 +736,8 @@ function blocCourses(d){
   const total = reste.reduce((s, a) => s + (a.prix || 0), 0);
   // Une carte par rayon : chaque produit avec sa case à cocher et sa quantité
   const slides = rayons.map(r => `<div class="slide rc rayon"${coulR(r.rayon)}><div class="slide-cat">${esc(r.nom)}<span>${r.articles.filter(a => !a.coche).length}</span></div>
-    ${r.articles.map(a => `<div class="art${a.coche ? ' coche' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 15) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div>`);
-  if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div>${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div>`);
+    <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' coche' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 15) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
+  if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
   const plus = `<button type="button" class="obtn" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 16)}Produit</button>`;
   let h = reste.length ? `<div class="obar"><div class="total">${total ? `<b>${Math.round(total)} €</b>` : ''}<span>${plur(reste.length, 'produit', 'produits')} · ${prochainesCourses()}</span></div>${plus}</div>` : `<div class="obar">${plus}</div><p class="vide">${rayons.length ? 'Tout est coché ✔️' : 'Rien sur la liste pour l’instant.'}</p>`;
   if(slides.length) h += `<div class="slides" data-ouvrir="courses">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
@@ -751,7 +793,8 @@ async function lireScenesAgenda(avant, apres){
   return r || [];
 }
 function blocBackstage(d){
-  if(!d) return `<p class="vide">Pas encore de scènes ni de plateaux. Ouvre Backstage pour commencer.</p>`;
+  const barre = `<div class="obar"><button type="button" class="obtn" data-aller="backstage" data-action="ajouterPlateau">${svg('<path d="M12 5v14M5 12h14"/>', 16)}Plateau</button><button type="button" class="obtn" data-aller="backstage" data-action="noter">${svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/>', 16)}Noter</button></div>`;
+  if(!d) return barre + `<p class="vide">Pas encore de scènes ni de plateaux. Ouvre Backstage pour commencer.</p>`;
   // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
   const memes = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
   const slides = [
@@ -763,7 +806,7 @@ function blocBackstage(d){
     : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
   const signe = d.net >= 0 ? '+' : '−';
   const et = d.etoiles == null ? '' : `<span class="etoiles" aria-label="${(Math.round(d.etoiles * 2) / 2).toString().replace('.', ',')} étoiles sur 5">${'★'.repeat(Math.round(d.etoiles))}<i>${'★'.repeat(5 - Math.round(d.etoiles))}</i></span>`;
-  return pl + `<div class="bilan"><span>${cap(MOIS[new Date().getMonth()])} : <b>${plur(d.nb, 'scène', 'scènes')}</b> · <b>${signe}${Math.abs(Math.round(d.net))} €</b></span>${et}</div>`;
+  return barre + pl + `<div class="bilan"><span>${cap(MOIS[new Date().getMonth()])} : <b>${plur(d.nb, 'scène', 'scènes')}</b> · <b>${signe}${Math.abs(Math.round(d.net))} €</b></span>${et}</div>`;
 }
 
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
@@ -787,7 +830,7 @@ function squeletteAccueil(){
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     <div data-bloc="jour"><div class="bloc jour"><p class="vide">Chargement…</p></div></div>
-    ${APPS.map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}`;
+    ${APPS.slice().sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}`;
   $('#accueil').dataset.jour = iso(now);
   alerteDrive();
 }
@@ -815,12 +858,12 @@ async function rafraichirLigneJour(){
     return `<div class="slide meteo" data-aller="garde-robe" data-action="meteo">
       <div class="mt-v">${esc(ville.name)}</div><div class="mt-j">${nomJour}</div>
       ${m ? `<div class="mt-l"><span class="mt-i" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><b>${m.max}°</b><span class="mt-min">${m.min}°</span></div>
-      <div class="mt-p">${goutte}${m.pluie} %</div>` : `<div class="mt-l"><span class="mt-i" aria-hidden="true">⛅</span><span class="mt-min">${jours === null ? 'indisponible' : '…'}</span></div>`}
+      <div class="mt-p"><span>${goutte}${m.pluie} %</span>${m.vent != null ? `<span class="mt-vent">${svg('<path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5M3 12h15a3 3 0 1 1-3 3M3 16h7"/>', 13)}${m.vent}<small>km/h</small></span>` : ''}</div>` : `<div class="mt-l"><span class="mt-i" aria-hidden="true">⛅</span><span class="mt-min">${jours === null ? 'indisponible' : '…'}</span></div>`}
     </div>`;
   };
   const wx = `<div class="mt-wrap"><div class="slides mini mt-slides">${slideMeteo(0, 'Aujourd’hui')}${slideMeteo(1, 'Demain')}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span></div></div>`;
   const bt = bientot.length
-    ? `<div class="bientot">${bientot.slice(0, 3).map(x => `<div class="bt"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}><span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`).join('')}</div>`
+    ? `<div class="bientot defile">${bientot.map(x => `<div class="bt"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}><span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`).join('')}</div>`
     : `<div class="bientot"><p class="vide">Rien de prévu ces prochaines semaines.</p></div>`;
   el.innerHTML = `<div class="bloc jour" data-ouvrir="organisation"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
   brancherSlides(el);
@@ -882,6 +925,7 @@ $('#accueil').addEventListener('click', e => {
     window.quotidien.ouvrir(x.aller, {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null});
     return;
   }
+  if(e.target.closest('.n4')) return;   // lien Notion : s'ouvre tout seul
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
   const jr = e.target.closest('[data-bascule]'); if(jr){ basculerJour(+jr.dataset.bascule); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc){ cocherCourse(cc); return; }

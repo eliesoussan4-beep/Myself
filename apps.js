@@ -21,7 +21,7 @@
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 11;
+self.VERSION_QUOTIDIEN = 12;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;
@@ -49,7 +49,7 @@ self.APPS = [
     id: 'courses',
     nom: 'Courses',
     dossier: 'courses/',
-    accueil: 4,
+    accueil: 4,              // (sa liste s'affiche dans la carte Vêtements de l'accueil)
     toujoursAccueil: true,   // l'onglet ramène toujours à la liste de courses
     couleur: ['#2F7A4A', '#7CC992'],
     base: 'courses',

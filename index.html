@@ -72,8 +72,10 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bloc{--c:var(--c-c,var(--denim));width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--ink);transition:transform .12s;cursor:pointer;position:relative;overflow:hidden}
 :root[data-theme="dark"] .bloc{--c:var(--c-s,var(--denim))}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bloc{--c:var(--c-s,var(--denim))}}
-.bloc::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--c)}
-.bloc{padding-top:18px}
+.bloc::before{content:none}
+/* Tableau de bord uniforme : les cartes se fondent dans le fond, seuls leurs contenus ressortent */
+.bloc{background:none;border:0;border-radius:0;padding:0;overflow:visible}
+main{gap:22px}
 .bloc:active{transform:scale(.985)}
 .bloc-t{display:flex;align-items:center;gap:10px}
 .bloc-ico{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent)}
@@ -87,7 +89,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 :root{--carte-h:132px}
 .gr2.compact{align-items:center}
 [data-bloc="jour"] .gr2.compact{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
-.bientot.defile{height:138px;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;scroll-snap-type:y proximity;scrollbar-width:none}
+.bientot.defile{height:138px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;overscroll-behavior-x:auto;touch-action:pan-x pan-y;justify-content:flex-start;scroll-snap-type:y proximity;scrollbar-width:none}
 .bientot.defile::-webkit-scrollbar{display:none}
 .bientot.defile .bt{scroll-snap-align:start;flex:none}
 .mt-wrap{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -117,15 +119,30 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 [data-bloc="garde-robe"] .slides.mini{height:var(--carte-h);flex:none}
 [data-bloc="garde-robe"] .tenue2{gap:4px}
 [data-bloc="garde-robe"] .slides.mini .slide{flex-basis:100%;scroll-snap-align:start;padding:6px;gap:4px}
-.tenue-notion{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-.notion4{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;height:calc(var(--carte-h) + 10px)}
+.tenue-co{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
+.co-carre{display:flex;flex-direction:column;gap:6px;min-width:0}
+.co-h{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:30px}
+.co-h b{font-family:var(--display);font-size:20px;font-weight:800}
+.obtn.petit{padding:6px 10px;font-size:12.5px;gap:4px}
+.co-slides{flex:none}
+.co-slides .slide.rayon{padding:8px 10px}
+.co-slides .slide-cat{font-size:12.5px}
+.co-slides .art{gap:7px}
+.co-slides .art .coche{width:22px;height:22px;border-radius:7px}
+.co-slides .art-n{font-size:13.5px}
+.co-slides .art-q{font-size:11.5px}
+[data-bloc="garde-robe"] .tenue2 .slides.mini{height:calc(var(--carte-h) + 36px)}
+.notion5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.notion5 .n4{padding:10px 0 8px;font-size:11.5px}
 .n4{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;background:var(--sunk);color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:600;min-width:0}
 .n4 svg{color:var(--c)}
 .n4 span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
 .n4:active{transform:scale(.97)}
 [data-bloc="garde-robe"] .sil-box{--silh:calc(var(--carte-h) - 46px);flex:1;min-height:0}
 [data-bloc="garde-robe"] .sil-box .sil-wrap{padding:4px;background:none}
+[data-bloc="garde-robe"] .tslide .sil-box{--silh:calc(var(--carte-h) - 50px)}
 [data-bloc="garde-robe"] .tslide:first-child:not(:has(.ts-b)) .sil-box{--silh:calc(var(--carte-h) - 20px)}
+[data-bloc="garde-robe"] .tslide{overflow:hidden}
 [data-bloc="garde-robe"] .piece-img{min-height:0;flex:1}
 [data-bloc="garde-robe"] .piece-img img{max-height:calc(var(--carte-h) - 64px)}
 [data-bloc="garde-robe"] .ts-n{font-size:12px}
@@ -143,7 +160,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .sil-box .sil-wrap{width:100%;box-sizing:border-box;padding:10px 8px}
 .slides.mini{margin:0;padding:0;gap:8px}
 .slides.mini .slide{padding:8px;gap:6px;align-items:stretch;background:var(--sunk)}
-.tslide .sil-box{--silh:180px}
+
 .ts-n{font-size:13px;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ts-b{border:0;border-radius:10px;background:var(--c);color:var(--on-denim);font:600 13px/1 var(--body);padding:9px 10px}
 /* Silhouette de la garde-robe (mêmes règles que dans l'app) */
@@ -197,9 +214,9 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .slide.groupe,.slide.rayon{gap:4px;justify-content:flex-start;padding:12px 14px}
 .slide.groupe .slide-cat,.slide.rayon .slide-cat{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
 .slide.groupe .slide-cat span,.slide.rayon .slide-cat span{color:var(--muted);font-weight:600}
-.liste{height:88px;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y proximity;scrollbar-width:none;display:flex;flex-direction:column}
+.liste{height:88px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;overscroll-behavior-x:auto;touch-action:pan-x pan-y;scroll-snap-type:y mandatory;scrollbar-width:none;display:flex;flex-direction:column}
 .liste::-webkit-scrollbar{display:none}
-.liste > *{scroll-snap-align:start;flex:none;min-height:44px}
+.liste > *{scroll-snap-align:start;flex:none;box-sizing:border-box;height:44px;min-height:0}
 .ligne{display:flex;align-items:center;gap:10px;border-top:1px solid color-mix(in srgb,var(--sc) 25%,transparent);min-width:0}
 .ligne:first-child{border-top:0}
 .ligne .coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--sc);margin:0;color:var(--on-denim)}
@@ -273,10 +290,10 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .art{display:flex;align-items:center;gap:10px;padding:0;border-top:1px solid color-mix(in srgb,var(--sc) 25%,transparent);min-width:0}
 .art:first-of-type{border-top:0}
 .art .coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--sc);margin:0;color:var(--on-denim)}
-.art.coche .coche{background:var(--sc)}
+.art.achete .coche{background:var(--sc)}
 .art-n{flex:1;min-width:0;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .art-q{font-size:13px;font-weight:700;color:var(--sc);white-space:nowrap}
-.art.coche .art-n{text-decoration:line-through;color:var(--muted);font-weight:500}
+.art.achete .art-n{text-decoration:line-through;color:var(--muted);font-weight:500}
 .slide-h b.presque{color:var(--warn)}
 .bilan{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .bilan b{color:var(--ink);font-weight:600}
@@ -541,18 +558,13 @@ async function lireGardeRobe(){
     if(!tenue) props = w.quotidienGR.propositions(n);
     vide = !w.quotidienGR.nbPieces();
   }
-  let notion = [];
-  try{ const wb = await attendreApp('backstage', w => typeof w.quotidienNotion === 'function'); if(wb) notion = wb.quotidienNotion(); }catch(e){}
-  return {n, jour:iso(dj), demain:n === 1, ville:(reg && reg.city) || {name:'Paris', lat:48.8566, lon:2.3522}, tenue, props, vide, notion};
+  return {n, jour:iso(dj), demain:n === 1, ville:(reg && reg.city) || {name:'Paris', lat:48.8566, lon:2.3522}, tenue, props, vide};
 }
 const visuelTenue = x => x.html ? `<div class="sil-box">${x.html}</div>`
   : `<div class="vignettes">${(x.vignettes || []).map(src => `<div><img src="${esc(src)}" alt=""></div>`).join('') || `<div>${svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 22)}</div>`}</div>`;
-function blocGardeRobe(d, jours){
-  if(!d) return `<p class="vide">Pas encore de garde-robe sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
-  const w = jours && jours[d.jour], desc = w && WMO(w.code);
-  const wx = w
-    ? `<div class="wx2" data-aller="garde-robe" data-action="meteo"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><span class="wx-t">${w.max}°</span><span class="wx-s">min ${w.min}°</span><span class="wx-s">pluie ${w.pluie} %</span><span class="wx-s">${esc(d.ville.name)}</span>${d.demain ? '<span class="pastille demain">Demain</span>' : ''}</div>`
-    : `<div class="wx2" data-aller="garde-robe" data-action="meteo"><span class="wx-ico" aria-hidden="true">⛅</span><span class="wx-s">${jours === undefined ? 'Météo…' : 'Météo indisponible'}</span><span class="wx-s">${esc(d.ville.name)}</span></div>`;
+function blocGardeRobe(d, co){
+  const courses = co === undefined ? `<div class="co-carre"><p class="vide">Chargement…</p></div>` : carreCourses(co);
+  if(!d) return `<div class="gr2 compact tenue-co"><div class="tenue2"><p class="vide">Pas encore de garde-robe sur ce téléphone.</p></div>${courses}</div>`;
   let droite;
   if(d.tenue){
     const pcs = (d.tenue.pieces || []);
@@ -566,11 +578,7 @@ function blocGardeRobe(d, jours){
       ${d.props.length > 1 ? `<div class="points" aria-hidden="true">${d.props.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
   }
   else droite = `<div class="tenue2"><p class="vide">${d.vide ? 'Ajoute tes vêtements dans la garde-robe.' : 'Aucune tenue propre à proposer.'}</p></div>`;
-  // À droite : 4 pages Notion de Backstage (Textes, Vrac, Sujets, Notes)
-  const voulus = ['texte', 'vrac', 'sujet', 'note'];
-  const liens = voulus.map(v => (d.notion || []).find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean);
-  const grille = liens.length ? `<div class="notion4">${liens.map(x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`).join('')}</div>` : '';
-  return grille ? `<div class="gr2 compact tenue-notion">${droite}${grille}</div>` : droite;
+  return `<div class="gr2 compact tenue-co">${droite}${courses}</div>`;
 }
 
 /* ---------- Organisation : événements et tâches du jour (mêmes règles que l'app) ---------- */
@@ -726,28 +734,27 @@ function prochainesCourses(){
 }
 // Couleur de chaque rayon (mêmes valeurs que dans les Courses) : clair / sombre
 const RAYON_C = {fl:['#3E9B5F','#6CC48A'], frais:['#2E8FB8','#6BBFE0'], viande:['#C2504A','#E58A84'], pain:['#B7832F','#E0B266'], epicerie:['#C46A2B','#E89A63'], boissons:['#1F9E8A','#5CCBB7'], surgeles:['#5B7FD6','#93AEF0'], hygiene:['#C04F8E','#E68BBE'], maison:['#7A5CC7','#A893E8'], autre:['#6B7486','#A0A8B8']};
-function blocCourses(d){
-  if(!d) return `<p class="vide">Pas encore de courses sur ce téléphone. Ouvre l’app, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
+// Courses (dans la carte Vêtements) : le prix et « + Produit » en haut, puis une carte par rayon qu'on fait glisser
+function carreCourses(d){
+  const plus = `<button type="button" class="obtn petit" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 14)}Produit</button>`;
+  if(!d) return `<div class="co-carre" data-ouvrir="courses"><div class="co-h"><span></span>${plus}</div><p class="vide">Pas encore de courses.</p></div>`;
   const emo = p => d.emojis[p.id] || p.emoji || RAYON_EMOJI[p.rayon] || '🛒';
   const coulR = r => { const c = RAYON_C[r] || RAYON_C.autre; return ` style="--scl:${c[0]};--scd:${c[1]}"`; };
-  const prix = v => v == null ? '' : (Math.round(v * 100) / 100).toFixed(2).replace('.', ',') + ' €';
   const rayons = d.rayons || [];
   const reste = rayons.flatMap(r => r.articles).filter(a => !a.coche);
   const total = reste.reduce((s, a) => s + (a.prix || 0), 0);
-  // Une carte par rayon : chaque produit avec sa case à cocher et sa quantité
   const slides = rayons.map(r => `<div class="slide rc rayon"${coulR(r.rayon)}><div class="slide-cat">${esc(r.nom)}<span>${r.articles.filter(a => !a.coche).length}</span></div>
-    <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' coche' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 15) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
+    <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
-  const plus = `<button type="button" class="obtn" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 16)}Produit</button>`;
-  let h = reste.length ? `<div class="obar"><div class="total">${total ? `<b>${Math.round(total)} €</b>` : ''}<span>${plur(reste.length, 'produit', 'produits')} · ${prochainesCourses()}</span></div>${plus}</div>` : `<div class="obar">${plus}</div><p class="vide">${rayons.length ? 'Tout est coché ✔️' : 'Rien sur la liste pour l’instant.'}</p>`;
-  if(slides.length) h += `<div class="slides" data-ouvrir="courses">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
-  return h;
+  if(!slides.length) slides.push(`<div class="slide rayon vide-co"><p class="vide">Liste vide.</p></div>`);
+  return `<div class="co-carre" data-ouvrir="courses"><div class="co-h"><b>${total ? Math.round(total) + ' €' : ''}</b>${plus}</div>
+    <div class="slides mini co-slides">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
 }
 // Cocher un produit depuis l'accueil : c'est l'app Courses qui le fait (comme dans sa liste)
 async function cocherCourse(btn){
-  const art = btn.closest('.art'); if(art) art.classList.toggle('coche');
+  const art = btn.closest('.art'); if(art) art.classList.toggle('achete');
   const w = await attendreApp('courses', w => !!w.quotidienCO);
-  if(w) w.quotidienCO.cocher(btn.dataset.cocheCo); else if(art) art.classList.toggle('coche');
+  if(w) w.quotidienCO.cocher(btn.dataset.cocheCo); else if(art) art.classList.toggle('achete');
   planifierAccueil(300);
 }
 
@@ -773,7 +780,8 @@ async function lireBackstage(){
   const net = scenes.reduce((a, s) => a + ((s.gains || 0) - (s.depenses || 0)), 0);
   let etoiles = null; try{ etoiles = w.computeStarRating().stars; }catch(e){}
   let agenda = []; try{ agenda = await lireScenesAgenda(1, 0); }catch(e){}
-  return {plats, agenda, nb:scenes.length, net, etoiles};
+  let notion = []; try{ notion = typeof w.quotidienNotion === 'function' ? w.quotidienNotion() : []; }catch(e){}
+  return {plats, agenda, nb:scenes.length, net, etoiles, notion};
 }
 // Scènes prévues dans l'Organisation (catégorie « Scène » ou 🎤), sur une période
 const SCENE_RE = /sc[eè]ne/i;   // pas « Stand-up » (écriture…) : seulement les scènes
@@ -804,16 +812,21 @@ function blocBackstage(d){
   const pl = slides.length
     ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
     : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
-  const signe = d.net >= 0 ? '+' : '−';
-  const et = d.etoiles == null ? '' : `<span class="etoiles" aria-label="${(Math.round(d.etoiles * 2) / 2).toString().replace('.', ',')} étoiles sur 5">${'★'.repeat(Math.round(d.etoiles))}<i>${'★'.repeat(5 - Math.round(d.etoiles))}</i></span>`;
-  return barre + pl + `<div class="bilan"><span>${cap(MOIS[new Date().getMonth()])} : <b>${plur(d.nb, 'scène', 'scènes')}</b> · <b>${signe}${Math.abs(Math.round(d.net))} €</b></span>${et}</div>`;
+  // Les pages Notion de Backstage (lues dans l'app) : Textes, Vrac, Sujets, Notes, Impros
+  const voulus = ['texte', 'vrac', 'sujet', 'note', 'impro'];
+  const liens = voulus.map(v => (d.notion || []).find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean);
+  const grille = liens.length ? `<div class="notion5">${liens.map(x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`).join('')}</div>` : '';
+  return barre + pl + grille;
 }
 
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
+// Une app peut s'afficher dans la carte d'une autre : ici les Courses, à droite de la carte Vêtements
+const AVEC = {courses:'garde-robe'};
+const resultats = {};
 const LECTEURS = {
-  'garde-robe':   {titre:() => 'Tenue', lire:lireGardeRobe, rendre:d => blocGardeRobe(d, undefined)},
+  'garde-robe':   {titre:() => 'Tenue', lire:lireGardeRobe, rendre:d => blocGardeRobe(d, resultats.courses)},
   'organisation': {titre:d => 'Aujourd’hui' + titreOrganisation(d), lire:lireOrganisation, rendre:blocOrganisation},
-  'courses':      {titre:() => 'À acheter bientôt', lire:lireCourses, rendre:blocCourses},
+  'courses':      {titre:() => 'À acheter bientôt', lire:lireCourses, rendre:carreCourses},
   'backstage':    {titre:() => 'Sur scène', lire:lireBackstage, rendre:blocBackstage},
 };
 const styleCouleur = app => app.couleur ? ` style="--c-c:${app.couleur[0]};--c-s:${app.couleur[1]}"` : '';
@@ -830,7 +843,7 @@ function squeletteAccueil(){
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     <div data-bloc="jour"><div class="bloc jour"><p class="vide">Chargement…</p></div></div>
-    ${APPS.slice().sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}`;
+    ${APPS.filter(a => !AVEC[a.id]).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}`;
   $('#accueil').dataset.jour = iso(now);
   alerteDrive();
 }
@@ -879,8 +892,10 @@ async function rafraichirAccueil(){
     await Promise.all(APPS.filter(a => LECTEURS[a.id]).map(async a => {
       const L = LECTEURS[a.id];
       let d = null; try{ d = await L.lire(); }catch(e){ console.warn(a.id, e); }
-      const el = $(`[data-bloc="${a.id}"]`);
-      if(el){ el.innerHTML = carte(a, L.titre(d), L.rendre(d)); brancherSlides(el); }
+      resultats[a.id] = d;
+      const hote = AVEC[a.id] || a.id, appH = APPS.find(x => x.id === hote);
+      const el = $(`[data-bloc="${hote}"]`);
+      if(el && appH){ el.innerHTML = carte(appH, '', hote === 'garde-robe' ? blocGardeRobe(resultats['garde-robe'], resultats['courses']) : L.rendre(d)); brancherSlides(el); }
     }));
   } finally{
     enCours = false;
@@ -926,6 +941,7 @@ $('#accueil').addEventListener('click', e => {
     return;
   }
   if(e.target.closest('.n4')) return;   // lien Notion : s'ouvre tout seul
+  if(e.target.closest('.co-carre') && !e.target.closest('[data-aller], [data-coche-co], [data-ajout-course]')){ montrer('courses'); return; }
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
   const jr = e.target.closest('[data-bascule]'); if(jr){ basculerJour(+jr.dataset.bascule); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc){ cocherCourse(cc); return; }

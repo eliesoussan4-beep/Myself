@@ -83,6 +83,19 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bloc-ouvrir{border:0;background:none;color:var(--c);padding:4px;margin:-4px;display:flex}
 .vide{margin:0;font-size:14px;color:var(--muted)}
 .bientot{display:flex;flex-direction:column;gap:6px;min-width:0;justify-content:center}
+/* Carte du haut et carte de la tenue : même hauteur, compacte */
+:root{--carte-h:132px}
+.gr2.compact{align-items:center}
+.mt-wrap{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mt-slides{height:var(--carte-h)}
+.slide.meteo{background:var(--sunk);padding:8px 6px;gap:2px;align-items:center;justify-content:center;text-align:center}
+.mt-v{font-family:var(--display);font-size:17px;font-weight:800;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-j{font-size:11px;font-weight:600;color:var(--muted);text-transform:none}
+.mt-l{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-top:2px;flex-wrap:nowrap;max-width:100%}
+.mt-i{font-size:24px;line-height:1;align-self:center}
+.mt-l b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1}
+.mt-min{font-size:13px;color:var(--muted);font-weight:600}
+.mt-p{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--rain)}
 .bt{--sc:var(--muted);display:flex;flex-direction:column;border-left:3px solid var(--sc);padding:2px 0 2px 9px;min-width:0}
 .bt-t{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bt-q{font-size:12px;color:var(--muted)}
@@ -93,8 +106,19 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .wx2 .pastille{margin-top:6px}
 .tenue2{display:flex;flex-direction:column;gap:6px;min-width:0}
 .tenue2 .slides.mini{flex:1}
-[data-bloc="garde-robe"] .slides.mini .slide{flex-basis:calc(50% - 4px);scroll-snap-align:start}
-[data-bloc="garde-robe"] .sil-box{--silh:210px}
+[data-bloc="garde-robe"] .slides.mini{height:var(--carte-h);flex:none}
+[data-bloc="garde-robe"] .tenue2{gap:4px}
+[data-bloc="garde-robe"] .slides.mini .slide{flex-basis:calc(50% - 4px);scroll-snap-align:start;padding:6px;gap:4px}
+[data-bloc="garde-robe"] .sil-box{--silh:calc(var(--carte-h) - 46px);flex:1;min-height:0}
+[data-bloc="garde-robe"] .sil-box .sil-wrap{padding:4px;background:none}
+[data-bloc="garde-robe"] .tslide:first-child:not(:has(.ts-b)) .sil-box{--silh:calc(var(--carte-h) - 20px)}
+[data-bloc="garde-robe"] .piece-img{min-height:0;flex:1}
+[data-bloc="garde-robe"] .piece-img img{max-height:calc(var(--carte-h) - 64px)}
+[data-bloc="garde-robe"] .ts-n{font-size:12px}
+[data-bloc="garde-robe"] .ts-b{padding:6px 8px;font-size:12px}
+[data-bloc="garde-robe"] .vignettes{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+[data-bloc="garde-robe"] .vignettes{align-content:center}
+[data-bloc="garde-robe"] .vignettes > *{aspect-ratio:auto;height:44px}
 .tenue2 .slides.mini .slide{justify-content:space-between}
 .piece-img{flex:1;min-height:150px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .piece-img img{max-width:100%;max-height:170px;object-fit:contain}
@@ -151,7 +175,8 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .slide-cat{font-size:12px;font-weight:600;color:var(--sc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .minut{display:inline-flex;align-items:center;gap:4px;border:0;border-radius:99px;background:var(--sc);color:var(--on-denim);font:700 12px/1 var(--body);padding:6px 10px;margin-left:8px}
 .slide-h{flex-wrap:wrap}
-.obar{display:flex;justify-content:space-between;gap:8px}
+.obar{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.obar .total{min-width:0}
 .slide.nav-jour{align-items:center;justify-content:center;background:var(--sunk);min-height:96px}
 .obtn.grand{font-size:15px;padding:12px 20px}
 .obtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:99px;padding:7px 13px;font:600 13px/1 var(--body)}
@@ -251,6 +276,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 /* ---------- Retours (notes de modifs, temporaire) ---------- */
 #retour-btn{position:fixed;right:14px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);z-index:9;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:0;opacity:.94}
+#retour-btn .brouillon{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--denim);border:2px solid var(--surface)}
 #retour-btn .n{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--today);color:#11151C;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .choix{display:flex;flex-wrap:wrap;gap:6px}
 .choix button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:600;color:var(--muted)}
@@ -266,6 +292,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .retour div{flex:1;min-width:0}
 .retour p{margin:0;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
 .retour small{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+.ac-res{display:flex;flex-direction:column;max-height:50dvh;overflow-y:auto}
+.ac-p{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:500 16px/1.3 var(--body);padding:12px 4px;text-align:left}
+.ac-p .ac-e{color:var(--denim);font-weight:700;font-size:15px;white-space:nowrap}
+.ac-p.dans{color:var(--muted)}.ac-p.dans .ac-e{color:var(--muted);font-size:12px;font-weight:600}
+.ac-p.nouveau{color:var(--denim);font-weight:600}.ac-p.nouveau .ac-e{font-size:12px;color:var(--muted)}
 .retour button{border:0;background:none;color:var(--muted);width:36px;height:36px;border-radius:10px;flex:none;font-size:15px}
 
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none;text-align:center}
@@ -281,6 +312,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 <nav id="barre" aria-label="Applications"><div id="onglets"></div></nav>
 <dialog id="reglages" aria-label="Sauvegarde et réglages"></dialog>
 <dialog id="retours" aria-label="Noter une modif"></dialog>
+<dialog id="ajout-course" aria-label="Ajouter aux courses"></dialog>
 <button type="button" id="retour-btn" aria-label="Noter une modif" hidden></button>
 <input type="file" id="fichier" accept="application/json,.json" multiple hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -664,7 +696,8 @@ function blocCourses(d){
   const slides = rayons.map(r => `<div class="slide rc rayon"${coulR(r.rayon)}><div class="slide-cat">${esc(r.nom)}<span>${r.articles.filter(a => !a.coche).length}</span></div>
     ${r.articles.map(a => `<div class="art${a.coche ? ' coche' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 15) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div>${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div>`);
-  let h = reste.length ? `<div class="total">${total ? `<b>${Math.round(total)} €</b>` : ''}<span>${plur(reste.length, 'produit', 'produits')} · ${prochainesCourses()}</span></div>` : `<p class="vide">${rayons.length ? 'Tout est coché ✔️' : 'Rien sur la liste pour l’instant.'}</p>`;
+  const plus = `<button type="button" class="obtn" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 16)}Produit</button>`;
+  let h = reste.length ? `<div class="obar"><div class="total">${total ? `<b>${Math.round(total)} €</b>` : ''}<span>${plur(reste.length, 'produit', 'produits')} · ${prochainesCourses()}</span></div>${plus}</div>` : `<div class="obar">${plus}</div><p class="vide">${rayons.length ? 'Tout est coché ✔️' : 'Rien sur la liste pour l’instant.'}</p>`;
   if(slides.length) h += `<div class="slides" data-ouvrir="courses">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
   return h;
 }
@@ -772,18 +805,25 @@ async function rafraichirLigneJour(){
   const el = $('[data-bloc="jour"]'); if(!el) return;
   const reg = await lire('garde-robe', db => un(db, 'kv', 'settings')).catch(() => null);
   const ville = (reg && reg.city) || {name:'Paris', lat:48.8566, lon:2.3522};
-  const n = new Date().getHours() >= 18 ? 1 : 0, dj = new Date(); dj.setDate(dj.getDate() + n);
   const [jours, w] = await Promise.all([meteo(ville), attendreApp('organisation', w => typeof w.quotidienBientot === 'function' && w.quotidienPret())]);
   let bientot = []; try{ if(w) bientot = w.quotidienBientot(); }catch(e){}
-  const m = jours && jours[iso(dj)], desc = m && WMO(m.code);
-  const wx = m
-    ? `<div class="wx2" data-aller="garde-robe" data-action="meteo"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><span class="wx-t">${m.max}°</span><span class="wx-s">min ${m.min}° · pluie ${m.pluie} %</span><span class="wx-s">${esc(ville.name)}${n ? ' · demain' : ''}</span></div>`
-    : `<div class="wx2" data-aller="garde-robe" data-action="meteo"><span class="wx-ico" aria-hidden="true">⛅</span><span class="wx-s">${jours === null ? 'Météo indisponible' : 'Météo…'}</span><span class="wx-s">${esc(ville.name)}</span></div>`;
+  const goutte = svg('<path d="M12 3.5c3 4 5.5 7 5.5 10a5.5 5.5 0 0 1-11 0c0-3 2.5-6 5.5-10z"/>', 13);
+  // Une diapo par jour : la ville en haut, l'icône et les températures, puis le risque de pluie
+  const slideMeteo = (k, nomJour) => {
+    const dj = new Date(); dj.setDate(dj.getDate() + k);
+    const m = jours && jours[iso(dj)], desc = m && WMO(m.code);
+    return `<div class="slide meteo" data-aller="garde-robe" data-action="meteo">
+      <div class="mt-v">${esc(ville.name)}</div><div class="mt-j">${nomJour}</div>
+      ${m ? `<div class="mt-l"><span class="mt-i" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><b>${m.max}°</b><span class="mt-min">${m.min}°</span></div>
+      <div class="mt-p">${goutte}${m.pluie} %</div>` : `<div class="mt-l"><span class="mt-i" aria-hidden="true">⛅</span><span class="mt-min">${jours === null ? 'indisponible' : '…'}</span></div>`}
+    </div>`;
+  };
+  const wx = `<div class="mt-wrap"><div class="slides mini mt-slides">${slideMeteo(0, 'Aujourd’hui')}${slideMeteo(1, 'Demain')}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span></div></div>`;
   const bt = bientot.length
-    ? `<div class="bientot">${bientot.slice(0, 4).map(x => `<div class="bt"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}><span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`).join('')}${bientot.length > 4 ? `<div class="bt-plus">et ${bientot.length - 4} de plus</div>` : ''}</div>`
+    ? `<div class="bientot">${bientot.slice(0, 3).map(x => `<div class="bt"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}><span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`).join('')}</div>`
     : `<div class="bientot"><p class="vide">Rien de prévu ces prochaines semaines.</p></div>`;
-  const app = APPS.find(a => a.id === 'organisation') || {};
-  el.innerHTML = `<div class="bloc jour" data-ouvrir="organisation"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2">${wx}${bt}</div></div>`;
+  el.innerHTML = `<div class="bloc jour" data-ouvrir="organisation"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
+  brancherSlides(el);
 }
 let enCours = false, aRefaire = false, minuteur = 0;
 function planifierAccueil(ms){ clearTimeout(minuteur); minuteur = setTimeout(rafraichirAccueil, ms); }
@@ -842,6 +882,7 @@ $('#accueil').addEventListener('click', e => {
     window.quotidien.ouvrir(x.aller, {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null});
     return;
   }
+  if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
   const jr = e.target.closest('[data-bascule]'); if(jr){ basculerJour(+jr.dataset.bascule); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc){ cocherCourse(cc); return; }
   const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
@@ -849,6 +890,49 @@ $('#accueil').addEventListener('click', e => {
   const sa = e.target.closest('[data-sale]'); if(sa){ mettreAuSale(sa); return; }
   if(e.target.closest('.slides, .ocs')) { const s = e.target.closest('[data-ouvrir]'); if(s) montrer(s.dataset.ouvrir); return; }
   const b = e.target.closest('[data-ouvrir]'); if(b) montrer(b.dataset.ouvrir);
+});
+
+/* ---------- Ajouter un produit à la liste de courses, sans quitter l'accueil ---------- */
+let produitsCO = [];
+async function ouvrirAjoutCourse(){
+  const dlg = $('#ajout-course');
+  dlg.innerHTML = `<div class="feuille"><h2>Ajouter aux courses</h2>
+    <label class="champ"><input id="ac-q" type="search" placeholder="Chercher un produit…" autocomplete="off" enterkeyhint="search"></label>
+    <div id="ac-res" class="ac-res"><p class="hint">Chargement…</p></div>
+    <button type="button" class="btn" data-ac="fermer">Fermer</button></div>`;
+  dlg.showModal();
+  const w = await attendreApp('courses', w => !!w.quotidienCO);
+  produitsCO = w ? w.quotidienCO.produits() : [];
+  majAjoutCourse();
+  setTimeout(() => { const i = $('#ac-q'); if(i) i.focus(); }, 60);
+}
+const sansAccent = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+function majAjoutCourse(){
+  const box = $('#ac-res'); if(!box) return;
+  const q = sansAccent($('#ac-q').value);
+  const liste = produitsCO.filter(p => !q || sansAccent(p.nom).includes(q)).slice(0, 30);
+  const exact = q && produitsCO.some(p => sansAccent(p.nom) === q);
+  box.innerHTML = liste.map(p => `<button type="button" class="ac-p${p.dans ? ' dans' : ''}" data-ac="ajouter" data-id="${esc(p.id)}"${p.dans ? ' disabled' : ''}><span>${esc(p.emoji)} ${esc(p.nom)}</span><span class="ac-e">${p.dans ? 'dans la liste' : '＋'}</span></button>`).join('')
+    + (q && !exact ? `<button type="button" class="ac-p nouveau" data-ac="creer"><span>＋ Nouveau produit « ${esc($('#ac-q').value.trim())} »</span><span class="ac-e">dans Courses</span></button>` : '')
+    + (!liste.length && !q ? '<p class="hint">Aucun produit pour l’instant.</p>' : '');
+}
+$('#ajout-course').addEventListener('input', e => { if(e.target.id === 'ac-q') majAjoutCourse(); });
+$('#ajout-course').addEventListener('click', async e => {
+  const dlg = $('#ajout-course');
+  if(e.target === dlg){ dlg.close(); return; }
+  const b = e.target.closest('[data-ac]'); if(!b) return;
+  if(b.dataset.ac === 'fermer') dlg.close();
+  else if(b.dataset.ac === 'ajouter'){
+    const w = await attendreApp('courses', w => !!w.quotidienCO); if(!w) return;
+    w.quotidienCO.ajouter(b.dataset.id);
+    const p = produitsCO.find(x => x.id === b.dataset.id); if(p) p.dans = true;
+    $('#ac-q').value = ''; majAjoutCourse(); $('#ac-q').focus();
+    toast(`${p ? p.nom : 'Produit'} ajouté 🛒`); planifierAccueil(300);
+  }
+  else if(b.dataset.ac === 'creer'){
+    const nom = $('#ac-q').value.trim(); dlg.close();
+    window.quotidien.ouvrir('courses', {action:'ajouter', nom});
+  }
 });
 
 /* ---------- Sauvegarde globale ---------- */
@@ -1147,7 +1231,8 @@ function ecrireRetours(l){ try{ localStorage.setItem(CLE_RETOURS, JSON.stringify
 function majPastille(){
   const b = $('#retour-btn'); if(!b) return;
   const n = lireRetours().length;
-  b.innerHTML = svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 7l3 3"/>', 20) + (n ? `<span class="n">${n}</span>` : '');
+  const br = lireBrouillon();
+  b.innerHTML = svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 7l3 3"/>', 20) + (n ? `<span class="n">${n}</span>` : '') + (br ? '<span class="brouillon" title="Note en cours"></span>' : '');
 }
 // Devine l'écran ouvert dans l'app (titre visible, fenêtre ouverte…) pour situer la remarque
 function ecranActuel(){
@@ -1183,14 +1268,26 @@ function listeRetours(){
   }).join('');
 }
 let retourApp = 'accueil';
+const CLE_BROUILLON = 'quotidien-retour-brouillon';
+function lireBrouillon(){ try{ return JSON.parse(localStorage.getItem(CLE_BROUILLON) || 'null'); }catch(e){ return null; } }
+function garderBrouillon(){
+  const ta = $('#r-texte'); if(!ta) return;
+  try{
+    if(ta.value.trim()) localStorage.setItem(CLE_BROUILLON, JSON.stringify({texte:ta.value, app:retourApp, ecran:$('#r-ecran').value}));
+    else localStorage.removeItem(CLE_BROUILLON);
+  }catch(e){}
+  majPastille();
+}
 function ouvrirRetours(){
-  retourApp = actif || 'accueil';
+  const br = lireBrouillon();   // une note commencée puis fermée : on la reprend là où elle en était
+  retourApp = br ? br.app : (actif || 'accueil');
   const dlg = $('#retours'), n = lireRetours().length;
   dlg.innerHTML = `<div class="feuille">
     <h2>Noter une modif</h2>
     <div class="choix" role="group" aria-label="App concernée">${NOMS().map(x => `<button type="button" data-app="${esc(x.id)}" aria-pressed="${x.id === retourApp}">${esc(x.nom)}</button>`).join('')}</div>
-    <label class="champ">Écran (rempli tout seul, modifiable)<input id="r-ecran" value="${esc(ecranActuel())}" placeholder="ex. Agenda, fiche d’un plateau…"></label>
-    <label class="champ">Ce que tu aimerais changer<textarea id="r-texte" placeholder="Ce qui gêne, ce qui manque, une idée…"></textarea></label>
+    <label class="champ">Écran (rempli tout seul, modifiable)<input id="r-ecran" value="${esc(br ? br.ecran || '' : ecranActuel())}" placeholder="ex. Agenda, fiche d’un plateau…"></label>
+    <label class="champ">Ce que tu aimerais changer<textarea id="r-texte" placeholder="Ce qui gêne, ce qui manque, une idée…">${br ? esc(br.texte) : ''}</textarea></label>
+    <p class="hint">Tu peux fermer pour regarder l’app : ce que tu écris est gardé.</p>
     <button type="button" class="btn primaire" data-r="ajouter">Enregistrer la note</button>
     <p class="msg" id="r-msg" role="status"></p>
     <h3>Mes notes${n ? ` · ${n}` : ''}</h3>
@@ -1200,8 +1297,10 @@ function ouvrirRetours(){
     <button type="button" class="btn" data-r="fermer">Fermer</button>
   </div>`;
   dlg.showModal();
-  setTimeout(() => { const ta = $('#r-texte'); if(ta) ta.focus(); }, 60);
+  setTimeout(() => { const ta = $('#r-texte'); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60);
 }
+$('#retours').addEventListener('input', garderBrouillon);
+$('#retours').addEventListener('close', garderBrouillon);
 function rafraichirListe(msg){
   const n = lireRetours().length;
   $('#r-liste').innerHTML = listeRetours();
@@ -1231,7 +1330,7 @@ $('#retours').addEventListener('click', async e => {
     const l = lireRetours();
     l.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), app:retourApp, ecran:$('#r-ecran').value.trim(), texte, date:new Date().toISOString()});
     ecrireRetours(l);
-    $('#r-texte').value = '';
+    $('#r-texte').value = ''; garderBrouillon();
     rafraichirListe(`Noté pour ${nomDe(retourApp)} ✓`);
   }
   else if(a === 'copier'){

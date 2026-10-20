@@ -817,9 +817,18 @@ async function boot(){
         return {id: it.id, pid: p.id, nom: p.name, emoji: emojiOf(p), qte: it.label || fmtQty(it.qty, it.format ? {unit: p.unit, format: it.format} : p), prix: pr, coche: !!it.checked};
       })
     })),
+    // Produits connus, pour les ajouter à la liste depuis l'accueil
+    produits: () => [...S.products.values()].filter(p => !p.never).map(p => ({id: p.id, nom: p.name, emoji: emojiOf(p), dans: !!inList(p.id)})).sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
+    ajouter: pid => { const p = S.products.get(pid); if(!p) return false; const ok = addToList(p); render(); return ok; },
     cocher: (id, v) => { const it = S.list.get(id); if(!it) return null; it.checked = v == null ? !it.checked : !!v; saveL(it); render(); return it.checked; }
   };
   window.quotidienAction = q => {
+    if(q && q.action === 'ajouter'){
+      // Produit inconnu tapé sur l'accueil : on ouvre « Ajouter » des Courses avec ce nom déjà écrit
+      openAdd();
+      setTimeout(() => { const i = document.querySelector('dialog[open] input[name="q"]'); if(i){ i.value = q.nom || ''; i.dispatchEvent(new Event('input', {bubbles:true})); i.focus(); } }, 80);
+      return true;
+    }
     if(!q || q.action !== 'produit') return null;
     const p = S.products.get(q.id); if(!p) return null;
     const it = [...S.list.values()].find(x => x.pid === p.id && !x.checked);

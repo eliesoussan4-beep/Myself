@@ -1243,10 +1243,10 @@ const INFO_RE = /[^a-z](anniv|anniversaire|soiree|fete|mariage|concert|festival|
 const WORK_RE = /travail|boulot|taff?\b|job|client|bureau|mission|freelance|\bpro\b/;
 const isPinned = th => !!th && (th.pin !== undefined ? th.pin : WORK_RE.test(norm(th.name)));
 const gapAfter = (t, d) => { const nx = nextOcc(t, addDays(d, 1)); return nx ? diffDays(d, nx) : 999; };
-// « Bientôt » : de après-demain à 30 jours — événements, tâches répétées rares (≥ 2 semaines) et tout ce qui touche au travail
+// « Bientôt » : de demain à 30 jours — événements, tâches répétées rares (≥ 2 semaines) et tout ce qui touche au travail
 function soonItems() {
   const t0 = today(), out = [];
-  for (let i = 2; i <= 30; i++) {
+  for (let i = 1; i <= 30; i++) {
     const d = addDays(t0, i), day = [];
     S.tasks.forEach(x => {
       if (x.free || !occursOn(x, d) || isDone(x, d)) return;
@@ -1299,7 +1299,7 @@ function renderHome() {
     </div>
     ${tasksE.length ? `<div class="hero-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement du jour"><span style="width:${pct}%"></span></div>` : ''}
     ${(() => {
-      const hols = []; for (let i = 2; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
+      const hols = []; for (let i = 1; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
       const all = [...evs.map(e => ({ d: e.d, html: (() => { const th = themeOf(e.t); return `<button type="button" class="chip catc c-${th ? th.color || 'slate' : 'slate'}" data-a="edit" data-id="${e.t.id}" data-d="${e.d}"><span class="ell">${th ? h(th.emoji) + ' ' : ''}${h(e.t.title)}</span><span class="when">${h(whenEv(e))}</span></button>`; })() })),
         ...hols.map(x => ({ d: x.d, html: `<span class="chip catc hol-chip"><span class="ell">🇫🇷 ${h(x.n)}</span><span class="when">${h(dayMonth(x.d))}</span></span>` }))]
         .sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
@@ -3232,7 +3232,7 @@ window.quotidienPret = () => !!document.querySelector('#app .hero');
 // « Bientôt » pour l'accueil de Mon quotidien : exactement ce que l'app affiche (événements, jours fériés…)
 window.quotidienBientot = () => {
   const t = today(), hols = [];
-  for (let i = 2; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
+  for (let i = 1; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
   return [...soonItems().map(e => { const th = themeOf(e.t); return { d: e.d, id: e.t.id, titre: e.t.title, emoji: th ? th.emoji : '', color: th ? th.color || 'slate' : 'slate', quand: dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : '') }; }),
     ...hols.map(x => ({ d: x.d, titre: x.n, emoji: '🇫🇷', color: null, quand: dayMonth(x.d) }))]
     .sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);

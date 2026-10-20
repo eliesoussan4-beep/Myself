@@ -3232,6 +3232,11 @@ window.quotidienPret = () => !!document.querySelector('#app .hero');
 // Demandes des autres apps (Backstage) : liste des catégories, plateau → événement « Scène », rappel pour recontacter
 window.quotidienAction = p => {
   if (!p) return null;
+  // Depuis l'accueil de Mon quotidien : aller directement au bon endroit
+  if (p.action === 'tache') { const x = S.tasks.find(y => y.id === p.id); if (x) openQuick(x.id, p.d || null); return true; }
+  if (p.action === 'minuteur') { const x = S.tasks.find(y => y.id === p.id); if (x && x.duration) startTimer(x, p.d || today()); return true; }
+  if (p.action === 'mois') { setMeta('view', 'month'); U.monthOffset = 0; U.weekOffset = 0; renderHome(); setTimeout(() => { const g = document.querySelector('.mgrid2'); if (g) g.scrollIntoView({ block: 'center' }); }, 60); return true; }
+  if (p.action === 'ajouter') { openDayAdd(p.d || today()); return true; }
   if (p.action === 'themes') return themesTries().map(x => ({ id: x.id, label: x.emoji + ' ' + x.name, parentId: x.parentId || null, name: x.name, parentName: (parentOf(x) || {}).name || '' }));
   if (p.action === 'modeleScene') {
     const nom = String(p.nom || '').trim(); if (!nom) return null;

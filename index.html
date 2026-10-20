@@ -73,6 +73,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 :root[data-theme="dark"] .bloc{--c:var(--c-s,var(--denim))}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bloc{--c:var(--c-s,var(--denim))}}
 .bloc::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--c)}
+.bloc{padding-top:18px}
 .bloc:active{transform:scale(.985)}
 .bloc-t{display:flex;align-items:center;gap:10px}
 .bloc-ico{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent)}
@@ -140,6 +141,12 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .oc-ev b{font-size:13px;color:var(--tomorrow)}
 .oc.faite .oc-t{text-decoration:line-through;color:var(--muted);font-weight:500}
 .slide.tache{flex-direction:row;align-items:center;gap:12px;padding:14px;border-bottom:0}
+.slide-cat{font-size:12px;font-weight:600;color:var(--sc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.minut{display:inline-flex;align-items:center;gap:4px;border:0;border-radius:99px;background:var(--sc);color:var(--on-denim);font:700 12px/1 var(--body);padding:6px 10px;margin-left:8px}
+.slide-h{flex-wrap:wrap}
+.obar{display:flex;justify-content:space-between;gap:8px}
+.obtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:99px;padding:7px 13px;font:600 13px/1 var(--body)}
+.obtn svg{color:var(--c)}
 .slide-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .slide.tache .coche{width:40px;height:40px;border-radius:12px;border-color:var(--sc);margin:0}
 .slide.tache.faite .coche{background:var(--sc);border-color:var(--sc)}
@@ -193,6 +200,11 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .points span{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
 .points span.on{background:var(--c);width:16px;border-radius:3px}
 .slides.mini .slide{--sc:var(--c)}
+.slide.rc{--sc:var(--scl)}
+:root[data-theme="dark"] .slide.rc{--sc:var(--scd)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .slide.rc{--sc:var(--scd)}}
+.slide-n .pe{margin-right:8px}
+.slide-h b.presque{color:var(--warn)}
 .bilan{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .bilan b{color:var(--ink);font-weight:600}
 .etoiles{color:var(--today);letter-spacing:1px;white-space:nowrap}
@@ -456,18 +468,18 @@ function blocGardeRobe(d, jours){
   if(!d) return `<p class="vide">Pas encore de garde-robe sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
   const w = jours && jours[d.jour], desc = w && WMO(w.code);
   const wx = w
-    ? `<div class="wx2"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><span class="wx-t">${w.max}°</span><span class="wx-s">min ${w.min}°</span><span class="wx-s">pluie ${w.pluie} %</span><span class="wx-s">${esc(d.ville.name)}</span>${d.demain ? '<span class="pastille demain">Demain</span>' : ''}</div>`
-    : `<div class="wx2"><span class="wx-ico" aria-hidden="true">⛅</span><span class="wx-s">${jours === undefined ? 'Météo…' : 'Météo indisponible'}</span><span class="wx-s">${esc(d.ville.name)}</span></div>`;
+    ? `<div class="wx2" data-aller="garde-robe" data-action="meteo"><span class="wx-ico" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><span class="wx-t">${w.max}°</span><span class="wx-s">min ${w.min}°</span><span class="wx-s">pluie ${w.pluie} %</span><span class="wx-s">${esc(d.ville.name)}</span>${d.demain ? '<span class="pastille demain">Demain</span>' : ''}</div>`
+    : `<div class="wx2" data-aller="garde-robe" data-action="meteo"><span class="wx-ico" aria-hidden="true">⛅</span><span class="wx-s">${jours === undefined ? 'Météo…' : 'Météo indisponible'}</span><span class="wx-s">${esc(d.ville.name)}</span></div>`;
   let droite;
   if(d.tenue){
     const pcs = (d.tenue.pieces || []);
-    const sl = [`<div class="slide tslide">${visuelTenue(d.tenue)}<div class="ts-n">${esc(d.tenue.nom)}</div></div>`,
-      ...pcs.map(x => `<div class="slide tslide piece${x.sale ? ' sale' : ''}"><div class="piece-img">${x.src ? `<img src="${esc(x.src)}" alt="">` : svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 26)}</div><div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b${x.sale ? ' off' : ''}" data-sale="${esc(x.id)}">${x.sale ? 'Au sale · remettre propre' : '🧺 Au sale'}</button></div>`)];
+    const sl = [`<div class="slide tslide" data-aller="garde-robe" data-action="tenue" data-id="${esc(d.tenue.id)}">${visuelTenue(d.tenue)}<div class="ts-n">${esc(d.tenue.nom)}</div></div>`,
+      ...pcs.map(x => `<div class="slide tslide piece${x.sale ? ' sale' : ''}" data-aller="garde-robe" data-action="piece" data-id="${esc(x.id)}"><div class="piece-img">${x.src ? `<img src="${esc(x.src)}" alt="">` : svg('<path d="M9 3.5 4 6 2.5 10.5 6 12v8.5h12V12l3.5-1.5L20 6l-5-2.5a3 3 0 0 1-6 0Z"/>', 26)}</div><div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b${x.sale ? ' off' : ''}" data-sale="${esc(x.id)}">${x.sale ? 'Au sale · remettre propre' : '🧺 Au sale'}</button></div>`)];
     droite = `<div class="tenue2"><div class="slides mini" data-ouvrir="garde-robe">${sl.join('')}</div>${sl.length > 1 ? `<div class="points" aria-hidden="true">${sl.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
   }
   else if(d.props.length){
     droite = `<div class="tenue2">
-      <div class="slides mini" data-ouvrir="garde-robe">${d.props.map(x => `<div class="slide tslide">${visuelTenue(x)}<div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b" data-choisir="${esc(x.id)}" data-n="${d.n}">Choisir pour ${d.demain ? 'demain' : 'aujourd’hui'}</button></div>`).join('')}</div>
+      <div class="slides mini" data-ouvrir="garde-robe">${d.props.map(x => `<div class="slide tslide" data-aller="garde-robe" data-action="tenue" data-id="${esc(x.id)}">${visuelTenue(x)}<div class="ts-n">${esc(x.nom)}</div><button type="button" class="ts-b" data-choisir="${esc(x.id)}" data-n="${d.n}">Choisir pour ${d.demain ? 'demain' : 'aujourd’hui'}</button></div>`).join('')}</div>
       ${d.props.length > 1 ? `<div class="points" aria-hidden="true">${d.props.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
   }
   else droite = `<div class="tenue2"><p class="vide">${d.vide ? 'Ajoute tes vêtements dans la garde-robe.' : 'Aucune tenue propre à proposer.'}</p></div>`;
@@ -540,15 +552,19 @@ async function lireOrganisation(){
   });
 }
 function blocOrganisation(d){
+  const barre = `<div class="obar"><button type="button" class="obtn" data-aller="organisation" data-action="ajouter">${svg('<path d="M12 5v14M5 12h14"/>', 16)}À faire</button><button type="button" class="obtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 16)}Mois</button></div>`;
   if(!d) return `<p class="vide">Pas encore d’organisation sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
-  if(!d.evts.length && !d.restantes.length && !d.faites) return `<p class="vide">${d.faites ? `Tout est fait pour aujourd’hui (${plur(d.faites, 'tâche', 'tâches')}).` : 'Rien de prévu aujourd’hui.'}</p>`;
+  if(!d.evts.length && !d.restantes.length && !d.faites) return barre + `<p class="vide">${d.faites ? `Tout est fait pour aujourd’hui (${plur(d.faites, 'tâche', 'tâches')}).` : 'Rien de prévu aujourd’hui.'}</p>`;
   // Une carte par élément, en carrousel (même format que Sur scène), de la couleur de sa catégorie
   const coul = x => { const th = d.themes.get(x.themeId); return th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : ''; };
+  const cat = x => { const th = d.themes.get(x.themeId); return th ? `<div class="slide-cat">${esc((th.emoji ? th.emoji + ' ' : '') + th.name)}</div>` : ''; };
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
-  const ev = d.evts.map(e => `<div class="slide"${coul(e)}><div class="slide-n">${esc(e.title)}</div><div class="slide-h"><b>${esc(heure(e) || 'Toute la journée')}</b></div></div>`);
-  const ta = [...d.restantes, ...d.faitesL].map(e => `<div class="slide tache${e.fait ? ' faite' : ''}"${coul(e.t)}><div class="slide-l"><div class="slide-n">${esc(e.t.title)}</div><div class="slide-h"><b>${e.retard ? `en retard · ${esc(shortDate(e.d))}` : heure(e.t) || (e.fait ? 'Faite' : 'À faire')}</b></div></div><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 18) : ''}</button></div>`);
+  const lien = (x, dd) => ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(dd)}"`;
+  const minut = (x, dd) => x.duration && !isEvent(x) ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(dd)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 14)}${x.duration} min</button>` : '';
+  const ev = d.evts.map(e => `<div class="slide"${coul(e)}${lien(e, iso(new Date()))}>${cat(e)}<div class="slide-n">${esc(e.title)}</div><div class="slide-h"><b>${esc(heure(e) || 'Toute la journée')}</b></div></div>`);
+  const ta = [...d.restantes, ...d.faitesL].map(e => `<div class="slide tache${e.fait ? ' faite' : ''}"${coul(e.t)}${lien(e.t, e.d)}><div class="slide-l">${cat(e.t)}<div class="slide-n">${esc(e.t.title)}</div><div class="slide-h"><b>${e.retard ? `en retard · ${esc(shortDate(e.d))}` : heure(e.t) || (e.fait ? 'Faite' : 'À faire')}</b>${e.fait ? '' : minut(e.t, e.d)}</div></div><button type="button" class="coche" data-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(e.t.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 18) : ''}</button></div>`);
   const tout = [...ev, ...ta];
-  return `<div class="slides" data-ouvrir="organisation">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
+  return barre + `<div class="slides" data-ouvrir="organisation">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
 }
 function titreOrganisation(d){
   if(!d || !d.restantes.length) return '';
@@ -583,22 +599,29 @@ async function lireCourses(){
     const bas = products.filter(p => !dans.has(p.id) && !p.never && !(p.snooze > Date.now()))
       .filter(p => { const pc = stockPct(p), d = daysLeft(p); return pc != null && (pc < 20 || (d != null && d < 2)); })
       .sort((a, b) => stockPct(a) - stockPct(b));
-    return {items, total, connus, bas};
+    let emojis = {};
+    try{ const w = await attendreApp('courses', w => !!w.quotidienCO); if(w) emojis = w.quotidienCO.emojis(); }catch(e){}
+    return {items, total, connus, bas, emojis};
   });
 }
 function prochainesCourses(){
   const n = (5 - new Date().getDay() + 7) % 7;   // le vendredi, comme dans l'app
   return n === 0 ? 'courses aujourd’hui' : n === 1 ? 'courses demain' : 'courses vendredi';
 }
+// Couleur de chaque rayon (mêmes valeurs que dans les Courses) : clair / sombre
+const RAYON_C = {fl:['#3E9B5F','#6CC48A'], frais:['#2E8FB8','#6BBFE0'], viande:['#C2504A','#E58A84'], pain:['#B7832F','#E0B266'], epicerie:['#C46A2B','#E89A63'], boissons:['#1F9E8A','#5CCBB7'], surgeles:['#5B7FD6','#93AEF0'], hygiene:['#C04F8E','#E68BBE'], maison:['#7A5CC7','#A893E8'], autre:['#6B7486','#A0A8B8']};
 function blocCourses(d){
   if(!d) return `<p class="vide">Pas encore de courses sur ce téléphone. Ouvre l’app, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
-  const nom = p => `${p.emoji || RAYON_EMOJI[p.rayon] || '🛒'} ${esc(p.name)}`;
-  let h = '';
-  if(d.items.length){
-    h += `<div class="total">${d.connus ? `<b>≈ ${Math.round(d.total)} €</b>` : ''}<span>${plur(d.items.length, 'produit', 'produits')} · ${prochainesCourses()}</span></div>`;
-    h += `<div class="puces">${d.items.slice(0, 8).map(x => `<span class="puce">${nom(x.p)}</span>`).join('')}${d.items.length > 8 ? `<span class="puce plus">+${d.items.length - 8}</span>` : ''}</div>`;
-  } else h += `<p class="vide">Rien sur la liste pour l’instant.</p>`;
-  if(d.bas.length) h += `<div class="bas"><b>Presque vide</b><span>${d.bas.slice(0, 5).map(p => esc(p.name)).join(', ')}${d.bas.length > 5 ? '…' : ''}</span></div>`;
+  const emo = p => d.emojis[p.id] || p.emoji || RAYON_EMOJI[p.rayon] || '🛒';
+  const coul = p => { const c = RAYON_C[p.rayon] || RAYON_C.autre; return ` style="--scl:${c[0]};--scd:${c[1]}"`; };
+  const lien = p => ` data-aller="courses" data-action="produit" data-id="${esc(p.id)}"`;
+  const qte = i => i.label || (i.qty && i.qty !== 1 ? `× ${String(+(+i.qty).toFixed(2)).replace('.', ',')}` : '');
+  const slides = [
+    ...d.items.map(({i, p}) => `<div class="slide rc"${coul(p)}${lien(p)}><div class="slide-n"><span class="pe">${emo(p)}</span>${esc(p.name)}</div><div class="slide-h"><b>${esc(qte(i) || 'À acheter')}</b></div></div>`),
+    ...d.bas.map(p => `<div class="slide rc"${coul(p)}${lien(p)}><div class="slide-n"><span class="pe">${emo(p)}</span>${esc(p.name)}</div><div class="slide-h"><b class="presque">Presque vide</b></div></div>`)
+  ];
+  let h = d.items.length ? `<div class="total">${d.connus ? `<b>${Math.round(d.total)} €</b>` : ''}<span>${plur(d.items.length, 'produit', 'produits')} · ${prochainesCourses()}</span></div>` : `<p class="vide">Rien sur la liste pour l’instant.</p>`;
+  if(slides.length) h += `<div class="slides" data-ouvrir="courses">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
   return h;
 }
 
@@ -652,7 +675,7 @@ function blocBackstage(d){
     ...d.plats.filter(p => !d.agenda.some(a => memes(a.titre, p.nom)))
   ];
   const pl = slides.length
-    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
+    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
     : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
   const signe = d.net >= 0 ? '+' : '−';
   const et = d.etoiles == null ? '' : `<span class="etoiles" aria-label="${(Math.round(d.etoiles * 2) / 2).toString().replace('.', ',')} étoiles sur 5">${'★'.repeat(Math.round(d.etoiles))}<i>${'★'.repeat(5 - Math.round(d.etoiles))}</i></span>`;
@@ -669,7 +692,7 @@ const LECTEURS = {
 const styleCouleur = app => app.couleur ? ` style="--c-c:${app.couleur[0]};--c-s:${app.couleur[1]}"` : '';
 // Carte de l'accueil : toucher la carte ouvre l'app ; les cases à cocher et le carrousel restent utilisables dedans
 function carte(app, titre, corps){
-  return `<div class="bloc" data-ouvrir="${esc(app.id)}"${styleCouleur(app)} role="group" aria-label="${esc(app.nom)}"><div class="bloc-h"><span class="bloc-t"><span class="bloc-ico">${svg(app.icone, 18)}</span><span>${titre}</span></span><button type="button" class="bloc-ouvrir" data-ouvrir="${esc(app.id)}" aria-label="Ouvrir ${esc(app.nom)}">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button></div>${corps}</div>`;
+  return `<div class="bloc" data-ouvrir="${esc(app.id)}"${styleCouleur(app)} role="group" aria-label="${esc(app.nom)}">${corps}</div>`;
 }
 function squeletteAccueil(){
   const now = new Date();
@@ -746,6 +769,13 @@ async function choisirTenue(btn){
 }
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
+  // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
+  const go = e.target.closest('[data-aller]');
+  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale]')){
+    const x = go.dataset;
+    window.quotidien.ouvrir(x.aller, {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null});
+    return;
+  }
   const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
   const ch = e.target.closest('[data-choisir]'); if(ch){ choisirTenue(ch); return; }
   const sa = e.target.closest('[data-sale]'); if(sa){ mettreAuSale(sa); return; }

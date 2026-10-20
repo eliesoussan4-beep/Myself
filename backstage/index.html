@@ -5910,7 +5910,13 @@ function prefillNotation(nom, date){
 }
 // Appelé par Mon quotidien : « Noter dans Backstage » depuis une scène de l'agenda
 window.quotidienAction = function(p){
-  if(!p || p.action !== 'noter') return;
+  if(!p) return;
+  if(p.action === 'plateau'){
+    const pl = loadPlateaux().find(x => (x.name || '').trim().toLowerCase() === String(p.nom || '').trim().toLowerCase());
+    if(pl){ goto('plateaux'); openPlateauDetail(pl.id); return; }
+    p = {...p, action:'noter'};   // scène de l'agenda sans fiche de plateau : on propose de la noter
+  }
+  if(p.action !== 'noter') return;
   goto('notation');
   prefillNotation(p.nom || '', p.date || '');
 };

@@ -3699,6 +3699,15 @@ window.quotidienGR = {
   },
   nbPieces: () => S.pieces.size
 };
+// Depuis l'accueil de Mon quotidien : météo, une tenue ou un vêtement
+window.quotidienAction = q => {
+  if(!q) return null;
+  const act = {meteo:'weather-sheet', tenue:'edit-outfit', piece:'edit-piece'}[q.action]; if(!act) return null;
+  const b = document.createElement('button');
+  b.type = 'button'; b.hidden = true; b.dataset.act = act; if(q.id) b.dataset.id = q.id;
+  document.body.appendChild(b); b.click(); b.remove();
+  return true;
+};
 </script>
 </body>
 </html>

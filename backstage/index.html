@@ -1255,6 +1255,11 @@
   .agenda-noter-b b{font-weight:600}
   .agenda-noter-b span{margin-left:auto;color:var(--text-dim);font-size:13px;white-space:nowrap}
   .foot-link{display:block;margin:28px auto 0;border:0;background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+  /* Mon quotidien : fenêtre affichée par-dessus l'accueil (le reste de l'app est caché, fond transparent) */
+  html.qd-superpose,html.qd-superpose body{background:transparent!important}
+  html.qd-superpose .app{background:transparent!important}
+  html.qd-superpose .app > *:not(.modal-overlay){visibility:hidden}
 </style>
 </head>
 <body>
@@ -2163,7 +2168,19 @@ function openQuickAddPlateauModal(){
 }
 function closeQuickAddPlateauModal(){
   document.getElementById('quickadd-plateau-modal-overlay').style.display = 'none';
+  if(window.__superpose){
+    window.__superpose = false; document.documentElement.classList.remove('qd-superpose');
+    try{ window.parent.quotidien.finSuperpose('backstage'); }catch(e){}
+  }
 }
+// Mon quotidien : la petite fenêtre « Ajouter un plateau » par-dessus l'accueil (sans changer d'onglet)
+window.quotidienSuperpose = function(p){
+  if(!p || p.action !== 'ajouterPlateau') return false;
+  window.__superpose = true; document.documentElement.classList.add('qd-superpose');
+  openQuickAddPlateauModal();
+  setTimeout(() => { const i = document.getElementById('quickadd-plateau-input'); if(i) i.focus(); }, 60);
+  return true;
+};
 function confirmQuickAddPlateau(){
   const name = document.getElementById('quickadd-plateau-input').value.trim();
   if(!name){ showToast('Renseigne au moins un nom'); return; }

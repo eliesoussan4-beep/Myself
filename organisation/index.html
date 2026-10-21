@@ -610,6 +610,10 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 
 @media (prefers-reduced-motion: reduce){.sheet,.scrim,.modal,.toast{animation:none}.switch .knob{transition:none}}
 .sec-title button{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:inherit;letter-spacing:inherit}
+
+/* Mon quotidien : fenêtre affichée par-dessus l'accueil (le reste de l'app est caché, fond transparent) */
+html.qd-superpose,html.qd-superpose body{background:transparent!important}
+html.qd-superpose #app,html.qd-superpose #tbar,html.qd-superpose #timer{visibility:hidden}
 </style>
 </head>
 <body>
@@ -1387,6 +1391,11 @@ function popSheet() {
   const s = stack.pop(); if (!s) return;
   s.wrap.remove();
   if (!stack.length && timerEl.hidden) document.body.classList.remove('locked');
+  if (!stack.length && window.__superpose) setTimeout(() => {
+    if (stack.length || !window.__superpose) return;
+    window.__superpose = false; document.documentElement.classList.remove('qd-superpose');
+    try { window.parent.quotidien.finSuperpose('organisation'); } catch (e) {}
+  }, 650);
 }
 function closeTop() {
   if (!stack.length) return;
@@ -3229,6 +3238,15 @@ async function start() {
 // Pour Mon quotidien : cocher une tâche depuis l'accueil, avec les règles de l'app
 window.toggleTask = (id, d, late) => toggleTask(id, d, late);
 window.quotidienPret = () => !!document.querySelector('#app .hero');
+// Mon quotidien : ouvrir une fenêtre de l'Organisation par-dessus l'accueil (sans changer d'onglet)
+window.quotidienSuperpose = p => {
+  if (!p || !['ajouter', 'tache'].includes(p.action)) return false;
+  window.__superpose = true; document.documentElement.classList.add('qd-superpose');
+  if (p.action === 'ajouter') openDayAdd(p.d || today());
+  else openQuick(p.id, p.d || null);
+  if (!stack.length) { window.__superpose = false; document.documentElement.classList.remove('qd-superpose'); return false; }
+  return true;
+};
 // « Bientôt » pour l'accueil de Mon quotidien : exactement ce que l'app affiche (événements, jours fériés…)
 window.quotidienBientot = () => {
   const t = today(), hols = [];

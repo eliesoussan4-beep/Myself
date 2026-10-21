@@ -53,6 +53,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 #vues{position:fixed;left:0;right:0;top:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
 .vue{position:absolute;left:0;top:env(safe-area-inset-top,0px);width:100%;height:calc(100% - env(safe-area-inset-top,0px));border:0;margin:0;background:var(--bg);visibility:hidden}
 .vue.on{visibility:visible;z-index:1}
+/* App affichée par-dessus l'accueil : juste sa fenêtre, sur tout l'écran, fond transparent */
+body.superposition #vues{z-index:50}   /* au-dessus de la barre du bas et du crayon */
+.vue.superpose{position:fixed;inset:0;top:0;width:100%;height:100%;visibility:visible;z-index:40;background:transparent}
 #v-accueil{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 
 /* ---------- Barre du bas ---------- */
@@ -67,7 +70,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-direction:column;gap:12px}
 .tete{display:flex;justify-content:space-between;align-items:flex-end;padding:0 2px 6px}
 .tete{align-items:center}
-.tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(28px,8.4vw,40px);line-height:1;letter-spacing:-.025em}
+.tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(22px,7vw,40px);line-height:1;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .rond{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
 .bloc{--c:var(--c-c,var(--denim));width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--ink);transition:transform .12s;cursor:pointer;position:relative;overflow:hidden}
 :root[data-theme="dark"] .bloc{--c:var(--c-s,var(--denim))}
@@ -89,9 +92,10 @@ main{gap:22px}
 :root{--carte-h:132px}
 .gr2.compact{align-items:center}
 [data-bloc="jour"] .gr2.compact{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
-.bientot.defile{height:138px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;overscroll-behavior-x:auto;touch-action:pan-x pan-y;justify-content:flex-start;scroll-snap-type:y proximity;scrollbar-width:none}
+.bientot.defile{height:var(--carte-h);box-sizing:border-box;background:var(--sunk);border-radius:16px;padding:8px 10px;gap:4px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;overscroll-behavior-x:auto;touch-action:pan-x pan-y;justify-content:flex-start;scroll-snap-type:y proximity;scrollbar-width:none}
 .bientot.defile::-webkit-scrollbar{display:none}
-.bientot.defile .bt{scroll-snap-align:start;flex:none}
+.bientot.defile .bt{scroll-snap-align:start;flex:none;min-height:36px;justify-content:center}
+[data-bloc="jour"] .gr2.compact{align-items:start}
 .mt-wrap{display:flex;flex-direction:column;gap:4px;min-width:0}
 .mt-slides{height:var(--carte-h)}
 .slide.meteo{background:var(--sunk);padding:8px 6px;gap:2px;align-items:center;justify-content:center;text-align:center}
@@ -116,7 +120,9 @@ main{gap:22px}
 .wx2 .pastille{margin-top:6px}
 .tenue2{display:flex;flex-direction:column;gap:6px;min-width:0}
 .tenue2 .slides.mini{flex:1}
-[data-bloc="garde-robe"] .slides.mini{height:var(--carte-h);flex:none}
+[data-bloc="garde-robe"] .slides.mini{height:var(--gr-h);flex:none}
+[data-bloc="garde-robe"] .co-slides .slide{padding:8px 10px;gap:4px}
+[data-bloc="garde-robe"] .co-slides .slide.resume{padding:10px}
 [data-bloc="garde-robe"] .tenue2{gap:4px}
 [data-bloc="garde-robe"] .slides.mini .slide{flex-basis:100%;scroll-snap-align:start;padding:6px;gap:4px}
 .tenue-co{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
@@ -124,14 +130,20 @@ main{gap:22px}
 .co-h{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:30px}
 .co-h b{font-family:var(--display);font-size:20px;font-weight:800}
 .obtn.petit{padding:6px 10px;font-size:12.5px;gap:4px}
-.co-slides{flex:none}
+.co-slides{flex:none;height:var(--gr-h)}
+.co-slides .liste{height:132px}
+.slide.resume{align-items:center;justify-content:center;text-align:center;gap:2px;background:var(--sunk)}
+.re-total{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.1}
+.re-l{font-size:12.5px;color:var(--muted);font-weight:600}
+.re-bas{color:var(--warn)}
+.slide.resume .obtn{margin-top:8px}
 .co-slides .slide.rayon{padding:8px 10px}
 .co-slides .slide-cat{font-size:12.5px}
 .co-slides .art{gap:7px}
 .co-slides .art .coche{width:22px;height:22px;border-radius:7px}
 .co-slides .art-n{font-size:13.5px}
 .co-slides .art-q{font-size:11.5px}
-[data-bloc="garde-robe"] .tenue2 .slides.mini{height:calc(var(--carte-h) + 36px)}
+[data-bloc="garde-robe"] .tenue2 .slides.mini{height:var(--gr-h)}
 .notion5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .notion5 .n4{padding:10px 0 8px;font-size:11.5px}
 .n4{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;background:var(--sunk);color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:600;min-width:0}
@@ -140,8 +152,11 @@ main{gap:22px}
 .n4:active{transform:scale(.97)}
 [data-bloc="garde-robe"] .sil-box{--silh:calc(var(--carte-h) - 46px);flex:1;min-height:0}
 [data-bloc="garde-robe"] .sil-box .sil-wrap{padding:4px;background:none}
-[data-bloc="garde-robe"] .tslide .sil-box{--silh:calc(var(--carte-h) - 50px)}
-[data-bloc="garde-robe"] .tslide:first-child:not(:has(.ts-b)) .sil-box{--silh:calc(var(--carte-h) - 20px)}
+/* Hauteur commune du carré Vêtements et du carré Courses */
+[data-bloc="garde-robe"]{--gr-h:178px}
+[data-bloc="garde-robe"] .tslide .sil-box{--silh:calc(var(--gr-h) - 58px);display:flex;align-items:center;justify-content:center}
+[data-bloc="garde-robe"] .tslide:not(:has(.ts-b)) .sil-box{--silh:calc(var(--gr-h) - 22px)}
+[data-bloc="garde-robe"] .tslide .sil-box .sil-wrap{justify-content:center}
 [data-bloc="garde-robe"] .tslide{overflow:hidden}
 [data-bloc="garde-robe"] .piece-img{min-height:0;flex:1}
 [data-bloc="garde-robe"] .piece-img img{max-height:calc(var(--carte-h) - 64px)}
@@ -319,6 +334,27 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .segment button{border:0;background:none;border-radius:9px;padding:8px 0;font-size:14px;font-weight:600;color:var(--muted)}
 .segment button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
 .version{text-align:center;font-size:12px;color:var(--muted);margin:4px 0 0}
+/* Fenêtre du mois */
+#mois{overflow:hidden}
+#mois .feuille{transition:transform .18s ease}
+#mois.ferme .feuille{transform:translateY(100%)}
+.poignee{width:42px;height:5px;border-radius:3px;background:var(--line);margin:-8px auto 2px}
+.mois-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mois-h h2{font-size:20px}
+.rond.petit{width:38px;height:38px;border-radius:12px}
+.mgrille{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.mgrille em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);padding-bottom:2px}
+.mj{border:0;background:var(--sunk);border-radius:10px;min-height:44px;padding:5px 0 4px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink)}
+.mj b{font-size:14px;font-weight:600}
+.mj.auj b{color:var(--today)}
+.mj.sel{background:var(--denim);color:var(--on-denim)}
+.mj.sel.auj b{color:var(--on-denim)}
+.mpts{display:flex;gap:2px;height:6px}
+.mpts i{width:6px;height:6px;border-radius:50%}
+.mliste{display:flex;flex-direction:column;gap:6px;max-height:30dvh;overflow-y:auto}
+.ml{--sc:var(--muted);display:flex;align-items:center;gap:10px;border:0;border-left:4px solid var(--sc);background:var(--sunk);border-radius:10px;padding:10px 12px;color:var(--ink);text-align:left;font:600 15px/1.3 var(--body)}
+.ml-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml b{font-size:13px;color:var(--sc)}
 
 /* ---------- Retours (notes de modifs, temporaire) ---------- */
 #retour-btn{position:fixed;right:14px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);z-index:9;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:0;opacity:.94}
@@ -359,6 +395,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 <dialog id="reglages" aria-label="Sauvegarde et réglages"></dialog>
 <dialog id="retours" aria-label="Noter une modif"></dialog>
 <dialog id="ajout-course" aria-label="Ajouter aux courses"></dialog>
+<dialog id="mois" aria-label="Le mois"></dialog>
 <button type="button" id="retour-btn" aria-label="Noter une modif" hidden></button>
 <input type="file" id="fichier" accept="application/json,.json" multiple hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -404,6 +441,7 @@ function creerFrame(app, query = ''){
   f = document.createElement('iframe');
   f.className = 'vue';
   f.title = app.nom;
+  f.dataset.app = app.id;
   f.inert = true;
   f.setAttribute('allow', 'camera *; microphone *; geolocation *; clipboard-read *; clipboard-write *; web-share *; fullscreen *');
   f.charge = new Promise(res => f.addEventListener('load', res, {once:true}));
@@ -426,6 +464,7 @@ function brancherHistorique(f, app){
   try{
     Object.defineProperty(h, 'state', {configurable:true, get:() => f.pile.length ? f.pile[f.pile.length - 1] : base});
     h.pushState = st => {
+      if(f.superpose){ f.pile.push(st === undefined ? null : st); history.pushState({app:app.id, p:f.pile.length, sup:true}, '', location.href); return; }
       if(actif !== app.id) return;
       f.pile.push(st === undefined ? null : st);
       history.pushState({app:app.id, p:f.pile.length}, '', location.pathname + '#' + app.id);
@@ -737,7 +776,7 @@ const RAYON_C = {fl:['#3E9B5F','#6CC48A'], frais:['#2E8FB8','#6BBFE0'], viande:[
 // Courses (dans la carte Vêtements) : le prix et « + Produit » en haut, puis une carte par rayon qu'on fait glisser
 function carreCourses(d){
   const plus = `<button type="button" class="obtn petit" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 14)}Produit</button>`;
-  if(!d) return `<div class="co-carre" data-ouvrir="courses"><div class="co-h"><span></span>${plus}</div><p class="vide">Pas encore de courses.</p></div>`;
+  if(!d) return `<div class="co-carre" data-ouvrir="courses"><div class="slides mini co-slides"><div class="slide rayon resume"><p class="vide">Pas encore de courses.</p>${plus}</div></div></div>`;
   const emo = p => d.emojis[p.id] || p.emoji || RAYON_EMOJI[p.rayon] || '🛒';
   const coulR = r => { const c = RAYON_C[r] || RAYON_C.autre; return ` style="--scl:${c[0]};--scd:${c[1]}"`; };
   const rayons = d.rayons || [];
@@ -746,8 +785,14 @@ function carreCourses(d){
   const slides = rayons.map(r => `<div class="slide rc rayon"${coulR(r.rayon)}><div class="slide-cat">${esc(r.nom)}<span>${r.articles.filter(a => !a.coche).length}</span></div>
     <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
-  if(!slides.length) slides.push(`<div class="slide rayon vide-co"><p class="vide">Liste vide.</p></div>`);
-  return `<div class="co-carre" data-ouvrir="courses"><div class="co-h"><b>${total ? Math.round(total) + ' €' : ''}</b>${plus}</div>
+  // 1re carte : le total, combien de produits, le jour des courses, et « + Produit »
+  const resume = `<div class="slide rayon resume"><div class="re-total">${total ? Math.round(total) + ' €' : '—'}</div>
+    <div class="re-l">${reste.length ? plur(reste.length, 'produit', 'produits') + ' à acheter' : 'Liste vide'}</div>
+    <div class="re-l">${cap(prochainesCourses())}</div>
+    ${d.bas.length ? `<div class="re-l re-bas">${plur(d.bas.length, 'produit presque vide', 'produits presque vides')}</div>` : ''}
+    ${plus}</div>`;
+  slides.unshift(resume);
+  return `<div class="co-carre" data-ouvrir="courses">
     <div class="slides mini co-slides">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
 }
 // Cocher un produit depuis l'accueil : c'est l'app Courses qui le fait (comme dans sa liste)
@@ -936,8 +981,11 @@ $('#accueil').addEventListener('click', e => {
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
   const go = e.target.closest('[data-aller]');
   if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-bascule]')){
-    const x = go.dataset;
-    window.quotidien.ouvrir(x.aller, {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null});
+    const x = go.dataset, params = {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null};
+    if(x.action === 'mois'){ ouvrirMois(); return; }
+    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache'].includes(x.action)) || (x.aller === 'backstage' && x.action === 'ajouterPlateau');
+    if(dessus) superposer(x.aller, params).then(ok => { if(!ok) window.quotidien.ouvrir(x.aller, params); });
+    else window.quotidien.ouvrir(x.aller, params);
     return;
   }
   if(e.target.closest('.n4')) return;   // lien Notion : s'ouvre tout seul
@@ -994,6 +1042,62 @@ $('#ajout-course').addEventListener('click', async e => {
     window.quotidien.ouvrir('courses', {action:'ajouter', nom});
   }
 });
+
+/* ---------- Le mois (calendrier de l'Organisation), en fenêtre par-dessus l'accueil ---------- */
+const MOIS_N = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+let moisDecalage = 0, moisJour = null, moisDonnees = null;
+async function chargerMois(){
+  moisDonnees = await lire('organisation', async db => {
+    const [tasks, themes] = await Promise.all([tout(db, 'tasks'), tout(db, 'themes')]);
+    return {tasks:tasks.filter(x => !x.free), themes:new Map(themes.map(th => [th.id, th]))};
+  });
+}
+function elementsDu(d){
+  if(!moisDonnees) return [];
+  return moisDonnees.tasks.filter(x => occursOn(x, d)).sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+}
+function dessinerMois(){
+  const dlg = $('#mois'), t0 = iso(new Date());
+  const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + moisDecalage);
+  const y = base.getFullYear(), m = base.getMonth(), nb = new Date(y, m + 1, 0).getDate(), dec = (new Date(y, m, 1).getDay() + 6) % 7;
+  if(!moisJour || moisJour.slice(0, 7) !== iso(base).slice(0, 7)) moisJour = moisDecalage === 0 ? t0 : iso(base);
+  const coul = x => { const th = moisDonnees && moisDonnees.themes.get(x.themeId); return `var(--c-${th ? th.color || 'slate' : 'slate'})`; };
+  let cases = '';
+  for(let i = 0; i < dec; i++) cases += '<span></span>';
+  for(let j = 1; j <= nb; j++){
+    const d = iso(new Date(y, m, j)), els = elementsDu(d);
+    cases += `<button type="button" class="mj${d === t0 ? ' auj' : ''}${d === moisJour ? ' sel' : ''}" data-mj="${d}"><b>${j}</b><span class="mpts">${els.slice(0, 3).map(x => `<i style="background:${coul(x)}"></i>`).join('')}</span></button>`;
+  }
+  const els = elementsDu(moisJour), jd = parseD(moisJour);
+  dlg.innerHTML = `<div class="feuille mois-f"><div class="poignee" aria-hidden="true"></div>
+    <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Mois précédent">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${cap(MOIS_N[m])} ${y}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Mois suivant">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button></div>
+    <div class="mgrille">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
+    <h3>${cap(jd.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}))}</h3>
+    <div class="mliste">${els.length ? els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') : '<p class="hint">Rien de prévu ce jour-là.</p>'}</div>
+    <button type="button" class="btn" data-mf="ajouter">${svg('<path d="M12 5v14M5 12h14"/>', 16)} Ajouter ce jour-là</button>
+  </div>`;
+}
+async function ouvrirMois(){
+  moisDecalage = 0; moisJour = iso(new Date());
+  await chargerMois(); dessinerMois();
+  const dlg = $('#mois'); dlg.showModal();
+}
+function fermerMois(){ const dlg = $('#mois'); if(!dlg.open) return; const f = dlg.querySelector('.feuille'); dlg.classList.add('ferme'); setTimeout(() => { dlg.close(); dlg.classList.remove('ferme'); if(f) f.style.transform = ''; }, 180); }
+$('#mois').addEventListener('click', e => {
+  const dlg = $('#mois');
+  if(e.target === dlg){ fermerMois(); return; }
+  const mn = e.target.closest('[data-mn]'); if(mn){ moisDecalage += +mn.dataset.mn; moisJour = null; dessinerMois(); return; }
+  const mj = e.target.closest('[data-mj]'); if(mj){ moisJour = mj.dataset.mj; dessinerMois(); return; }
+  const mt = e.target.closest('[data-mt]'); if(mt){ const d = moisJour; dlg.close(); superposer('organisation', {action:'tache', id:mt.dataset.mt, d}); return; }
+  if(e.target.closest('[data-mf="ajouter"]')){ const d = moisJour; dlg.close(); superposer('organisation', {action:'ajouter', d}); }
+});
+// Glisser vers le bas pour fermer (depuis la poignée, ou quand la fenêtre est tout en haut)
+{
+  const dlg = $('#mois'); let y0 = null, dy = 0;
+  dlg.addEventListener('touchstart', e => { const f = dlg.querySelector('.feuille'); if(!f) return; y0 = (dlg.scrollTop <= 0 || e.target.closest('.poignee, .mois-h')) ? e.touches[0].clientY : null; dy = 0; f.style.transition = 'none'; }, {passive:true});
+  dlg.addEventListener('touchmove', e => { if(y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); const f = dlg.querySelector('.feuille'); if(f && dy > 4) f.style.transform = `translateY(${dy}px)`; }, {passive:true});
+  dlg.addEventListener('touchend', () => { const f = dlg.querySelector('.feuille'); if(y0 == null || !f) return; y0 = null; f.style.transition = 'transform .18s ease'; if(dy > 90){ f.style.transform = 'translateY(100%)'; fermerMois(); } else f.style.transform = ''; });
+}
 
 /* ---------- Sauvegarde globale ---------- */
 async function collecter(){
@@ -1413,7 +1517,30 @@ $('#retour-btn').addEventListener('click', ouvrirRetours);
 if(self.RETOURS !== false){ $('#retour-btn').hidden = false; majPastille(); }
 
 /* ---------- Pont entre les apps (ex. Organisation « Scène » → Backstage « Noter ») ---------- */
+let superposee = null;
+async function superposer(id, params){
+  const app = APPS.find(a => a.id === id); if(!app) return false;
+  const w = await attendreApp(id, w => typeof w.quotidienSuperpose === 'function' && (!w.quotidienPret || w.quotidienPret()));
+  const f = frames.get(id);
+  if(!w || !f) return false;
+  try{ appliquerTheme(w.document); }catch(e){}
+  f.superpose = true; superposee = f;
+  f.classList.add('superpose'); f.inert = false; document.body.classList.add('superposition');
+  let ok = false;
+  try{ ok = w.quotidienSuperpose(params || {}); }catch(e){ console.warn(e); }
+  if(!ok) window.quotidien.finSuperpose(id);
+  return ok;
+}
 window.quotidien = {
+  // L'app a fermé sa fenêtre : on la recache et l'accueil se met à jour
+  finSuperpose(id){
+    const f = frames.get(id); if(!f) return;
+    f.superpose = false; if(superposee === f) superposee = null;
+    f.classList.remove('superpose'); document.body.classList.remove('superposition');
+    if(f.pile) f.pile.length = 0;
+    f.inert = actif !== id;
+    planifierAccueil(250);
+  },
   async ouvrir(id, params){
     const app = APPS.find(a => a.id === id); if(!app) return;
     montrer(id);
@@ -1432,6 +1559,14 @@ window.quotidien = {
 /* ---------- Démarrage ---------- */
 window.addEventListener('popstate', e => {
   const st = e.state || {}, id = st.app || 'accueil', p = st.p || 0;
+  if(superposee){   // fenêtre affichée par-dessus l'accueil : le retour la ferme
+    const sp = st.sup && st.app === superposee.dataset.app ? p : 0;
+    if(superposee.pile && superposee.pile.length > sp){
+      superposee.pile.length = sp;
+      try{ const w = superposee.contentWindow; w.dispatchEvent(new w.PopStateEvent('popstate', {state:w.history.state})); }catch(err){}
+      return;
+    }
+  }
   const f = frames.get(id);
   // Retour à l'intérieur de l'app ouverte : on lui dit de revenir d'un cran (fermer une fenêtre, revenir à son accueil…)
   if(id === actif && f && f.pile && f.pile.length > p){

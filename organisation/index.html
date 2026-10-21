@@ -552,6 +552,8 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .reuse-lbl{font-size:13px;color:var(--muted);margin-top:-2px}
 .reuse-btn{justify-content:flex-start;gap:10px}
 .reuse-btn .muted{margin-left:auto}
+.q-subs{margin:0 0 4px}
+.q-subs-h{font-size:13px;font-weight:700;color:var(--muted);margin:0 2px 4px}
 .pick-list{display:flex;flex-direction:column;margin-bottom:6px}
 .pick-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-family:inherit;font-weight:500;font-size:16px;line-height:1.35;padding:12px 4px;cursor:pointer}
 .pick-row:last-child{border-bottom:0}
@@ -776,7 +778,34 @@ function monthOcc(r, y, m) {
   }
   return null;
 }
+/* Retard lissé : une tâche répétée faite en retard (ex. raser la barbe le mercredi au lieu du dimanche)
+   décale les occurrences suivantes, de moins en moins, jusqu'à retrouver son jour habituel.
+   t.decal = { p: date prévue, L: jours de retard, step: jours rattrapés à chaque fois } */
+const decalCache = new Map();
+function decalOcc(t) {
+  const dc = t.decal; if (!dc || !t.rep || !(dc.L > 0)) return null;
+  const key = JSON.stringify([dc, t.rep, t.date, t.created, t.skip || []]);
+  const c = decalCache.get(t.id); if (c && c.key === key) return c.list;
+  const list = []; let q = dc.p;
+  for (let k = 1; k <= Math.ceil(dc.L / dc.step); k++) {
+    let n = null; for (let i = 1; i <= 400; i++) { const x = addDays(q, i); if (occursBase(t, x)) { n = x; break; } }
+    if (!n) break;
+    q = n; list.push({ q: n, d: addDays(n, Math.max(0, dc.L - k * dc.step)) });
+  }
+  decalCache.set(t.id, { key, list });
+  return list;
+}
 function occursOn(t, d) {
+  if (t.rep && t.decal) {
+    const l = decalOcc(t);
+    if (l && l.length) {
+      if (l.some(x => x.d === d)) return true;            // occurrence décalée à ce jour
+      if (l.some(x => x.q === d && x.d !== d)) return false; // son jour d'origine est libéré
+    }
+  }
+  return occursBase(t, d);
+}
+function occursBase(t, d) {
   if (t.kind === 'event') { if (!t.date) return false; return t.yearly ? (d >= t.date && d.slice(5) === t.date.slice(5)) : t.date === d; }
   if (t.free) return false;
   if (!t.rep) return t.date === d;
@@ -2650,7 +2679,15 @@ function openQuick(id, d) {
   const done = isDone(t, day);
   const noter = isScene(t) && day <= t0 && quotidien();
   const s = openSheet({ isStatic: true, label: t.title, bar: '<button type="button" class="btn primary" data-f="cancel">Fermer</button>' });
+  const etapes = () => {
+    const tt = S.tasks.find(x => x.id === id); if (!tt || !hasSubs(tt)) return '';
+    const fait = new Set(subDone(tt, day));
+    return `<div class="subs q-subs"><div class="q-subs-h">Étapes · ${fait.size}/${tt.subs.length}</div>${tt.subs.map(x => { const on = fait.has(x.id); return `<div class="sub${on ? ' done' : ''}">
+      <button type="button" class="check sm" data-f="sub" data-v="${x.id}" aria-label="${on ? 'Décocher' : 'Cocher'} ${h(x.title)}"><span class="box">${on ? CHECK : ''}</span></button>
+      <span class="sub-title">${h(x.title)}</span></div>`; }).join('')}</div>`;
+  };
   s.body.innerHTML = `<h2 class="sheet-title">« ${h(t.title)} »</h2>
+    <div class="q-etapes">${etapes()}</div>
     <button type="button" class="btn wide" data-f="edit">${ic(P.pencil, 18, 1.8)}Modifier</button>
     ${done ? '' : `<button type="button" class="btn wide" data-f="rep">${ic(IC.cal, 18, 1.8)}Reporter…</button>`}
     ${noter ? `<button type="button" class="btn wide" data-f="noter">🎤 Noter dans Backstage</button>` : ''}`;
@@ -2658,6 +2695,7 @@ function openQuick(id, d) {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const k = b.dataset.f;
     if (k === 'cancel') closeTop();
+    if (k === 'sub') { toggleSub(id, day, b.dataset.v); const z = s.body.querySelector('.q-etapes'); if (z) z.innerHTML = etapes(); return; }
     if (k === 'edit') { closeTop(); setTimeout(() => openEditor(S.tasks.find(x => x.id === id), d), 420); }
     if (k === 'noter') { closeTop(); setTimeout(() => { const q = quotidien(); if (q) q.ouvrir('backstage', { action: 'noter', nom: t.title, date: day }); }, 300); }
     if (k === 'rep') {
@@ -2860,6 +2898,7 @@ function shift() {
   shiftTO = setTimeout(shift, 60000);
 }
 function hideTimer() {
+  if (window.__minuteurAccueil) { window.__minuteurAccueil = false; setTimeout(() => { try { window.parent.quotidien.retourAccueil(); } catch (e) {} }, 50); }
   clearTimeout(timerTO); clearTimeout(shiftTO); stopRinging();
   if (T) T.min = false;
   setTimeout(drawTbar, 0);
@@ -2939,6 +2978,13 @@ function setDone(nt, d, v, late) {
     nt.caught = nt.caught || {};
     if (v) { set.add(day); if (day < t0) nt.caught[day] = t0; }
     else { set.delete(day); delete nt.caught[day]; }
+    // Faite en retard depuis « Aujourd'hui » : les prochaines fois sont décalées, puis reviennent peu à peu au jour prévu
+    if (v && late && nt.rep && day < t0) {
+      const L = diffDays(day, t0), sans = { ...nt }; delete sans.decal;
+      const gap = gapAfter(sans, day);
+      if (L > 0 && gap < 400) nt.decal = { p: day, L, step: Math.max(1, Math.round(gap * 0.15)) };
+    }
+    if (!v && nt.decal && nt.decal.p === day) delete nt.decal;
     const cut = addDays(t0, -120);
     nt.doneDates = [...set].filter(x => x >= cut);
     Object.keys(nt.caught).forEach(k => { if (k < cut) delete nt.caught[k]; });
@@ -3260,7 +3306,7 @@ window.quotidienAction = p => {
   if (!p) return null;
   // Depuis l'accueil de Mon quotidien : aller directement au bon endroit
   if (p.action === 'tache') { const x = S.tasks.find(y => y.id === p.id); if (x) openQuick(x.id, p.d || null); return true; }
-  if (p.action === 'minuteur') { const x = S.tasks.find(y => y.id === p.id); if (x && x.duration) startTimer(x, p.d || today()); return true; }
+  if (p.action === 'minuteur') { const x = S.tasks.find(y => y.id === p.id); if (x && x.duration) { window.__minuteurAccueil = true; startTimer(x, p.d || today()); } return true; }
   if (p.action === 'mois') { setMeta('view', 'month'); U.monthOffset = 0; U.weekOffset = 0; renderHome(); setTimeout(() => { const g = document.querySelector('.mgrid2'); if (g) g.scrollIntoView({ block: 'center' }); }, 60); return true; }
   if (p.action === 'ajouter') { openDayAdd(p.d || today()); return true; }
   if (p.action === 'themes') return themesTries().map(x => ({ id: x.id, label: x.emoji + ' ' + x.name, parentId: x.parentId || null, name: x.name, parentName: (parentOf(x) || {}).name || '' }));

@@ -810,7 +810,7 @@ async function boot(){
     pret: () => S.products.size > 0 || S.list.size > 0 || true,
     emojis: () => Object.fromEntries([...S.products.values()].map(p => [p.id, emojiOf(p)])),
     // Liste rangée par rayon, comme dans l'app : quantités et prix calculés ici
-    liste: () => [...itemsByRayon([...S.list.values()])].filter(([r, arr]) => arr.length).map(([r, arr]) => ({
+    liste: () => (rangerCoches(), [...itemsByRayon([...S.list.values()])]).filter(([r, arr]) => arr.length).map(([r, arr]) => ({
       rayon: r, nom: RAYON[r],
       articles: arr.slice().sort((a, b) => (a.it.checked - b.it.checked) || a.p.name.localeCompare(b.p.name, 'fr')).map(({it, p}) => {
         const pr = itemPrice(it, p);
@@ -820,8 +820,11 @@ async function boot(){
     // Produits connus, pour les ajouter à la liste depuis l'accueil
     produits: () => [...S.products.values()].filter(p => !p.never).map(p => ({id: p.id, nom: p.name, emoji: emojiOf(p), dans: !!inList(p.id)})).sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
     ajouter: pid => { const p = S.products.get(pid); if(!p) return false; const ok = addToList(p); render(); return ok; },
-    cocher: (id, v) => { const it = S.list.get(id); if(!it) return null; it.checked = v == null ? !it.checked : !!v; saveL(it); render(); return it.checked; }
+    cocher: (id, v) => { const it = S.list.get(id); if(!it) return null; it.checked = v == null ? !it.checked : !!v; if(it.checked) it.checkedAt = Date.now(); else delete it.checkedAt; saveL(it); render(); return it.checked; }
   };
+  rangerCoches();
+  setInterval(rangerCoches, 30 * 60e3);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') rangerCoches(); });
   // Toucher l'onglet Courses : toujours la liste (on ferme les fiches ouvertes)
   window.quotidienAccueil = () => { document.querySelectorAll('dialog[open]').forEach(d => { try{ d.close(); }catch(e){} }); window.scrollTo(0, 0); };
   window.quotidienAction = q => {
@@ -944,7 +947,7 @@ $('#app').addEventListener('click', e => {
     if(it.auto) openRemove(it, p);
     else { delL(it.id); render(); toast(`${p.name} retiré de la liste`); }
   }
-  else if(a === 'checkout') checkout();
+  else if(a === 'checkout') checkout();   // bouton : tout ce qui est coché, tout de suite
   else if(a === 'add') openAdd();
   else if(a === 'fri'){ S.settings.showFri = PLAN.show ? null : PLAN.key; saveSet(); render(); }
   else if(a === 'pfiche') openView(S.products.get(b.dataset.id));
@@ -957,11 +960,21 @@ $('#app').addEventListener('click', e => {
 $('#app').addEventListener('change', e => {
   const c = e.target.closest('[data-act="check"]'); if(!c) return;
   const it = S.list.get(c.dataset.id); if(!it) return;
-  it.checked = c.checked; saveL(it); render();
+  it.checked = c.checked; if(it.checked) it.checkedAt = Date.now(); else delete it.checkedAt;
+  saveL(it); render();
 });
-function checkout(){
+// Produits cochés depuis plus de 12 h : notés comme achetés et retirés de la liste, tout seuls
+const RANGER_APRES = 12 * 3600e3;
+function rangerCoches(){
+  const now = Date.now(); let neufs = false;
+  for(const it of S.list.values()) if(it.checked && !it.checkedAt){ it.checkedAt = now; saveL(it); neufs = true; }   // anciens cochés : le délai part d'aujourd'hui
+  const vieux = [...S.list.values()].filter(it => it.checked && now - it.checkedAt >= RANGER_APRES);
+  if(vieux.length) checkout(it => vieux.includes(it), true);
+  return vieux.length > 0 || neufs;
+}
+function checkout(filtre, discret){
   const now = Date.now(), tid = uid(), lines = [];
-  for(const it of [...S.list.values()]) if(it.checked){
+  for(const it of [...S.list.values()]) if(it.checked && (!filtre || filtre(it))){
     const p = S.products.get(it.pid);
     if(p){ const q = itemStdQty(it, p), pr = itemPrice(it, p); lines.push({pid: p.id, qty: q, price: pr != null ? +pr.toFixed(2) : null}); recordPurchase(p, q, now, tid); }
     delL(it.id);
@@ -970,7 +983,7 @@ function checkout(){
     const known = lines.filter(l => l.price != null);
     saveT({id: tid, date: now, store: '', total: known.length ? +known.reduce((s, l) => s + l.price, 0).toFixed(2) : null, lines, manual: true, created: now});
   }
-  render(); toast(`Courses notées ✔️ ${lines.length} produit${lines.length > 1 ? 's' : ''}`);
+  render(); if(!discret) toast(`Courses notées ✔️ ${lines.length} produit${lines.length > 1 ? 's' : ''}`);
 }
 
 /* ---------- Popups ---------- */

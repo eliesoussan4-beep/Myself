@@ -132,8 +132,16 @@ main{gap:22px}
 .obtn.petit{padding:6px 10px;font-size:12.5px;gap:4px}
 .co-slides{flex:none;height:var(--gr-h)}
 .co-slides .liste{height:132px}
-.slide.resume{align-items:center;justify-content:center;text-align:center;gap:2px;background:var(--sunk)}
-.re-total{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.1}
+.slide.resume{align-items:stretch;justify-content:center;text-align:center;gap:10px;background:var(--sunk)}
+.re-total{font-family:var(--display);font-size:32px;font-weight:800;line-height:1}
+.re-bas2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.slide.resume{--vert:#2F7A4A}
+:root[data-theme="dark"] .slide.resume{--vert:#7CC992}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .slide.resume{--vert:#7CC992}}
+.re-plus{border:0;border-radius:14px;background:color-mix(in srgb,var(--vert) 26%,var(--surface));color:var(--vert);display:flex;align-items:center;justify-content:center;min-height:62px}
+.re-nb{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;background:var(--surface);min-height:62px}
+.re-nb b{font-family:var(--display);font-size:32px;font-weight:800;line-height:1;color:var(--vert)}
+.re-nb span{font-size:11px;font-weight:600;color:var(--muted)}
 .re-l{font-size:12.5px;color:var(--muted);font-weight:600}
 .re-bas{color:var(--warn)}
 .slide.resume .obtn{margin-top:8px}
@@ -144,8 +152,9 @@ main{gap:22px}
 .co-slides .art-n{font-size:13.5px}
 .co-slides .art-q{font-size:11.5px}
 [data-bloc="garde-robe"] .tenue2 .slides.mini{height:var(--gr-h)}
-.notion5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.notion5 .n4{padding:10px 0 8px;font-size:11.5px}
+.notion5{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px;overscroll-behavior-x:contain;scroll-padding:0 16px}
+.notion5::-webkit-scrollbar{display:none}
+.notion5 .n4{flex:0 0 calc((100% - 24px) / 5);scroll-snap-align:start;padding:10px 0 8px;font-size:11.5px}
 .n4{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;background:var(--sunk);color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:600;min-width:0}
 .n4 svg{color:var(--c)}
 .n4 span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
@@ -225,6 +234,14 @@ main{gap:22px}
 .obar .total{min-width:0}
 .slide.nav-jour{align-items:center;justify-content:center;background:var(--sunk);min-height:96px}
 .obar-j{font-size:13px;font-weight:700;color:var(--c)}
+/* Bandeau : une colonne de boutons à gauche (1/5), le carrousel à droite */
+.bande{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,4fr);gap:8px;align-items:stretch}
+.bande-btns{display:flex;flex-direction:column;gap:6px}
+.bbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:14px;background:var(--sunk);color:var(--ink);font:600 11px/1.15 var(--body);padding:6px 2px;text-align:center;min-height:0}
+.bbtn svg{color:var(--c)}
+.bbtn.on{background:color-mix(in srgb,var(--c) 22%,var(--sunk))}
+.bande-car{min-width:0;display:flex;flex-direction:column;gap:6px}
+.bande-car .slides{margin:0 -16px 0 0;padding:0 16px 0 0}
 /* Listes dans une diapo (Aujourd'hui, Courses) : 2 lignes visibles, le reste en faisant défiler vers le bas */
 .slide.groupe,.slide.rayon{gap:4px;justify-content:flex-start;padding:12px 14px}
 .slide.groupe .slide-cat,.slide.rayon .slide-cat{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
@@ -237,6 +254,9 @@ main{gap:22px}
 .ligne .coche{width:26px;height:26px;border-radius:8px;border:2px solid var(--sc);margin:0;color:var(--on-denim)}
 .ligne.faite .coche{background:var(--sc)}
 .l-t{flex:1;min-width:0;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.l-tt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.l-tt .l-t{flex:none}
+.l-et{font-size:11.5px;font-weight:600;color:var(--sc)}
 .ligne.faite .l-t{text-decoration:line-through;color:var(--muted);font-weight:500}
 .l-h{font-size:13px;font-weight:700;color:var(--sc);white-space:nowrap}
 .ligne.ev .l-h{min-width:42px}
@@ -639,7 +659,28 @@ function monthOcc(r, y, m){
   if(mode === 'near'){ const target = iso(new Date(y, m, Math.min(r.dom || 1, n))); let s = (wd - dow(target) + 7) % 7; if(s > 3) s -= 7; return addDays(target, s); }
   return null;
 }
+const decalCache = new Map();
+function decalOcc(t){
+  const dc = t.decal; if(!dc || !t.rep || !(dc.L > 0)) return null;
+  const key = JSON.stringify([dc, t.rep, t.date, t.created, t.skip || []]);
+  const c = decalCache.get(t.id); if(c && c.key === key) return c.list;
+  const list = []; let q = dc.p;
+  for(let k = 1; k <= Math.ceil(dc.L / dc.step); k++){
+    let n = null; for(let i = 1; i <= 400; i++){ const x = addDays(q, i); if(occursBase(t, x)){ n = x; break; } }
+    if(!n) break;
+    q = n; list.push({q:n, d:addDays(n, Math.max(0, dc.L - k * dc.step))});
+  }
+  decalCache.set(t.id, {key, list});
+  return list;
+}
 function occursOn(t, d){
+  if(t.rep && t.decal){
+    const l = decalOcc(t);
+    if(l && l.length){ if(l.some(x => x.d === d)) return true; if(l.some(x => x.q === d && x.d !== d)) return false; }
+  }
+  return occursBase(t, d);
+}
+function occursBase(t, d){
   if(t.kind === 'event'){ if(!t.date) return false; return t.yearly ? (d >= t.date && d.slice(5) === t.date.slice(5)) : t.date === d; }
   if(t.free) return false;
   if(!t.rep) return t.date === d;
@@ -695,27 +736,33 @@ let dernierOrga = null;
 function blocOrganisation(d0){
   dernierOrga = d0;
   const d = d0 && jourOrga === 1 ? {...d0, ...d0.demain} : d0;
-  const barre = `<div class="obar"><button type="button" class="obtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 16)}À faire</button><span class="obar-j">${jourOrga ? 'Demain' : ''}</span><button type="button" class="obtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 16)}Mois</button></div>`;
-  if(!d) return `<p class="vide">Pas encore d’organisation sur ce téléphone. Ouvre-la, ou importe ta sauvegarde avec le bouton en haut à droite.</p>`;
+  const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 20)}À faire</button><button type="button" class="bbtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 20)}Mois</button></div>`;
+  if(!d) return `<div class="bande">${btns}<div class="bande-car"><p class="vide">Pas encore d’organisation sur ce téléphone.</p></div></div>`;
   const vers = (j, txt, sens) => `<div class="slide nav-jour"><button type="button" class="obtn grand" data-bascule="${j}">${sens < 0 ? '← ' : ''}${txt}${sens > 0 ? ' →' : ''}</button></div>`;
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
-  // Regroupement par catégorie, dans l'ordre des catégories de l'Organisation (sous-catégories après leur parent)
+  const coul = th => th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : '';
+  // 1re carte : tous les événements du jour, dans l'ordre de l'heure
+  const diapos = [];
+  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<div class="ligne ev"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e) || 'Journée')}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
+  // Puis une carte par catégorie (ordre des catégories de l'Organisation), tâches seulement
   const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
   const groupes = new Map();
-  const mettre = (x, ligne) => { const k = x.themeId && d.themes.has(x.themeId) ? x.themeId : '_'; if(!groupes.has(k)) groupes.set(k, []); groupes.get(k).push(ligne); };
-  d.evts.forEach(e => mettre(e, `<div class="ligne ev" data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e) || 'Journée')}</b><span class="l-t">${esc(e.title)}</span></div>`));
   [...d.restantes, ...d.faitesL].forEach(e => {
-    const x = e.t, minut = !e.fait && x.duration && x.timer !== false ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(e.d)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 12)}${x.duration} min</button>` : '';
-    mettre(x, `<div class="ligne tache${e.fait ? ' faite' : ''}" data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(e.d)}"><button type="button" class="coche" data-coche="${esc(x.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(x.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="l-t">${esc(x.title)}</span>${e.retard ? `<em class="l-r">en retard</em>` : heure(x) ? `<b class="l-h">${esc(heure(x))}</b>` : ''}${minut}</div>`);
+    const x = e.t, k = x.themeId && d.themes.has(x.themeId) ? x.themeId : '_';
+    const subs = (x.subs || []).length, fait = subs ? ((x.subDone || {})[x.rep ? e.d : 'x'] || []).filter(id => x.subs.some(s => s.id === id)).length : 0;
+    const etapes = subs ? `<span class="l-et">${fait}/${subs} étapes</span>` : '';
+    const minut = !e.fait && x.duration && x.timer !== false ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(e.d)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 12)}${x.duration} min</button>` : '';
+    if(!groupes.has(k)) groupes.set(k, []);
+    groupes.get(k).push(`<div class="ligne tache${e.fait ? ' faite' : ''}" data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(e.d)}"><button type="button" class="coche" data-coche="${esc(x.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(x.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="l-tt"><span class="l-t">${esc(x.title)}</span>${etapes}</span>${e.retard ? `<em class="l-r">en retard</em>` : heure(x) ? `<b class="l-h">${esc(heure(x))}</b>` : ''}${minut}</div>`);
   });
-  const cats = [...groupes.entries()].sort((a, b) => rang(d.themes.get(a[0])) - rang(d.themes.get(b[0])));
-  const diapos = cats.map(([k, lignes]) => {
+  [...groupes.entries()].sort((a, b) => rang(d.themes.get(a[0])) - rang(d.themes.get(b[0]))).forEach(([k, lignes]) => {
     const th = d.themes.get(k);
-    return `<div class="slide groupe"${th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : ''}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste">${lignes.join('')}</div></div>`;
+    diapos.push(`<div class="slide groupe"${coul(th)}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste">${lignes.join('')}</div></div>`);
   });
   if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
-  const tout = jourOrga ? [vers(0, 'Aujourd’hui', -1), ...diapos] : [...diapos, vers(1, 'Voir demain', 1)];
-  return barre + `<div class="slides" data-ouvrir="organisation" data-jour-orga="${jourOrga}">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
+  const tout = jourOrga ? [vers(0, 'Aujourd’hui', -1), ...diapos] : [...diapos, vers(1, 'Demain', 1)];
+  const car = `<div class="slides" data-ouvrir="organisation" data-jour-orga="${jourOrga}">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
+  return `<div class="bande">${btns}<div class="bande-car">${car}</div></div>`;
 }
 function basculerJour(j){
   jourOrga = j;
@@ -723,7 +770,7 @@ function basculerJour(j){
   if(!el || !app) return;
   delete positions['organisation0'];
   el.innerHTML = carte(app, '', blocOrganisation(dernierOrga)); brancherSlides(el);
-  const s = el.querySelector('.slides'); if(!s) return;
+  const s = el.querySelector('.bande-car .slides'); if(!s) return;
   // Demain : on arrive sur le premier élément (le bouton « Aujourd'hui » est juste à gauche) ; retour : sur le dernier d'aujourd'hui
   s.scrollLeft = j ? s.clientWidth + 10 : s.scrollWidth;
   if(!j) s.scrollLeft = Math.max(0, s.scrollWidth - 2 * s.clientWidth - 10);
@@ -786,11 +833,9 @@ function carreCourses(d){
     <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
   // 1re carte : le total, combien de produits, le jour des courses, et « + Produit »
-  const resume = `<div class="slide rayon resume"><div class="re-total">${total ? Math.round(total) + ' €' : '—'}</div>
-    <div class="re-l">${reste.length ? plur(reste.length, 'produit', 'produits') + ' à acheter' : 'Liste vide'}</div>
-    <div class="re-l">${cap(prochainesCourses())}</div>
-    ${d.bas.length ? `<div class="re-l re-bas">${plur(d.bas.length, 'produit presque vide', 'produits presque vides')}</div>` : ''}
-    ${plus}</div>`;
+  const resume = `<div class="slide rayon resume"><div class="re-total">${total ? Math.round(total) + ' €' : '0 €'}</div>
+    <div class="re-bas2"><button type="button" class="re-plus" data-ajout-course aria-label="Ajouter un produit">${svg('<path d="M12 5v14M5 12h14"/>', 26)}</button>
+    <div class="re-nb"><b>${reste.length}</b><span>${reste.length > 1 ? 'produits' : 'produit'}</span></div></div></div>`;
   slides.unshift(resume);
   return `<div class="co-carre" data-ouvrir="courses">
     <div class="slides mini co-slides">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
@@ -846,8 +891,8 @@ async function lireScenesAgenda(avant, apres){
   return r || [];
 }
 function blocBackstage(d){
-  const barre = `<div class="obar"><button type="button" class="obtn" data-aller="backstage" data-action="ajouterPlateau">${svg('<path d="M12 5v14M5 12h14"/>', 16)}Plateau</button><button type="button" class="obtn" data-aller="backstage" data-action="noter">${svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/>', 16)}Noter</button></div>`;
-  if(!d) return barre + `<p class="vide">Pas encore de scènes ni de plateaux. Ouvre Backstage pour commencer.</p>`;
+  const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="backstage" data-action="ajouterPlateau">${svg('<path d="M12 5v14M5 12h14"/>', 20)}Plateau</button><button type="button" class="bbtn" data-aller="backstage" data-action="noter">${svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/>', 20)}Noter</button></div>`;
+  if(!d) return `<div class="bande">${btns}<div class="bande-car"><p class="vide">Pas encore de scènes ni de plateaux.</p></div></div>`;
   // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
   const memes = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
   const slides = [
@@ -856,12 +901,13 @@ function blocBackstage(d){
   ];
   const pl = slides.length
     ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
-    : `<p class="vide">Pas de plateau prévu aujourd’hui.</p>`;
-  // Les pages Notion de Backstage (lues dans l'app) : Textes, Vrac, Sujets, Notes, Impros
+    : `<div class="slides"><div class="slide nav-jour"><p class="vide">Pas de plateau prévu aujourd’hui.</p></div></div>`;
+  // Toutes les pages Notion de Backstage : Textes, Vrac, Sujets, Notes, Impros d'abord, puis les autres (on fait glisser)
   const voulus = ['texte', 'vrac', 'sujet', 'note', 'impro'];
-  const liens = voulus.map(v => (d.notion || []).find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean);
+  const tous = d.notion || [];
+  const liens = [...voulus.map(v => tous.find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean), ...tous.filter(x => !voulus.some(v => sansAccent(x.nom).startsWith(v)))];
   const grille = liens.length ? `<div class="notion5">${liens.map(x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`).join('')}</div>` : '';
-  return barre + pl + grille;
+  return `<div class="bande">${btns}<div class="bande-car">${pl}</div></div>` + grille;
 }
 
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
@@ -1532,6 +1578,7 @@ async function superposer(id, params){
   return ok;
 }
 window.quotidien = {
+  retourAccueil(){ montrer('accueil'); },
   // L'app a fermé sa fenêtre : on la recache et l'accueil se met à jour
   finSuperpose(id){
     const f = frames.get(id); if(!f) return;

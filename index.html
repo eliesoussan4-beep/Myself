@@ -132,14 +132,19 @@ main{gap:22px}
 .obtn.petit{padding:6px 10px;font-size:12.5px;gap:4px}
 .co-slides{flex:none;height:var(--gr-h)}
 .co-slides .liste{height:132px}
-.slide.resume{align-items:stretch;justify-content:center;text-align:center;gap:10px;background:var(--sunk)}
+.slide.resume{align-items:stretch;justify-content:space-between;text-align:center;gap:6px;background:var(--sunk)}
+.re-haut{display:flex;flex-direction:column;gap:2px}
+.re-sous{font-size:11.5px;font-weight:600;color:var(--muted)}
+.re-pied{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--muted)}
+.re-alerte{color:var(--warn)}
+.re-gl{display:inline-flex;align-items:center;gap:2px}
 .re-total{font-family:var(--display);font-size:32px;font-weight:800;line-height:1}
 .re-bas2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .slide.resume{--vert:#2F7A4A}
 :root[data-theme="dark"] .slide.resume{--vert:#7CC992}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .slide.resume{--vert:#7CC992}}
-.re-plus{border:0;border-radius:14px;background:color-mix(in srgb,var(--vert) 26%,var(--surface));color:var(--vert);display:flex;align-items:center;justify-content:center;min-height:62px}
-.re-nb{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;background:var(--surface);min-height:62px}
+.re-plus{border:0;border-radius:14px;background:color-mix(in srgb,var(--vert) 26%,var(--surface));color:var(--vert);display:flex;align-items:center;justify-content:center;min-height:58px}
+.re-nb{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;background:var(--surface);min-height:58px}
 .re-nb b{font-family:var(--display);font-size:32px;font-weight:800;line-height:1;color:var(--vert)}
 .re-nb span{font-size:11px;font-weight:600;color:var(--muted)}
 .re-l{font-size:12.5px;color:var(--muted);font-weight:600}
@@ -233,6 +238,16 @@ main{gap:22px}
 .obar{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .obar .total{min-width:0}
 .slide.nav-jour{align-items:center;justify-content:center;background:var(--sunk);min-height:96px}
+.slide.apercu{--sc:var(--c);background:var(--sunk);padding:12px 14px;gap:6px;justify-content:space-between;cursor:pointer;border:1px dashed color-mix(in srgb,var(--c) 45%,transparent)}
+.ap-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ap-j{font-family:var(--display);font-size:20px;font-weight:800;color:var(--c)}
+.ap-d{font-size:12px;font-weight:600;color:var(--muted)}
+.ap-l{display:flex;flex-direction:column;gap:4px}
+.ap-l div{display:flex;gap:8px;font-size:14px;color:var(--muted);min-width:0}
+.ap-l b{min-width:36px;font-size:12.5px;color:var(--ink)}
+.ap-l span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-pied{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.ap-fl{width:30px;height:30px;border-radius:50%;background:var(--c);color:var(--on-denim);display:flex;align-items:center;justify-content:center}
 .obar-j{font-size:13px;font-weight:700;color:var(--c)}
 /* Bandeau : une colonne de boutons à gauche (1/5), le carrousel à droite */
 .bande{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,4fr);gap:8px;align-items:stretch}
@@ -257,6 +272,11 @@ main{gap:22px}
 .l-tt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
 .l-tt .l-t{flex:none}
 .l-et{font-size:11.5px;font-weight:600;color:var(--sc)}
+.lc-d{display:inline-flex;align-items:center;gap:8px}
+.lc-d em{font-style:normal;color:var(--muted);font-weight:600}
+.lc-plus{width:28px;height:28px;border-radius:9px;border:0;background:color-mix(in srgb,var(--sc) 25%,transparent);color:var(--sc);display:flex;align-items:center;justify-content:center;padding:0}
+.vide-l{color:var(--muted);font-weight:500}
+.slide.groupe .slide-cat .lc-n{color:var(--sc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ligne.faite .l-t{text-decoration:line-through;color:var(--muted);font-weight:500}
 .l-h{font-size:13px;font-weight:700;color:var(--sc);white-space:nowrap}
 .ligne.ev .l-h{min-width:42px}
@@ -356,8 +376,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .version{text-align:center;font-size:12px;color:var(--muted);margin:4px 0 0}
 /* Fenêtre du mois */
 #mois{overflow:hidden}
+#mois .feuille.mois-f{height:min(720px,88dvh);box-sizing:border-box}
+#mois .mliste{flex:1;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain}
 #mois .feuille{transition:transform .18s ease}
 #mois.ferme .feuille{transform:translateY(100%)}
+dialog h2:focus{outline:none}
 .poignee{width:42px;height:5px;border-radius:3px;background:var(--line);margin:-8px auto 2px}
 .mois-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .mois-h h2{font-size:20px}
@@ -736,14 +759,23 @@ let dernierOrga = null;
 function blocOrganisation(d0){
   dernierOrga = d0;
   const d = d0 && jourOrga === 1 ? {...d0, ...d0.demain} : d0;
-  const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 20)}À faire</button><button type="button" class="bbtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 20)}Mois</button></div>`;
+  const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 20)}Ajouter</button><button type="button" class="bbtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 20)}Mois</button></div>`;
   if(!d) return `<div class="bande">${btns}<div class="bande-car"><p class="vide">Pas encore d’organisation sur ce téléphone.</p></div></div>`;
-  const vers = (j, txt, sens) => `<div class="slide nav-jour"><button type="button" class="obtn grand" data-bascule="${j}">${sens < 0 ? '← ' : ''}${txt}${sens > 0 ? ' →' : ''}</button></div>`;
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
+  // Aperçu de l'autre jour : ses premiers éléments et combien il y en a ; toucher la carte pour y passer
+  const vers = (j) => {
+    const x = j === 1 ? d0.demain : d0, dj = parseD(x.d);
+    const lignes = [...x.evts.map(e => ({h:heure(e), t:e.title})), ...x.restantes.map(e => ({h:heure(e.t), t:e.t.title}))];
+    const resume = [x.evts.length ? plur(x.evts.length, 'événement', 'événements') : '', x.restantes.length ? plur(x.restantes.length, 'tâche', 'tâches') : ''].filter(Boolean).join(' · ') || 'Rien de prévu';
+    return `<div class="slide apercu" data-bascule="${j}" role="button" aria-label="Voir ${j ? 'demain' : 'aujourd’hui'}">
+      <div class="ap-h"><span class="ap-j">${j ? '' : '← '}${j ? 'Demain' : 'Aujourd’hui'}</span><span class="ap-d">${esc(cap(dj.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'})))}</span></div>
+      <div class="ap-l">${lignes.slice(0, 2).map(l => `<div><b>${esc(l.h)}</b><span>${esc(l.t)}</span></div>`).join('')}</div>
+      <div class="ap-pied"><span>${resume}</span>${j ? `<span class="ap-fl">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</span>` : ''}</div></div>`;
+  };
   const coul = th => th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : '';
   // 1re carte : tous les événements du jour, dans l'ordre de l'heure
   const diapos = [];
-  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<div class="ligne ev"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e) || 'Journée')}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
+  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<div class="ligne ev"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
   // Puis une carte par catégorie (ordre des catégories de l'Organisation), tâches seulement
   const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
   const groupes = new Map();
@@ -760,7 +792,7 @@ function blocOrganisation(d0){
     diapos.push(`<div class="slide groupe"${coul(th)}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste">${lignes.join('')}</div></div>`);
   });
   if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
-  const tout = jourOrga ? [vers(0, 'Aujourd’hui', -1), ...diapos] : [...diapos, vers(1, 'Demain', 1)];
+  const tout = jourOrga ? [vers(0), ...diapos] : [...diapos, vers(1)];
   const car = `<div class="slides" data-ouvrir="organisation" data-jour-orga="${jourOrga}">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
   return `<div class="bande">${btns}<div class="bande-car">${car}</div></div>`;
 }
@@ -833,9 +865,10 @@ function carreCourses(d){
     <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
   // 1re carte : le total, combien de produits, le jour des courses, et « + Produit »
-  const resume = `<div class="slide rayon resume"><div class="re-total">${total ? Math.round(total) + ' €' : '0 €'}</div>
+  const resume = `<div class="slide rayon resume"><div class="re-haut"><div class="re-total">${total ? Math.round(total) + ' €' : '0 €'}</div><div class="re-sous">${cap(prochainesCourses())}</div></div>
     <div class="re-bas2"><button type="button" class="re-plus" data-ajout-course aria-label="Ajouter un produit">${svg('<path d="M12 5v14M5 12h14"/>', 26)}</button>
-    <div class="re-nb"><b>${reste.length}</b><span>${reste.length > 1 ? 'produits' : 'produit'}</span></div></div></div>`;
+    <div class="re-nb"><b>${reste.length}</b><span>${reste.length > 1 ? 'produits' : 'produit'}</span></div></div>
+    <div class="re-pied">${d.bas.length ? `<span class="re-alerte">${plur(d.bas.length, 'presque vide', 'presque vides')}</span>` : `<span>${rayons.length ? plur(rayons.length, 'rayon', 'rayons') : 'Liste vide'}</span>`}${slides.length ? `<span class="re-gl">Glisse ${svg('<path d="M9 6l6 6-6 6"/>', 12)}</span>` : ''}</div></div>`;
   slides.unshift(resume);
   return `<div class="co-carre" data-ouvrir="courses">
     <div class="slides mini co-slides">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
@@ -934,7 +967,8 @@ function squeletteAccueil(){
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     <div data-bloc="jour"><div class="bloc jour"><p class="vide">Chargement…</p></div></div>
-    ${APPS.filter(a => !AVEC[a.id]).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}`;
+    ${APPS.filter(a => !AVEC[a.id]).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}
+    <div data-bloc="listes"></div>`;
   $('#accueil').dataset.jour = iso(now);
   alerteDrive();
 }
@@ -972,6 +1006,29 @@ async function rafraichirLigneJour(){
   el.innerHTML = `<div class="bloc jour" data-ouvrir="organisation"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
   brancherSlides(el);
 }
+// Carte des listes de l'Organisation : une carte par liste, à faire glisser ; cocher directement
+async function rafraichirListes(){
+  const el = $('[data-bloc="listes"]'); if(!el) return;
+  const d = await lire('organisation', async db => ({lists:await tout(db, 'lists'), items:await tout(db, 'items')})).catch(() => null);
+  const app = APPS.find(a => a.id === 'organisation') || {};
+  if(!d || !d.lists.length){ el.innerHTML = ''; return; }
+  const listes = d.lists.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const slides = listes.map(l => {
+    const todo = d.items.filter(i => i.listId === l.id && !i.done).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    return `<div class="slide groupe" style="--sc:var(--c-${esc(l.color || 'slate')})" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}">
+      <div class="slide-cat"><span class="lc-n">${esc((l.emoji ? l.emoji + ' ' : '') + l.name)}</span><span class="lc-d"><em>${todo.length || ''}</em><button type="button" class="lc-plus" data-aller="organisation" data-action="liste-ajout" data-id="${esc(l.id)}" aria-label="Ajouter à ${esc(l.name)}">${svg('<path d="M12 5v14M5 12h14"/>', 15)}</button></span></div>
+      <div class="liste">${todo.length ? todo.map(i => `<div class="ligne tache" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}"><button type="button" class="coche" data-coche-item="${esc(i.id)}" aria-label="Cocher ${esc(i.name)}"></button><span class="l-t">${i.emoji ? esc(i.emoji) + ' ' : ''}${esc(i.name)}</span></div>`).join('') : '<div class="ligne"><span class="l-t vide-l">Tout est fait ✔️</span></div>'}</div></div>`;
+  });
+  el.innerHTML = `<div class="bloc" data-ouvrir="organisation"${styleCouleur(app)}><div class="slides" data-ouvrir="organisation">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+  brancherSlides(el);
+}
+async function cocherItem(btn){
+  const l = btn.closest('.ligne'); if(l) l.classList.add('faite');
+  btn.innerHTML = svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14);
+  const w = await attendreApp('organisation', w => typeof w.quotidienCocherItem === 'function' && w.quotidienPret());
+  if(w) w.quotidienCocherItem(btn.dataset.cocheItem);
+  setTimeout(rafraichirListes, 900);   // on le laisse rayé un instant
+}
 let enCours = false, aRefaire = false, minuteur = 0;
 function planifierAccueil(ms){ clearTimeout(minuteur); minuteur = setTimeout(rafraichirAccueil, ms); }
 async function rafraichirAccueil(){
@@ -979,7 +1036,7 @@ async function rafraichirAccueil(){
   enCours = true;
   try{
     if(!$('#accueil').firstChild || $('#accueil').dataset.jour !== iso(new Date())) squeletteAccueil();
-    rafraichirLigneJour();
+    rafraichirLigneJour(); rafraichirListes();
     await Promise.all(APPS.filter(a => LECTEURS[a.id]).map(async a => {
       const L = LECTEURS[a.id];
       let d = null; try{ d = await L.lire(); }catch(e){ console.warn(a.id, e); }
@@ -1026,10 +1083,10 @@ $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
   const go = e.target.closest('[data-aller]');
-  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-bascule]')){
+  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule]')){
     const x = go.dataset, params = {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null};
     if(x.action === 'mois'){ ouvrirMois(); return; }
-    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache'].includes(x.action)) || (x.aller === 'backstage' && x.action === 'ajouterPlateau');
+    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout'].includes(x.action)) || (x.aller === 'backstage' && x.action === 'ajouterPlateau');
     if(dessus) superposer(x.aller, params).then(ok => { if(!ok) window.quotidien.ouvrir(x.aller, params); });
     else window.quotidien.ouvrir(x.aller, params);
     return;
@@ -1039,6 +1096,7 @@ $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
   const jr = e.target.closest('[data-bascule]'); if(jr){ basculerJour(+jr.dataset.bascule); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc){ cocherCourse(cc); return; }
+  const ci = e.target.closest('[data-coche-item]'); if(ci){ cocherItem(ci); return; }
   const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
   const ch = e.target.closest('[data-choisir]'); if(ch){ choisirTenue(ch); return; }
   const sa = e.target.closest('[data-sale]'); if(sa){ mettreAuSale(sa); return; }
@@ -1050,15 +1108,15 @@ $('#accueil').addEventListener('click', e => {
 let produitsCO = [];
 async function ouvrirAjoutCourse(){
   const dlg = $('#ajout-course');
-  dlg.innerHTML = `<div class="feuille"><h2>Ajouter aux courses</h2>
+  dlg.innerHTML = `<div class="feuille"><h2 tabindex="-1" autofocus>Ajouter aux courses</h2>
     <label class="champ"><input id="ac-q" type="search" placeholder="Chercher un produit…" autocomplete="off" enterkeyhint="search"></label>
     <div id="ac-res" class="ac-res"><p class="hint">Chargement…</p></div>
     <button type="button" class="btn" data-ac="fermer">Fermer</button></div>`;
   dlg.showModal();
+  const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});   // pas de clavier tant qu'on ne touche pas la recherche
   const w = await attendreApp('courses', w => !!w.quotidienCO);
   produitsCO = w ? w.quotidienCO.produits() : [];
-  majAjoutCourse();
-  setTimeout(() => { const i = $('#ac-q'); if(i) i.focus(); }, 60);
+  majAjoutCourse();   // le clavier ne s'ouvre que quand tu touches la barre de recherche
 }
 const sansAccent = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 function majAjoutCourse(){
@@ -1080,7 +1138,7 @@ $('#ajout-course').addEventListener('click', async e => {
     const w = await attendreApp('courses', w => !!w.quotidienCO); if(!w) return;
     w.quotidienCO.ajouter(b.dataset.id);
     const p = produitsCO.find(x => x.id === b.dataset.id); if(p) p.dans = true;
-    $('#ac-q').value = ''; majAjoutCourse(); $('#ac-q').focus();
+    $('#ac-q').value = ''; majAjoutCourse();
     toast(`${p ? p.nom : 'Produit'} ajouté 🛒`); planifierAccueil(300);
   }
   else if(b.dataset.ac === 'creer'){

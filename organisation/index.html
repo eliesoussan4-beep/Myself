@@ -3284,11 +3284,15 @@ async function start() {
 // Pour Mon quotidien : cocher une tâche depuis l'accueil, avec les règles de l'app
 window.toggleTask = (id, d, late) => toggleTask(id, d, late);
 window.quotidienPret = () => !!document.querySelector('#app .hero');
+// Cocher un élément d'une liste depuis l'accueil (même règle que dans l'app)
+window.quotidienCocherItem = id => { A['item-check'](null, { id }); return true; };
 // Mon quotidien : ouvrir une fenêtre de l'Organisation par-dessus l'accueil (sans changer d'onglet)
 window.quotidienSuperpose = p => {
-  if (!p || !['ajouter', 'tache'].includes(p.action)) return false;
+  if (!p || !['ajouter', 'tache', 'listes', 'liste-ajout'].includes(p.action)) return false;
   window.__superpose = true; document.documentElement.classList.add('qd-superpose');
   if (p.action === 'ajouter') openDayAdd(p.d || today());
+  else if (p.action === 'listes') { if (p.id) U.openLists.add(p.id); openSheet({ render: renderLists, label: 'Listes' }); }
+  else if (p.action === 'liste-ajout') openListQuick(p.id);
   else openQuick(p.id, p.d || null);
   if (!stack.length) { window.__superpose = false; document.documentElement.classList.remove('qd-superpose'); return false; }
   return true;

@@ -2177,8 +2177,7 @@ function closeQuickAddPlateauModal(){
 window.quotidienSuperpose = function(p){
   if(!p || p.action !== 'ajouterPlateau') return false;
   window.__superpose = true; document.documentElement.classList.add('qd-superpose');
-  openQuickAddPlateauModal();
-  setTimeout(() => { const i = document.getElementById('quickadd-plateau-input'); if(i) i.focus(); }, 60);
+  openQuickAddPlateauModal();   // le clavier ne s'ouvre que quand tu touches le champ
   return true;
 };
 function confirmQuickAddPlateau(){

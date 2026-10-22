@@ -248,41 +248,6 @@ END:VEVENT
 BEGIN:VEVENT
 LAST-MODIFIED:00010101T000000Z
 DTSTAMP:00010101T000000Z
-LOCATION:Anfield\, Liverpool
-X-ECAL-SCHEDULE:
-DTSTART:20261101T163000Z
-DTEND:20261101T183000Z
-SUMMARY:Liverpool vs Arsenal (A)
-TRANSP:TRANSPARENT
-SEQUENCE:0
-UID:6a3507b354aa884dbc65d2c2
-PRIORITY:5
-X-MICROSOFT-CDO-IMPORTANCE:1
-CLASS:PUBLIC
-DESCRIPTION:Premier League | Matchweek 9 | Watch live on UK - Sky Sports. J
- oin us for analysis and live commentary in The Breakdown Live on the Arsena
- l App and Arsenal.com | Join In #LIVARS\n\nShop Arsenal Direct\nhttps://eca
- l.ai/f/2gRM1s/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRM1G/3NsBs\n\nD
- ownload the Arsenal App\nhttps://ecal.ai/f/2gRM1L/3NsBs\n\nLatest Videos\nh
- ttps://ecal.ai/f/2gRM1X/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRM28/3NsB
- s\n\nFacebook\nhttps://ecal.ai/f/2gRM2r/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM2
- B/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM2N/3NsBs\n\nTikTok\nhttps://eca
- l.ai/f/2gRM2Y/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM3J/3NsBs\n\n
-X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
-BEGIN:VALARM
-TRIGGER:-P2DT
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-BEGIN:VALARM
-TRIGGER:-PT15M
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-LAST-MODIFIED:00010101T000000Z
-DTSTAMP:00010101T000000Z
 LOCATION:Selhurst Park\, London
 X-ECAL-SCHEDULE:
 DTSTART:20261227T190000Z
@@ -1459,6 +1424,42 @@ DESCRIPTION:Premier League | Matchweek 8 | Listen live on BBC Radio 5 Live.
  sBs\n\nFacebook\nhttps://ecal.ai/f/2gRLZ5/3NsBs\n\nX\nhttps://ecal.ai/f/2gR
  LZd/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRLZn/3NsBs\n\nTikTok\nhttps://e
  cal.ai/f/2gRLZB/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM18/3NsBs\n\n
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:00010101T000000Z
+DTSTAMP:00010101T000000Z
+LOCATION:Anfield\, Liverpool
+X-ECAL-SCHEDULE:
+DTSTART:20261101T163000Z
+DTEND:20261101T183000Z
+SUMMARY:Liverpool vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2c2
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 9 | Watch live on UK - Sky Sports | 
+ BBC Radio 5 Live. Join us for analysis and live commentary in The Breakdown
+  Live on the Arsenal App and Arsenal.com | Join In #LIVARS\n\nShop Arsenal 
+ Direct\nhttps://ecal.ai/f/2gRM1s/3NsBs\n\nJoin Membership\nhttps://ecal.ai/
+ f/2gRM1G/3NsBs\n\nDownload the Arsenal App\nhttps://ecal.ai/f/2gRM1L/3NsBs\
+ n\nLatest Videos\nhttps://ecal.ai/f/2gRM1X/3NsBs\n\nLatest News\nhttps://ec
+ al.ai/f/2gRM28/3NsBs\n\nFacebook\nhttps://ecal.ai/f/2gRM2r/3NsBs\n\nX\nhttp
+ s://ecal.ai/f/2gRM2B/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM2N/3NsBs\n\n
+ TikTok\nhttps://ecal.ai/f/2gRM2Y/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f
+ /2gRM3J/3NsBs\n\n
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 BEGIN:VALARM
 TRIGGER:-P2DT

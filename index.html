@@ -120,19 +120,49 @@ main{gap:22px}
 .wx2 .pastille{margin-top:6px}
 .tenue2{display:flex;flex-direction:column;gap:6px;min-width:0}
 .tenue2 .slides.mini{flex:1}
-[data-bloc="garde-robe"] .slides.mini{height:var(--gr-h);flex:none}
-[data-bloc="garde-robe"] .co-slides .slide{padding:8px 10px;gap:4px}
-[data-bloc="garde-robe"] .co-slides .slide.resume{padding:10px}
+[data-bloc="garde-robe"] .slides.mini,[data-bloc="duo"] .slides.mini{height:var(--gr-h);flex:none}
+[data-bloc="garde-robe"] .co-slides .slide,[data-bloc="duo"] .co-slides .slide{padding:8px 10px;gap:4px}
+[data-bloc="garde-robe"] .co-slides .slide.resume,[data-bloc="duo"] .co-slides .slide.resume{padding:12px}
 [data-bloc="garde-robe"] .tenue2{gap:4px}
 [data-bloc="garde-robe"] .slides.mini .slide{flex-basis:100%;scroll-snap-align:start;padding:6px;gap:4px}
 .tenue-co{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
 .co-carre{display:flex;flex-direction:column;gap:6px;min-width:0}
+.dispo-carre{height:var(--gr-h);box-sizing:border-box;background:var(--sunk);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}
+.dp-h{display:flex;flex-direction:column}
+.dp-h b{font-family:var(--display);font-size:18px;font-weight:800}
+.dp-h span{font-size:11.5px;font-weight:700;color:var(--denim)}
+.dp-l{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;overflow:hidden}
+.dp-l div{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-l div::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#7CC992;margin-right:7px;vertical-align:1px}
+.dp-l .vide::before{display:none}
+.dp-pied{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--muted)}
+#dispos{overflow:hidden}
+#dispos .feuille.dispos-f{height:min(760px,90dvh);box-sizing:border-box}
+.dcrit{display:flex;flex-direction:column;gap:6px}
+.dlab{font-size:12px;font-weight:700;color:var(--muted)}
+.drow{display:flex;flex-wrap:wrap;gap:6px}
+.drow.jours .chip-d{flex:1;padding:8px 0;text-align:center}
+.chip-d{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:99px;padding:7px 12px;font:600 13px/1 var(--body)}
+.chip-d.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
+.dcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center;row-gap:10px;padding-top:4px}
+.dcal em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--muted)}
+.dj{position:relative;font-size:12px;font-weight:600;color:var(--muted);background:var(--sunk);border-radius:7px;padding:5px 0}
+.dj.libre{background:color-mix(in srgb,#7CC992 30%,var(--surface));color:var(--ink)}
+.dj i{position:absolute;top:-10px;left:2px;font-style:normal;font-size:8.5px;font-weight:700;color:var(--denim);text-transform:uppercase}
+.dres{font-size:14px}
+.dliste{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px}
+.dliste div{display:flex;justify-content:space-between;gap:8px;background:var(--sunk);border-radius:10px;padding:9px 12px;font-size:14px;font-weight:600}
+.dliste em{font-style:normal;font-size:12px;font-weight:600;color:var(--muted)}
 .co-h{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:30px}
 .co-h b{font-family:var(--display);font-size:20px;font-weight:800}
 .obtn.petit{padding:6px 10px;font-size:12.5px;gap:4px}
 .co-slides{flex:none;height:var(--gr-h)}
 .co-slides .liste{height:132px}
-.slide.resume{align-items:stretch;justify-content:space-between;text-align:center;gap:6px;background:var(--sunk)}
+.slide.resume{align-items:center;justify-content:center;text-align:center;gap:2px;background:var(--sunk);position:relative}
+.re-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.slide.resume .re-total{font-size:34px;margin:2px 0}
+.re-ajout{margin-top:10px;width:100%;border:0;border-radius:12px;background:color-mix(in srgb,var(--vert) 22%,var(--surface));color:var(--vert);font:700 14px/1 var(--body);padding:10px 0;display:flex;align-items:center;justify-content:center;gap:6px}
+.re-warn{position:absolute;top:8px;right:8px;min-width:20px;height:20px;border-radius:10px;background:var(--warn);color:var(--surface);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px}
 .re-haut{display:flex;flex-direction:column;gap:2px}
 .re-sous{font-size:11.5px;font-weight:600;color:var(--muted)}
 .re-pied{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--muted)}
@@ -159,6 +189,7 @@ main{gap:22px}
 [data-bloc="garde-robe"] .tenue2 .slides.mini{height:var(--gr-h)}
 .notion5{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px;overscroll-behavior-x:contain;scroll-padding:0 16px}
 .notion5::-webkit-scrollbar{display:none}
+.notion5 button.n4{border:0;font-family:var(--body);color:var(--ink)}
 .notion5 .n4{flex:0 0 calc((100% - 24px) / 5);scroll-snap-align:start;padding:10px 0 8px;font-size:11.5px}
 .n4{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;background:var(--sunk);color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:600;min-width:0}
 .n4 svg{color:var(--c)}
@@ -167,7 +198,7 @@ main{gap:22px}
 [data-bloc="garde-robe"] .sil-box{--silh:calc(var(--carte-h) - 46px);flex:1;min-height:0}
 [data-bloc="garde-robe"] .sil-box .sil-wrap{padding:4px;background:none}
 /* Hauteur commune du carré Vêtements et du carré Courses */
-[data-bloc="garde-robe"]{--gr-h:178px}
+[data-bloc="garde-robe"],[data-bloc="duo"]{--gr-h:178px}
 [data-bloc="garde-robe"] .tslide .sil-box{--silh:calc(var(--gr-h) - 58px);display:flex;align-items:center;justify-content:center}
 [data-bloc="garde-robe"] .tslide:not(:has(.ts-b)) .sil-box{--silh:calc(var(--gr-h) - 22px)}
 [data-bloc="garde-robe"] .tslide .sil-box .sil-wrap{justify-content:center}
@@ -260,11 +291,14 @@ main{gap:22px}
 .bande-car{min-width:0;display:flex;flex-direction:column;gap:6px}
 .bande-car .slides{margin:0 -16px 0 0;padding:0 16px 0 0}
 .bande-car{position:relative}
-.filtres-pl{position:absolute;right:0;bottom:-3px;display:flex;gap:6px}
+.pl-car{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:stretch}
+.pl-col{min-width:0;display:flex;flex-direction:column;gap:6px}
+.pl-col .slides{margin:0;padding:0}
+.filtres-pl{display:flex;flex-direction:column;justify-content:center;gap:12px;padding-bottom:12px}
 .fpl.t0{--sc:#B84A3E}.fpl.t1{--sc:#B7832F}.fpl.t2{--sc:#2F7A4A}
 :root[data-theme="dark"] .fpl.t0{--sc:#E58A84}:root[data-theme="dark"] .fpl.t1{--sc:#E0B266}:root[data-theme="dark"] .fpl.t2{--sc:#7CC992}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .fpl.t0{--sc:#E58A84}:root:not([data-theme="light"]) .fpl.t1{--sc:#E0B266}:root:not([data-theme="light"]) .fpl.t2{--sc:#7CC992}}
-.fpl{width:16px;height:16px;border-radius:50%;border:2px solid var(--sc);background:transparent;padding:0;opacity:.75}
+.fpl{width:20px;height:20px;border-radius:50%;border:2px solid var(--sc);background:transparent;padding:0;opacity:.75}
 .fpl.on{background:var(--sc);opacity:1;transform:scale(1.15)}
 /* Listes dans une diapo (Aujourd'hui, Courses) : 2 lignes visibles, le reste en faisant défiler vers le bas */
 .slide.groupe,.slide.rayon{gap:4px;justify-content:flex-start;padding:12px 14px}
@@ -450,6 +484,7 @@ dialog h2:focus{outline:none}
 <dialog id="retours" aria-label="Noter une modif"></dialog>
 <dialog id="ajout-course" aria-label="Ajouter aux courses"></dialog>
 <dialog id="mois" aria-label="Le mois"></dialog>
+<dialog id="dispos" aria-label="Mes disponibilités"></dialog>
 <button type="button" id="retour-btn" aria-label="Noter une modif" hidden></button>
 <input type="file" id="fichier" accept="application/json,.json" multiple hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -565,7 +600,7 @@ function montrer(id, {query = '', historique = false} = {}){
   }
 }
 function construireBarre(){
-  const items = [{id:'accueil', nom:'Accueil', icone:ICONE_ACCUEIL}, ...APPS];
+  const items = [{id:'accueil', nom:'Accueil', icone:ICONE_ACCUEIL}, ...APPS.filter(a => !a.cache)];
   const o = $('#onglets');
   o.style.gridTemplateColumns = `repeat(${items.length}, minmax(0, 1fr))`;
   o.classList.toggle('serre', items.length > 4);
@@ -577,6 +612,7 @@ function precharger(){
   let i = 0;
   const suite = () => {
     const app = APPS[i++]; if(!app) return;
+    if(app.cache){ suite(); return; }
     creerFrame(app).charge.then(() => setTimeout(suite, 600));
   };
   setTimeout(suite, 900);
@@ -880,13 +916,106 @@ function carreCourses(d){
     <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
   // 1re carte : le total, combien de produits, le jour des courses, et « + Produit »
-  const resume = `<div class="slide rayon resume"><div class="re-haut"><div class="re-total">${total ? Math.round(total) + ' €' : '0 €'}</div><div class="re-sous">${cap(prochainesCourses())}</div></div>
-    <div class="re-bas2"><button type="button" class="re-plus" data-ajout-course aria-label="Ajouter un produit">${svg('<path d="M12 5v14M5 12h14"/>', 26)}</button>
-    <div class="re-nb"><b>${reste.length}</b><span>${reste.length > 1 ? 'produits' : 'produit'}</span></div></div>
-    <div class="re-pied">${d.bas.length ? `<span class="re-alerte">${plur(d.bas.length, 'presque vide', 'presque vides')}</span>` : `<span>${rayons.length ? plur(rayons.length, 'rayon', 'rayons') : 'Liste vide'}</span>`}${slides.length ? `<span class="re-gl">Glisse ${svg('<path d="M9 6l6 6-6 6"/>', 12)}</span>` : ''}</div></div>`;
+  const resume = `<div class="slide rayon resume">${d.bas.length ? `<span class="re-warn" title="${plur(d.bas.length, 'produit presque vide', 'produits presque vides')}">${d.bas.length}</span>` : ''}
+    <div class="re-label">Courses</div>
+    <div class="re-total">${Math.round(total)} €</div>
+    <div class="re-sous">${plur(reste.length, 'produit', 'produits')} · ${esc(prochainesCourses().replace(/^courses /, ''))}</div>
+    <button type="button" class="re-ajout" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 16)}Ajouter</button></div>`;
   slides.unshift(resume);
   return `<div class="co-carre" data-ouvrir="courses">
     <div class="slides mini co-slides">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+}
+// Bloc du bas : « Dispos » à gauche, Courses à droite
+function blocDuo(co){
+  return `<div class="gr2 compact tenue-co"><div class="dispo-carre" data-dispo role="button" aria-label="Mes disponibilités"><p class="vide">Calcul…</p></div>${co === undefined ? '<div class="co-carre"><p class="vide">Chargement…</p></div>' : carreCourses(co)}</div>`;
+}
+/* ---------- Disponibilités : d'après les événements de l'Organisation et ce qu'ils occupent (matin, après-midi, soirée) ---------- */
+const CREN = [['matin', 'Matin'], ['aprem', 'Après-midi'], ['soir', 'Soirée']];
+const CLE_DISPOS = 'quotidien-dispos';
+function critDispos(){ try{ return {cren:['soir'], jours:[0, 1, 2, 3, 4, 5, 6], periode:30, ...JSON.parse(localStorage.getItem(CLE_DISPOS) || '{}')}; }catch(e){ return {cren:['soir'], jours:[0, 1, 2, 3, 4, 5, 6], periode:30}; } }
+function garderCrit(c){ try{ localStorage.setItem(CLE_DISPOS, JSON.stringify(c)); }catch(e){} }
+// Ce qu'un événement occupe : ce que tu as choisi ; sinon d'après l'heure ; sans heure : toute la journée (sauf agendas abonnés)
+function creneauxPris(ev){
+  if(Array.isArray(ev.creneaux) && ev.creneaux.length) return ev.creneaux;
+  if(ev.time){ const hh = +ev.time.slice(0, 2); return [hh < 12 ? 'matin' : hh < 18 ? 'aprem' : 'soir']; }
+  return ev.feedId ? [] : ['matin', 'aprem', 'soir'];
+}
+let evtsDispos = null;
+async function chargerDispos(){
+  evtsDispos = await lire('organisation', async db => (await tout(db, 'tasks')).filter(x => x.info && !x.free)) || [];
+}
+function calculerDispos(crit, debut, nb){
+  const out = [], d0 = debut || new Date();
+  for(let i = 0; i < (nb || crit.periode); i++){
+    const x = new Date(d0); x.setDate(d0.getDate() + i);
+    const d = iso(x), wd = (x.getDay() + 6) % 7;
+    const pris = new Set(); (evtsDispos || []).filter(e => occursOn(e, d)).forEach(e => creneauxPris(e).forEach(c => pris.add(c)));
+    const libres = CREN.map(c => c[0]).filter(c => !pris.has(c));
+    out.push({d, wd, libres, ok:crit.jours.includes(wd) && crit.cren.every(c => !pris.has(c))});
+  }
+  return out;
+}
+const libCren = c => (CREN.find(x => x[0] === c) || [c, c])[1];
+const dateCourte = d => parseD(d).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+async function rafraichirDispos(){
+  const el = $('[data-dispo]'); if(!el) return;
+  await chargerDispos();
+  const crit = critDispos(), res = calculerDispos(crit).filter(r => r.ok);
+  el.innerHTML = `<div class="dp-h"><b>Dispos</b><span>${esc(crit.cren.map(libCren).join(' + ') || '—')}</span></div>
+    <div class="dp-l">${res.slice(0, 4).map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span></div>`).join('') || '<div class="vide">Aucune sur la période</div>'}</div>
+    <div class="dp-pied"><span>${plur(res.length, 'jour', 'jours')} · ${crit.periode} j</span>${svg('<path d="M9 6l6 6-6 6"/>', 14)}</div>`;
+}
+let critEdit = null;
+async function ouvrirDispos(){
+  critEdit = critDispos(); await chargerDispos(); dessinerDispos();
+  const dlg = $('#dispos'); dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
+}
+function texteDispos(res, crit){
+  return `Mes dispos (${crit.cren.map(c => libCren(c).toLowerCase()).join(' + ')}) :\n` + res.map(r => '• ' + dateCourte(r.d)).join('\n');
+}
+function dessinerDispos(){
+  const c = critEdit, res = calculerDispos(c), ok = res.filter(r => r.ok);
+  const chip = (k, v, on, txt) => `<button type="button" class="chip-d${on ? ' on' : ''}" data-dk="${k}" data-dv="${v}" aria-pressed="${on}">${txt}</button>`;
+  const premier = parseD(res[0].d), dec = (premier.getDay() + 6) % 7;
+  let cases = ''; for(let i = 0; i < dec; i++) cases += '<span></span>';
+  res.forEach(r => { const x = parseD(r.d); cases += `<span class="dj${r.ok ? ' libre' : ''}" title="${esc(dateCourte(r.d))}">${x.getDate() === 1 ? `<i>${esc(x.toLocaleDateString('fr-FR', {month:'short'}))}</i>` : ''}${x.getDate()}</span>`; });
+  $('#dispos').innerHTML = `<div class="feuille dispos-f"><div class="poignee" aria-hidden="true"></div>
+    <h2 tabindex="-1">Mes dispos</h2>
+    <div class="dcrit"><span class="dlab">Je cherche</span><div class="drow">${CREN.map(([v, l]) => chip('cren', v, c.cren.includes(v), l)).join('')}</div></div>
+    <div class="dcrit"><span class="dlab">Les jours</span><div class="drow jours">${['L','M','M','J','V','S','D'].map((l, i) => chip('jour', i, c.jours.includes(i), l)).join('')}</div></div>
+    <div class="dcrit"><span class="dlab">Sur</span><div class="drow">${[[14, '2 semaines'], [30, '30 jours'], [60, '2 mois']].map(([v, l]) => chip('periode', v, c.periode === v, l)).join('')}</div></div>
+    <div class="dcal">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
+    <div class="dres"><b>${plur(ok.length, 'jour libre', 'jours libres')}</b></div>
+    <div class="dliste">${ok.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span><em>${esc(r.libres.map(libCren).join(' · '))}</em></div>`).join('') || '<p class="hint">Aucun jour ne correspond. Essaie d’autres critères.</p>'}</div>
+    <div class="ligne2"><button type="button" class="btn" data-dact="copier">Copier</button><button type="button" class="btn primaire" data-dact="partager">Partager</button></div>
+    <p class="msg" id="d-msg" role="status"></p>
+  </div>`;
+}
+$('#dispos').addEventListener('click', async e => {
+  const dlg = $('#dispos');
+  if(e.target === dlg){ dlg.close(); return; }
+  const ch = e.target.closest('[data-dk]');
+  if(ch){
+    const k = ch.dataset.dk, v = ch.dataset.dv, c = critEdit;
+    if(k === 'cren'){ const s = new Set(c.cren); s.has(v) ? s.delete(v) : s.add(v); if(!s.size) s.add(v); c.cren = CREN.map(x => x[0]).filter(x => s.has(x)); }
+    if(k === 'jour'){ const s = new Set(c.jours); s.has(+v) ? s.delete(+v) : s.add(+v); if(!s.size) s.add(+v); c.jours = [...s].sort(); }
+    if(k === 'periode') c.periode = +v;
+    garderCrit(c); dessinerDispos(); return;
+  }
+  const a = e.target.closest('[data-dact]'); if(!a) return;
+  const txt = texteDispos(calculerDispos(critEdit).filter(r => r.ok), critEdit);
+  if(a.dataset.dact === 'copier') $('#d-msg').textContent = (await copierTexte(txt)) ? 'Copié ✓ Colle-le dans ton message.' : 'Copie impossible.';
+  if(a.dataset.dact === 'partager'){
+    if(navigator.share){ try{ await navigator.share({text:txt}); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
+    $('#d-msg').textContent = (await copierTexte(txt)) ? 'Partage indisponible : texte copié.' : 'Partage indisponible.';
+  }
+});
+$('#dispos').addEventListener('close', () => rafraichirDispos());
+{
+  const dlg = $('#dispos'); let y0 = null, dy = 0;
+  dlg.addEventListener('touchstart', e => { const f = dlg.querySelector('.feuille'); y0 = f && e.target.closest('.poignee, h2') ? e.touches[0].clientY : null; dy = 0; if(f) f.style.transition = 'none'; }, {passive:true});
+  dlg.addEventListener('touchmove', e => { if(y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); const f = dlg.querySelector('.feuille'); if(f && dy > 4) f.style.transform = `translateY(${dy}px)`; }, {passive:true});
+  dlg.addEventListener('touchend', () => { const f = dlg.querySelector('.feuille'); if(y0 == null || !f) return; y0 = null; f.style.transition = 'transform .18s ease'; if(dy > 90){ f.style.transform = 'translateY(100%)'; setTimeout(() => { dlg.close(); f.style.transform = ''; }, 180); } else f.style.transform = ''; });
 }
 // Cocher un produit depuis l'accueil : c'est l'app Courses qui le fait (comme dans sa liste)
 async function cocherCourse(btn){
@@ -958,13 +1087,15 @@ function blocBackstage(d){
   const voulus = ['texte', 'vrac', 'sujet', 'note', 'impro'];
   const tous = d.notion || [];
   const liens = [...voulus.map(v => tous.find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean), ...tous.filter(x => !voulus.some(v => sansAccent(x.nom).startsWith(v)))];
-  const grille = liens.length ? `<div class="notion5">${liens.map(x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`).join('')}</div>` : '';
-  return `<div class="bande">${btns}<div class="bande-car">${pl}${filtres}</div></div>` + grille;
+  const obj = `<button type="button" class="n4" data-aller="backstage" data-action="objectifs">${svg('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8"/>', 20)}<span>Objectifs</span></button>`;
+  const lien = x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`;
+  const grille = `<div class="notion5">${liens.slice(0, 5).map(lien).join('')}${obj}${liens.slice(5).map(lien).join('')}</div>`;
+  return `<div class="bande">${btns}<div class="bande-car pl-car"><div class="pl-col">${pl}</div>${filtres}</div></div>` + grille;
 }
 
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
 // Une app peut s'afficher dans la carte d'une autre : ici les Courses, à droite de la carte Vêtements
-const AVEC = {courses:'garde-robe'};
+const AVEC = {courses:'duo'};   // les Courses s'affichent à droite du carré « Dispos »
 const resultats = {};
 const LECTEURS = {
   'garde-robe':   {titre:() => 'Tenue', lire:lireGardeRobe, rendre:d => blocGardeRobe(d, resultats.courses)},
@@ -986,7 +1117,8 @@ function squeletteAccueil(){
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     <div data-bloc="jour"><div class="bloc jour"><p class="vide">Chargement…</p></div></div>
-    ${APPS.filter(a => !AVEC[a.id]).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}
+    ${APPS.filter(a => !AVEC[a.id] && !a.cache).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}
+    <div data-bloc="duo"><div class="bloc"><p class="vide">Chargement…</p></div></div>
     <div data-bloc="listes"></div>`;
   $('#accueil').dataset.jour = iso(now);
   alerteDrive();
@@ -1012,7 +1144,7 @@ async function rafraichirLigneJour(){
   const slideMeteo = (k, nomJour) => {
     const dj = new Date(); dj.setDate(dj.getDate() + k);
     const m = jours && jours[iso(dj)], desc = m && WMO(m.code);
-    return `<div class="slide meteo" data-aller="garde-robe" data-action="meteo">
+    return `<div class="slide meteo">
       <div class="mt-v">${esc(ville.name)}</div><div class="mt-j">${nomJour}</div>
       ${m ? `<div class="mt-l"><span class="mt-i" aria-hidden="true">${desc ? desc[0] : '⛅'}</span><b>${m.max}°</b><span class="mt-min">${m.min}°</span></div>
       <div class="mt-p"><span>${goutte}${m.pluie} %</span>${m.vent != null ? `<span class="mt-vent">${svg('<path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5M3 12h15a3 3 0 1 1-3 3M3 16h7"/>', 13)}${m.vent}<small>km/h</small></span>` : ''}</div>` : `<div class="mt-l"><span class="mt-i" aria-hidden="true">⛅</span><span class="mt-min">${jours === null ? 'indisponible' : '…'}</span></div>`}
@@ -1022,7 +1154,7 @@ async function rafraichirLigneJour(){
   const bt = bientot.length
     ? `<div class="bientot defile">${bientot.map(x => `<div class="bt"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}><span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`).join('')}</div>`
     : `<div class="bientot"><p class="vide">Rien de prévu ces prochaines semaines.</p></div>`;
-  el.innerHTML = `<div class="bloc jour" data-ouvrir="organisation"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
+  el.innerHTML = `<div class="bloc jour"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
   brancherSlides(el);
 }
 // Carte des listes de l'Organisation : une carte par liste, à faire glisser ; cocher directement
@@ -1057,13 +1189,14 @@ async function rafraichirAccueil(){
   try{
     if(!$('#accueil').firstChild || $('#accueil').dataset.jour !== iso(new Date())) squeletteAccueil();
     rafraichirLigneJour(); rafraichirListes();
-    await Promise.all(APPS.filter(a => LECTEURS[a.id]).map(async a => {
+    await Promise.all(APPS.filter(a => LECTEURS[a.id] && !a.cache).map(async a => {
       const L = LECTEURS[a.id];
       let d = null; try{ d = await L.lire(); }catch(e){ console.warn(a.id, e); }
       resultats[a.id] = d;
       const hote = AVEC[a.id] || a.id, appH = APPS.find(x => x.id === hote);
       const el = $(`[data-bloc="${hote}"]`);
-      if(el && appH){ el.innerHTML = carte(appH, '', hote === 'garde-robe' ? blocGardeRobe(resultats['garde-robe'], resultats['courses']) : L.rendre(d)); brancherSlides(el); }
+      if(el && hote === 'duo'){ el.innerHTML = carte(APPS.find(x => x.id === 'courses'), '', blocDuo(resultats.courses)); brancherSlides(el); rafraichirDispos(); }
+      else if(el && appH){ el.innerHTML = carte(appH, '', L.rendre(d)); brancherSlides(el); }
     }));
   } finally{
     enCours = false;
@@ -1111,7 +1244,8 @@ $('#accueil').addEventListener('click', e => {
     else window.quotidien.ouvrir(x.aller, params);
     return;
   }
-  if(e.target.closest('.n4')) return;   // lien Notion : s'ouvre tout seul
+  if(e.target.closest('a.n4')) return;   // lien Notion : s'ouvre tout seul
+  if(e.target.closest('[data-dispo]')){ ouvrirDispos(); return; }
   if(e.target.closest('.co-carre') && !e.target.closest('[data-aller], [data-coche-co], [data-ajout-course]')){ montrer('courses'); return; }
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
   const fp = e.target.closest('[data-filtre-pl]');
@@ -1230,7 +1364,7 @@ $('#mois').addEventListener('click', e => {
 // Glisser vers le bas pour fermer (depuis la poignée, ou quand la fenêtre est tout en haut)
 {
   const dlg = $('#mois'); let y0 = null, dy = 0;
-  dlg.addEventListener('touchstart', e => { const f = dlg.querySelector('.feuille'); if(!f) return; y0 = (dlg.scrollTop <= 0 || e.target.closest('.poignee, .mois-h')) ? e.touches[0].clientY : null; dy = 0; f.style.transition = 'none'; }, {passive:true});
+  dlg.addEventListener('touchstart', e => { const f = dlg.querySelector('.feuille'); if(!f) return; y0 = e.target.closest('.poignee, .mois-h') ? e.touches[0].clientY : null; /* la liste du jour défile sans fermer la fenêtre */ dy = 0; f.style.transition = 'none'; }, {passive:true});
   dlg.addEventListener('touchmove', e => { if(y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); const f = dlg.querySelector('.feuille'); if(f && dy > 4) f.style.transform = `translateY(${dy}px)`; }, {passive:true});
   dlg.addEventListener('touchend', () => { const f = dlg.querySelector('.feuille'); if(y0 == null || !f) return; y0 = null; f.style.transition = 'transform .18s ease'; if(dy > 90){ f.style.transform = 'translateY(100%)'; fermerMois(); } else f.style.transform = ''; });
 }

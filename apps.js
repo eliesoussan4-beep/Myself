@@ -15,13 +15,14 @@
         couleur : [couleur en mode clair, couleur en mode sombre] — carte de l'accueil
         accueil : place de sa carte sur l'accueil (la carte météo / Bientôt est toujours la 1re)
         toujoursAccueil : true pour que l'onglet ramène toujours à l'accueil de l'app
+        cache   : true pour masquer une app (pas d'onglet, pas de carte), sans perdre ses données
    3. augmenter VERSION_QUOTIDIEN de 1 (l'app se mettra à jour toute seule sur le téléphone).
 
    La sauvegarde globale prend automatiquement toute la base de chaque app listée.
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 17;
+self.VERSION_QUOTIDIEN = 18;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;
@@ -31,6 +32,7 @@ self.APPS = [
     id: 'garde-robe',
     nom: 'Garde-robe',
     dossier: 'garde-robe/',
+    cache: true,             // masquée : plus d'onglet ni de carte (ses données restent dans les sauvegardes)
     accueil: 5,              // place de sa carte sur l'accueil
     couleur: ['#2F4C78', '#8FB0E3'],
     base: 'garde-robe',

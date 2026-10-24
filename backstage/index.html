@@ -5939,6 +5939,7 @@ window.quotidienNotion = () => [...document.querySelectorAll('#notion-buttons .r
 }).filter(x => x.url);
 window.quotidienAction = function(p){
   if(!p) return;
+  if(p.action === 'objectifs'){ goto('33'); return true; }
   if(p.action === 'mot'){ generateRandomWord(); return document.getElementById('random-word-display').textContent; }
   if(p.action === 'texteEcriture'){ handleWritingListClick(); return {texte:document.getElementById('writing-list-display').textContent, sous:document.getElementById('writing-list-sub').textContent}; }
   if(p.action === 'ajouterPlateau'){ goto('plateaux'); openAddPlateauForm(); setTimeout(() => { const f = document.getElementById('pl-add-form'); if(f) f.scrollIntoView({block:'start'}); const n = document.getElementById('pl-name'); if(n) n.focus(); }, 80); return; }

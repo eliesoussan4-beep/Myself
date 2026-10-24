@@ -568,6 +568,7 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .sub-cat-h .ell{flex:1}
 .sub-cat-h .muted{font-weight:500;font-size:13px}
 .field-col{display:flex;flex-direction:column;gap:8px;padding:12px 0}
+.field-col.cren{padding:6px 0}
 .ord-row.sub{margin-left:22px}
 .reuse-x{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px 2px}
 .reuse-x::-webkit-scrollbar{display:none}
@@ -995,7 +996,7 @@ function openReusePicker(title, items, onPick) {
 function makeInstance(src, d, extra = {}) {
   // Étapes déjà faites sur une copie retirée d'un jour : elles reviennent cochées
   const reste = (src.subReste || []).filter(id => (src.subs || []).some(s => s.id === id));
-  const inst = { id: uid(), info: !!src.info, time: src.time || '', title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: reste.length ? { x: reste } : {}, created: today(), srcId: src.id, ...extra };
+  const inst = { id: uid(), info: !!src.info, time: src.time || '', creneaux: src.creneaux || [], title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: reste.length ? { x: reste } : {}, created: today(), srcId: src.id, ...extra };
   if (src.subReste) { const s2 = { ...src }; delete s2.subReste; save('tasks', s2); }
   save('tasks', inst);
   return inst;
@@ -1907,6 +1908,9 @@ function eventEmoji(title) {
   return '📅';
 }
 const evWhen = t => { if (!t.time) return ''; const [hh, mm] = t.time.split(':'); return `${+hh} h${mm && mm !== '00' ? ' ' + mm : ''}`; };
+// Créneaux qu'un événement occupe (pour les disponibilités de Mon quotidien) : déduits de l'heure, modifiables
+const CRENEAUX = [['matin', 'Matin'], ['aprem', 'Après-midi'], ['soir', 'Soirée']];
+const creneauDe = time => { if (!time) return []; const hh = +time.slice(0, 2); return [hh < 12 ? 'matin' : hh < 18 ? 'aprem' : 'soir']; };
 function openEventForm(ev, preset = {}) {
   // Nouvel événement : jamais à cocher, lié à un ou plusieurs jours (à la suite ou non), réutilisable
   const isNew = !ev;
@@ -1915,6 +1919,8 @@ function openEventForm(ev, preset = {}) {
   const f = ev ? JSON.parse(JSON.stringify(ev)) : { id: uid(), info: true, title: '', themeId: null, time: '', note: '', rep: null, created: t0 };
   const sel = new Set(isNew ? [preset.date || t0] : (!isTpl && ev.date ? [ev.date] : []));
   let tpl = null, keep = false, range = false, rangeStart = null, panel = null;
+  let cManuel = !!(ev && Array.isArray(ev.creneaux) && ev.creneaux.length);   // choisis à la main, sinon déduits de l'heure
+  const cren = () => cManuel ? (f.creneaux || []) : creneauDe(f.time);
   let cm = ([...sel][0] || t0).slice(0, 8) + '01';
   const tpls = () => S.tasks.filter(x => x.free && x.info).sort((a, b) => a.title.localeCompare(b.title));
   const title = isNew ? 'Nouvel événement' : isTpl ? 'Événement réutilisable' : 'Modifier l\'événement';
@@ -1949,6 +1955,8 @@ function openEventForm(ev, preset = {}) {
         ${mc('cat', ic(IC.cat, 18, 1.7), th ? `<span class="cdot c-${th.color || 'slate'}"></span> ${h(th.emoji + ' ' + th.name)}` : 'Catégorie', !th)}
         ${['time', 'cat'].includes(panel) ? pan : ''}
       </div>
+      <div class="field-col cren"><span class="f-label">Ça me prend</span><div class="chips even">${CRENEAUX.map(([v, l]) => `<button type="button" class="chip${cren().includes(v) ? ' on' : ''}" data-f="cren" data-v="${v}" aria-pressed="${cren().includes(v)}">${l}</button>`).join('')}</div>
+        ${!cManuel && !f.time ? '<p class="panel-note">Sans heure : choisis ce que ça occupe (sinon, toute la journée compte comme prise).</p>' : ''}</div>
       ${isTpl || (sel.size > 1) ? '' : `<div class="field"><span class="f-label">Chaque année</span><span class="f-grow"></span><button type="button" class="switch${f.rep && f.rep.unit === 'an' ? ' on' : ''}" role="switch" aria-checked="${!!(f.rep && f.rep.unit === 'an')}" aria-label="Chaque année" data-f="yearly"><span class="knob"></span></button></div>`}
       ${isNew && !tpl ? `<div class="field"><span class="f-label">Le garder pour le réutiliser</span><span class="f-grow"></span><button type="button" class="switch${keep ? ' on' : ''}" role="switch" aria-checked="${keep}" aria-label="Le garder pour le réutiliser" data-f="keep"><span class="knob"></span></button></div>` : ''}
       <input class="note-in" data-f="note" value="${h(f.note || '')}" placeholder="Note (lieu, adresse…)" autocomplete="off" enterkeyhint="done" aria-label="Note">
@@ -1982,6 +1990,7 @@ function openEventForm(ev, preset = {}) {
       if (sel.size > 1 && f.rep) f.rep = null;
     }
     else if (k === 'notime') { f.time = ''; panel = null; }
+    else if (k === 'cren') { const s2 = new Set(cren()); s2.has(b.dataset.v) ? s2.delete(b.dataset.v) : s2.add(b.dataset.v); f.creneaux = CRENEAUX.map(c => c[0]).filter(c => s2.has(c)); cManuel = f.creneaux.length > 0; }
     else if (k === 'cat') { f.themeId = b.dataset.v || null; panel = null; }
     else if (k === 'cat-new') { openGroupForm('themes', null, th => { f.themeId = th.id; panel = null; draw(); }); return; }
     else if (k === 'yearly') f.rep = f.rep && f.rep.unit === 'an' ? null : { unit: 'an', every: 1 };
@@ -2001,6 +2010,7 @@ function openEventForm(ev, preset = {}) {
     else if (k === 'cancel') { closeTop(); return; }
     else if (k === 'save') {
       f.title = (f.title || '').trim();
+      f.creneaux = cren();
       if (!f.title) { const i = $('[data-f="title"]', s.body); i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake'); i.focus(); return; }
       const days = [...sel].sort();
       if (!isTpl && !days.length) { panel = 'date'; draw(); return; }
@@ -2010,9 +2020,9 @@ function openEventForm(ev, preset = {}) {
         save('tasks', nx); closeTop(); refresh(); toast('Événement modifié ✅'); return;
       }
       let src = tpl ? S.tasks.find(y => y.id === tpl) : null;
-      if (!src && keep) { src = { id: uid(), info: true, free: true, freeLog: [], title: f.title, themeId: f.themeId, time: f.time, note: f.note, date: null, rep: null, created: t0 }; save('tasks', src); }
-      if (src) days.forEach(d => makeInstance(src, d, { time: f.time || src.time || '', note: f.note || src.note || '', themeId: f.themeId || src.themeId || null }));
-      else days.forEach(d => save('tasks', { id: uid(), info: true, title: f.title, themeId: f.themeId, date: d, time: f.time, note: f.note, rep: days.length === 1 ? f.rep : null, done: false, doneDates: [], created: t0 }));
+      if (!src && keep) { src = { id: uid(), info: true, free: true, freeLog: [], title: f.title, themeId: f.themeId, time: f.time, note: f.note, creneaux: f.creneaux, date: null, rep: null, created: t0 }; save('tasks', src); }
+      if (src) days.forEach(d => makeInstance(src, d, { time: f.time || src.time || '', note: f.note || src.note || '', themeId: f.themeId || src.themeId || null, creneaux: f.creneaux.length ? f.creneaux : (src.creneaux || []) }));
+      else days.forEach(d => save('tasks', { id: uid(), info: true, title: f.title, themeId: f.themeId, date: d, time: f.time, note: f.note, creneaux: f.creneaux, rep: days.length === 1 ? f.rep : null, done: false, doneDates: [], created: t0 }));
       closeTop(); refresh();
       toast(days.length > 1 ? `📅 ${plural(days.length, 'jour ajouté', 'jours ajoutés')}` : `📅 Ajouté ${whenLabel(days[0])}`);
       closeDayAddSoon();
@@ -2957,6 +2967,8 @@ function stopRinging() {
 }
 function nextPart() {
   stopRinging();
+  const outils = $('.timer-outils', timerEl);
+  if (outils && !outils.hidden) { const bt = $('[data-t="texte"]', outils); if (bt) bt.click(); }   // session d'écriture : texte suivant
   const cur = T.plan[T.idx];
   if (cur && cur.subId) {
     const t = S.tasks.find(x => x.id === T.taskId);

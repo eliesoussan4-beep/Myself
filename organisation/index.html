@@ -231,6 +231,11 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 .timer-time{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif;font-size:88px;font-weight:500;letter-spacing:-.03em;color:#868F9E;font-variant-numeric:tabular-nums;line-height:1}
 .timer.paused .timer-time{color:#3F4652}
 .timer-btns{display:flex;gap:10px;margin-top:28px}
+.timer-outils{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;width:min(420px,86vw)}
+.timer-outils[hidden]{display:none}
+.timer-outils button{display:flex;flex-direction:column;gap:6px;border:1px solid #23272F;border-radius:14px;padding:12px;color:#6E7787;text-align:center;min-width:0}
+.timer-outils span{font-size:12px;font-weight:600}
+.timer-outils b{font-size:17px;font-weight:700;color:#9AA3B2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .timer-btns button{border:1px solid #23272F;border-radius:12px;padding:11px 13px;color:#6E7787;font-size:15px;font-weight:600;white-space:nowrap}
 
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:50;max-width:calc(100% - 32px);text-align:center;animation:fade .2s}
@@ -633,6 +638,10 @@ html.qd-superpose #app,html.qd-superpose #tbar,html.qd-superpose #timer{visibili
       <button type="button" data-t="stop">Arrêter</button>
     </div>
     <button type="button" class="timer-leave" data-t="leave" hidden>Revenir à l'app</button>
+    <div class="timer-outils" hidden>
+      <button type="button" data-t="mot"><span>🎲 Mot</span><b>—</b></button>
+      <button type="button" data-t="texte"><span>📝 Texte</span><b>Touche</b></button>
+    </div>
     <div class="timer-btns ringing" hidden>
       <button type="button" data-t="next" class="next">Fini ✓</button>
       <button type="button" data-t="stop">Arrêter</button>
@@ -786,11 +795,17 @@ function decalOcc(t) {
   const dc = t.decal; if (!dc || !t.rep || !(dc.L > 0)) return null;
   const key = JSON.stringify([dc, t.rep, t.date, t.created, t.skip || []]);
   const c = decalCache.get(t.id); if (c && c.key === key) return c.list;
-  const list = []; let q = dc.p;
-  for (let k = 1; k <= Math.ceil(dc.L / dc.step); k++) {
+  // Chaque fois : l'intervalle habituel moins un petit rattrapage, compté depuis la fois précédente,
+  // jusqu'à retomber sur le jour prévu. L'écart n'est donc jamais plus grand que l'intervalle normal.
+  const list = []; let q = dc.p, prec = dc.fait || addDays(dc.p, dc.L);
+  for (let k = 1; k <= 60; k++) {
     let n = null; for (let i = 1; i <= 400; i++) { const x = addDays(q, i); if (occursBase(t, x)) { n = x; break; } }
     if (!n) break;
-    q = n; list.push({ q: n, d: addDays(n, Math.max(0, dc.L - k * dc.step)) });
+    const vise = addDays(prec, diffDays(q, n) - dc.step);
+    const d2 = vise > n ? vise : n;
+    list.push({ q: n, d: d2 });
+    if (d2 === n) break;   // revenu au jour prévu
+    q = n; prec = d2;
   }
   decalCache.set(t.id, { key, list });
   return list;
@@ -930,11 +945,11 @@ function dayItems(d) {
 function lateEntries() {
   const t = today(), out = [];
   S.tasks.forEach(x => {
-    if (x.info || x.kind === 'event') return;
+    if (x.info || x.kind === 'event' || x.free) return;   // un modèle « libre » n'est jamais en retard (seule sa copie datée peut l'être)
     if (!x.rep) { if (x.date && x.date < t && !isDone(x, x.date)) out.push({ t: x, d: x.date, late: true }); return; }
     const p = prevOcc(x, t); if (!p || (x.created && p < x.created)) return;
     const nx = nextOcc(x, addDays(p, 1));
-    const win = Math.floor((nx ? diffDays(p, nx) : 30) / 2);
+    const win = Math.floor((nx ? diffDays(p, nx) : 30) * 0.7);
     if (diffDays(p, t) > win) return;
     if (!isDone(x, p) || (x.caught || {})[p] === t) out.push({ t: x, d: p, late: true });
   });
@@ -2832,8 +2847,17 @@ function startTimer(task, d) {
   persistTimer();
   showTimer();
 }
+// Session d'écriture (catégorie Stand-up / écriture, ou « écriture » dans le titre) : les outils de Backstage sous le minuteur
+function outilsEcriture() {
+  const box = $('.timer-outils', timerEl); if (!box) return;
+  const t = T && S.tasks.find(x => x.id === T.taskId), th = t && themeOf(t), par = th && parentOf(th);
+  const ecr = /[ée]criture|stand.?up/i;
+  const q = (() => { try { return window.parent !== window && window.parent.quotidien ? window.parent.quotidien : null; } catch (e) { return null; } })();
+  box.hidden = !(q && t && (ecr.test(t.title) || (th && ecr.test(th.name)) || (par && ecr.test(par.name))));
+}
 function showTimer() {
   if (!T.plan) T.plan = [{ label: '', pos: '', ms: 0 }];
+  outilsEcriture();
   if (T.idx == null) T.idx = 0;
   timerEl.hidden = false;
   $('.timer-task', timerEl).textContent = T.title;
@@ -2951,6 +2975,11 @@ function nextPart() {
 timerEl.addEventListener('click', e => {
   const b = e.target.closest('[data-t]'); if (!b || !T) return;
   const k = b.dataset.t;
+  if (k === 'mot' || k === 'texte') {   // demandé à Backstage, affiché ici
+    const q = window.parent.quotidien; if (!q) return;
+    q.demander('backstage', { action: k === 'mot' ? 'mot' : 'texteEcriture' }).then(r => { if (r) $('b', b).textContent = r.texte || r; });
+    return;
+  }
   if (k === 'next') { nextPart(); return; }
   if (k === 'leave') { minimizeTimer(); return; }
   if (k === 'stop') { stopRinging(); if (T.runAt) T.spent = (T.spent || 0) + (Date.now() - T.runAt); const tm = T; T = null; persistTimer(); hideTimer(); logTime(tm); return; }
@@ -2982,7 +3011,7 @@ function setDone(nt, d, v, late) {
     if (v && late && nt.rep && day < t0) {
       const L = diffDays(day, t0), sans = { ...nt }; delete sans.decal;
       const gap = gapAfter(sans, day);
-      if (L > 0 && gap < 400) nt.decal = { p: day, L, step: Math.max(1, Math.round(gap * 0.15)) };
+      if (L > 0 && gap < 400) nt.decal = { p: day, L, fait: t0, step: Math.max(1, Math.round(gap * 0.15)) };
     }
     if (!v && nt.decal && nt.decal.p === day) delete nt.decal;
     const cut = addDays(t0, -120);
@@ -2997,6 +3026,7 @@ function toggleTask(id, d, late) {
   const t = S.tasks.find(x => x.id === id); if (!t || t.info) return;
   const before = remainingToday();
   if (t.free) { // cochée depuis To-do : faite aujourd'hui, le modèle reste
+    if (t.date && t.date < today()) save('tasks', { ...t, date: null });   // elle était prévue un jour passé : elle n'est plus en retard
     const inst = makeInstance(t, today(), { done: true, doneAt: Date.now() });
     logSrc(inst, today(), true); refresh(); toast('Fait aujourd\'hui ✅'); return;
   }
@@ -3288,11 +3318,12 @@ window.quotidienPret = () => !!document.querySelector('#app .hero');
 window.quotidienCocherItem = id => { A['item-check'](null, { id }); return true; };
 // Mon quotidien : ouvrir une fenêtre de l'Organisation par-dessus l'accueil (sans changer d'onglet)
 window.quotidienSuperpose = p => {
-  if (!p || !['ajouter', 'tache', 'listes', 'liste-ajout'].includes(p.action)) return false;
+  if (!p || !['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(p.action)) return false;
   window.__superpose = true; document.documentElement.classList.add('qd-superpose');
   if (p.action === 'ajouter') openDayAdd(p.d || today());
   else if (p.action === 'listes') { if (p.id) U.openLists.add(p.id); openSheet({ render: renderLists, label: 'Listes' }); }
   else if (p.action === 'liste-ajout') openListQuick(p.id);
+  else if (p.action === 'nouvelle-liste') openGroupForm('lists');
   else openQuick(p.id, p.d || null);
   if (!stack.length) { window.__superpose = false; document.documentElement.classList.remove('qd-superpose'); return false; }
   return true;

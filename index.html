@@ -238,6 +238,8 @@ main{gap:22px}
 .obar{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .obar .total{min-width:0}
 .slide.nav-jour{align-items:center;justify-content:center;background:var(--sunk);min-height:96px}
+.bande.compact .ap-l{display:none}
+.bande.compact .bbtn{flex-direction:row;gap:6px;font-size:12px}
 .slide.apercu{--sc:var(--c);background:var(--sunk);padding:12px 14px;gap:6px;justify-content:space-between;cursor:pointer;border:1px dashed color-mix(in srgb,var(--c) 45%,transparent)}
 .ap-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ap-j{font-family:var(--display);font-size:20px;font-weight:800;color:var(--c)}
@@ -257,6 +259,13 @@ main{gap:22px}
 .bbtn.on{background:color-mix(in srgb,var(--c) 22%,var(--sunk))}
 .bande-car{min-width:0;display:flex;flex-direction:column;gap:6px}
 .bande-car .slides{margin:0 -16px 0 0;padding:0 16px 0 0}
+.bande-car{position:relative}
+.filtres-pl{position:absolute;right:0;bottom:-3px;display:flex;gap:6px}
+.fpl.t0{--sc:#B84A3E}.fpl.t1{--sc:#B7832F}.fpl.t2{--sc:#2F7A4A}
+:root[data-theme="dark"] .fpl.t0{--sc:#E58A84}:root[data-theme="dark"] .fpl.t1{--sc:#E0B266}:root[data-theme="dark"] .fpl.t2{--sc:#7CC992}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .fpl.t0{--sc:#E58A84}:root:not([data-theme="light"]) .fpl.t1{--sc:#E0B266}:root:not([data-theme="light"]) .fpl.t2{--sc:#7CC992}}
+.fpl{width:16px;height:16px;border-radius:50%;border:2px solid var(--sc);background:transparent;padding:0;opacity:.75}
+.fpl.on{background:var(--sc);opacity:1;transform:scale(1.15)}
 /* Listes dans une diapo (Aujourd'hui, Courses) : 2 lignes visibles, le reste en faisant défiler vers le bas */
 .slide.groupe,.slide.rayon{gap:4px;justify-content:flex-start;padding:12px 14px}
 .slide.groupe .slide-cat,.slide.rayon .slide-cat{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
@@ -273,6 +282,7 @@ main{gap:22px}
 .l-tt .l-t{flex:none}
 .l-et{font-size:11.5px;font-weight:600;color:var(--sc)}
 .lc-d{display:inline-flex;align-items:center;gap:8px}
+[data-bloc="listes"] .bbtn{font-size:11px}
 .lc-d em{font-style:normal;color:var(--muted);font-weight:600}
 .lc-plus{width:28px;height:28px;border-radius:9px;border:0;background:color-mix(in srgb,var(--sc) 25%,transparent);color:var(--sc);display:flex;align-items:center;justify-content:center;padding:0}
 .vide-l{color:var(--muted);font-weight:500}
@@ -398,6 +408,7 @@ dialog h2:focus{outline:none}
 .ml{--sc:var(--muted);display:flex;align-items:center;gap:10px;border:0;border-left:4px solid var(--sc);background:var(--sunk);border-radius:10px;padding:10px 12px;color:var(--ink);text-align:left;font:600 15px/1.3 var(--body)}
 .ml-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ml b{font-size:13px;color:var(--sc)}
+.ml-r{font-style:normal;font-size:12px;font-weight:700;color:var(--warn);white-space:nowrap}
 
 /* ---------- Retours (notes de modifs, temporaire) ---------- */
 #retour-btn{position:fixed;right:14px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);z-index:9;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:0;opacity:.94}
@@ -687,11 +698,14 @@ function decalOcc(t){
   const dc = t.decal; if(!dc || !t.rep || !(dc.L > 0)) return null;
   const key = JSON.stringify([dc, t.rep, t.date, t.created, t.skip || []]);
   const c = decalCache.get(t.id); if(c && c.key === key) return c.list;
-  const list = []; let q = dc.p;
-  for(let k = 1; k <= Math.ceil(dc.L / dc.step); k++){
+  const list = []; let q = dc.p, prec = dc.fait || addDays(dc.p, dc.L);
+  for(let k = 1; k <= 60; k++){
     let n = null; for(let i = 1; i <= 400; i++){ const x = addDays(q, i); if(occursBase(t, x)){ n = x; break; } }
     if(!n) break;
-    q = n; list.push({q:n, d:addDays(n, Math.max(0, dc.L - k * dc.step))});
+    const vise = addDays(prec, diffDays(q, n) - dc.step), d2 = vise > n ? vise : n;
+    list.push({q:n, d:d2});
+    if(d2 === n) break;
+    q = n; prec = d2;
   }
   decalCache.set(t.id, {key, list});
   return list;
@@ -728,10 +742,10 @@ function nextOcc(t, from){ if(!t.rep && !(t.kind === 'event' && t.yearly)) retur
 function lateEntries(tasks, t){
   const out = [];
   tasks.forEach(x => {
-    if(x.info || x.kind === 'event') return;
+    if(x.info || x.kind === 'event' || x.free) return;
     if(!x.rep){ if(x.date && x.date < t && !isDone(x, x.date)) out.push({t:x, d:x.date}); return; }
     const p = prevOcc(x, t); if(!p || (x.created && p < x.created)) return;
-    const nx = nextOcc(x, addDays(p, 1)), win = Math.floor((nx ? diffDays(p, nx) : 30) / 2);
+    const nx = nextOcc(x, addDays(p, 1)), win = Math.floor((nx ? diffDays(p, nx) : 30) * 0.7);
     if(diffDays(p, t) > win) return;
     if(!isDone(x, p)) out.push({t:x, d:p});
   });
@@ -775,7 +789,7 @@ function blocOrganisation(d0){
   const coul = th => th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : '';
   // 1re carte : tous les événements du jour, dans l'ordre de l'heure
   const diapos = [];
-  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<div class="ligne ev"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
+  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste" style="height:${Math.min(d.evts.length, 2) * 44}px">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<div class="ligne ev"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
   // Puis une carte par catégorie (ordre des catégories de l'Organisation), tâches seulement
   const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
   const groupes = new Map();
@@ -789,12 +803,13 @@ function blocOrganisation(d0){
   });
   [...groupes.entries()].sort((a, b) => rang(d.themes.get(a[0])) - rang(d.themes.get(b[0]))).forEach(([k, lignes]) => {
     const th = d.themes.get(k);
-    diapos.push(`<div class="slide groupe"${coul(th)}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste">${lignes.join('')}</div></div>`);
+    diapos.push(`<div class="slide groupe"${coul(th)}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste" style="height:${Math.min(lignes.length, 2) * 44}px">${lignes.join('')}</div></div>`);
   });
   if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
   const tout = jourOrga ? [vers(0), ...diapos] : [...diapos, vers(1)];
   const car = `<div class="slides" data-ouvrir="organisation" data-jour-orga="${jourOrga}">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
-  return `<div class="bande">${btns}<div class="bande-car">${car}</div></div>`;
+  const total = d.evts.length + d.restantes.length + d.faitesL.length;
+  return `<div class="bande${total <= 1 ? ' compact' : ''}">${btns}<div class="bande-car">${car}</div></div>`;
 }
 function basculerJour(j){
   jourOrga = j;
@@ -923,7 +938,10 @@ async function lireScenesAgenda(avant, apres){
   });
   return r || [];
 }
+let filtrePl = (() => { try{ return localStorage.getItem('quotidien-filtre-plateaux') || ''; }catch(e){ return ''; } })();
+let dernierBS = null;
 function blocBackstage(d){
+  dernierBS = d;
   const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="backstage" data-action="ajouterPlateau">${svg('<path d="M12 5v14M5 12h14"/>', 20)}Plateau</button><button type="button" class="bbtn" data-aller="backstage" data-action="noter">${svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/>', 20)}Noter</button></div>`;
   if(!d) return `<div class="bande">${btns}<div class="bande-car"><p class="vide">Pas encore de scènes ni de plateaux.</p></div></div>`;
   // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
@@ -931,16 +949,17 @@ function blocBackstage(d){
   const slides = [
     ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : null, adresse:p ? p.adresse : '', prevu:true}; }),
     ...d.plats.filter(p => !d.agenda.some(a => memes(a.titre, p.nom)))
-  ];
+  ].filter(s => filtrePl === '' || String(s.type) === filtrePl);   // filtre par couleur (rouge, jaune, vert)
+  const filtres = `<div class="filtres-pl" role="group" aria-label="Filtrer les plateaux">${['0', '1', '2'].map(k => `<button type="button" class="fpl t${k}${filtrePl === k ? ' on' : ''}" data-filtre-pl="${k}" aria-pressed="${filtrePl === k}" aria-label="${['Seulement les rouges', 'Seulement les jaunes', 'Seulement les verts'][+k]}"></button>`).join('')}</div>`;
   const pl = slides.length
     ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
-    : `<div class="slides"><div class="slide nav-jour"><p class="vide">Pas de plateau prévu aujourd’hui.</p></div></div>`;
+    : `<div class="slides"><div class="slide nav-jour"><p class="vide">${filtrePl ? 'Aucun plateau de cette couleur aujourd’hui.' : 'Pas de plateau prévu aujourd’hui.'}</p></div></div>`;
   // Toutes les pages Notion de Backstage : Textes, Vrac, Sujets, Notes, Impros d'abord, puis les autres (on fait glisser)
   const voulus = ['texte', 'vrac', 'sujet', 'note', 'impro'];
   const tous = d.notion || [];
   const liens = [...voulus.map(v => tous.find(x => sansAccent(x.nom).startsWith(v))).filter(Boolean), ...tous.filter(x => !voulus.some(v => sansAccent(x.nom).startsWith(v)))];
   const grille = liens.length ? `<div class="notion5">${liens.map(x => `<a class="n4" href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.svg}</svg><span>${esc(x.nom)}</span></a>`).join('')}</div>` : '';
-  return `<div class="bande">${btns}<div class="bande-car">${pl}</div></div>` + grille;
+  return `<div class="bande">${btns}<div class="bande-car">${pl}${filtres}</div></div>` + grille;
 }
 
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
@@ -1011,15 +1030,16 @@ async function rafraichirListes(){
   const el = $('[data-bloc="listes"]'); if(!el) return;
   const d = await lire('organisation', async db => ({lists:await tout(db, 'lists'), items:await tout(db, 'items')})).catch(() => null);
   const app = APPS.find(a => a.id === 'organisation') || {};
-  if(!d || !d.lists.length){ el.innerHTML = ''; return; }
+  const btn = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="organisation" data-action="nouvelle-liste">${svg('<path d="M12 5v14M5 12h14"/>', 20)}Nouvelle liste</button></div>`;
+  if(!d || !d.lists.length){ el.innerHTML = d ? `<div class="bloc"${styleCouleur(app)}><div class="bande">${btn}<div class="bande-car"><p class="vide">Pas encore de liste.</p></div></div></div>` : ''; return; }
   const listes = d.lists.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
   const slides = listes.map(l => {
     const todo = d.items.filter(i => i.listId === l.id && !i.done).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     return `<div class="slide groupe" style="--sc:var(--c-${esc(l.color || 'slate')})" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}">
       <div class="slide-cat"><span class="lc-n">${esc((l.emoji ? l.emoji + ' ' : '') + l.name)}</span><span class="lc-d"><em>${todo.length || ''}</em><button type="button" class="lc-plus" data-aller="organisation" data-action="liste-ajout" data-id="${esc(l.id)}" aria-label="Ajouter à ${esc(l.name)}">${svg('<path d="M12 5v14M5 12h14"/>', 15)}</button></span></div>
-      <div class="liste">${todo.length ? todo.map(i => `<div class="ligne tache" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}"><button type="button" class="coche" data-coche-item="${esc(i.id)}" aria-label="Cocher ${esc(i.name)}"></button><span class="l-t">${i.emoji ? esc(i.emoji) + ' ' : ''}${esc(i.name)}</span></div>`).join('') : '<div class="ligne"><span class="l-t vide-l">Tout est fait ✔️</span></div>'}</div></div>`;
+      <div class="liste" style="height:${Math.max(1, Math.min(todo.length, 2)) * 44}px">${todo.length ? todo.map(i => `<div class="ligne tache" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}"><button type="button" class="coche" data-coche-item="${esc(i.id)}" aria-label="Cocher ${esc(i.name)}"></button><span class="l-t">${i.emoji ? esc(i.emoji) + ' ' : ''}${esc(i.name)}</span></div>`).join('') : '<div class="ligne"><span class="l-t vide-l">Tout est fait ✔️</span></div>'}</div></div>`;
   });
-  el.innerHTML = `<div class="bloc" data-ouvrir="organisation"${styleCouleur(app)}><div class="slides" data-ouvrir="organisation">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+  el.innerHTML = `<div class="bloc" data-ouvrir="organisation"${styleCouleur(app)}><div class="bande">${btn}<div class="bande-car"><div class="slides" data-ouvrir="organisation">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div></div></div>`;
   brancherSlides(el);
 }
 async function cocherItem(btn){
@@ -1086,7 +1106,7 @@ $('#accueil').addEventListener('click', e => {
   if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule]')){
     const x = go.dataset, params = {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null};
     if(x.action === 'mois'){ ouvrirMois(); return; }
-    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout'].includes(x.action)) || (x.aller === 'backstage' && x.action === 'ajouterPlateau');
+    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(x.action)) || (x.aller === 'backstage' && x.action === 'ajouterPlateau');
     if(dessus) superposer(x.aller, params).then(ok => { if(!ok) window.quotidien.ouvrir(x.aller, params); });
     else window.quotidien.ouvrir(x.aller, params);
     return;
@@ -1094,6 +1114,14 @@ $('#accueil').addEventListener('click', e => {
   if(e.target.closest('.n4')) return;   // lien Notion : s'ouvre tout seul
   if(e.target.closest('.co-carre') && !e.target.closest('[data-aller], [data-coche-co], [data-ajout-course]')){ montrer('courses'); return; }
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
+  const fp = e.target.closest('[data-filtre-pl]');
+  if(fp){
+    filtrePl = filtrePl === fp.dataset.filtrePl ? '' : fp.dataset.filtrePl;   // re-toucher la même couleur : tout réafficher
+    try{ localStorage.setItem('quotidien-filtre-plateaux', filtrePl); }catch(err){}
+    const el = $('[data-bloc="backstage"]'), app = APPS.find(a => a.id === 'backstage');
+    if(el && app){ delete positions['backstage0']; el.innerHTML = carte(app, '', blocBackstage(dernierBS)); brancherSlides(el); }
+    return;
+  }
   const jr = e.target.closest('[data-bascule]'); if(jr){ basculerJour(+jr.dataset.bascule); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc){ cocherCourse(cc); return; }
   const ci = e.target.closest('[data-coche-item]'); if(ci){ cocherItem(ci); return; }
@@ -1158,7 +1186,11 @@ async function chargerMois(){
 }
 function elementsDu(d){
   if(!moisDonnees) return [];
-  return moisDonnees.tasks.filter(x => occursOn(x, d)).sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+  const els = moisDonnees.tasks.filter(x => occursOn(x, d)).sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+  if(d !== iso(new Date())) return els;
+  // Aujourd'hui : les tâches pas faites d'un jour précédent, reportées automatiquement
+  const retard = lateEntries(moisDonnees.tasks, d).filter(e => !isDone(e.t, e.d) && !els.includes(e.t)).map(e => ({...e.t, __retard:e.d}));
+  return [...retard, ...els];
 }
 function dessinerMois(){
   const dlg = $('#mois'), t0 = iso(new Date());
@@ -1177,7 +1209,7 @@ function dessinerMois(){
     <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Mois précédent">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${cap(MOIS_N[m])} ${y}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Mois suivant">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button></div>
     <div class="mgrille">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
     <h3>${cap(jd.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}))}</h3>
-    <div class="mliste">${els.length ? els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') : '<p class="hint">Rien de prévu ce jour-là.</p>'}</div>
+    <div class="mliste">${els.length ? els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? `<em class="ml-r">en retard · ${esc(shortDate(x.__retard))}</em>` : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') : '<p class="hint">Rien de prévu ce jour-là.</p>'}</div>
     <button type="button" class="btn" data-mf="ajouter">${svg('<path d="M12 5v14M5 12h14"/>', 16)} Ajouter ce jour-là</button>
   </div>`;
 }

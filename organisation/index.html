@@ -562,6 +562,9 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .pick-list{display:flex;flex-direction:column;margin-bottom:6px}
 .pick-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-family:inherit;font-weight:500;font-size:16px;line-height:1.35;padding:12px 4px;cursor:pointer}
 .pick-row:last-child{border-bottom:0}
+.btn-row.trois{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.btn-row.trois .btn{padding-left:6px;padding-right:6px;font-size:14px}
+.pl-res{display:flex;flex-direction:column;gap:8px}
 .task-wrap.big .t-title{font-size:17px;font-weight:600}
 .sub-cat{margin:10px 0 2px;padding-top:8px;border-top:1px dashed var(--line)}
 .sub-cat-h{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;padding:0 2px 4px}
@@ -992,11 +995,52 @@ function openReusePicker(title, items, onPick) {
     if (b.dataset.f === 'pick') { const id = b.dataset.v; closeTop(); setTimeout(() => onPick(id), 420); }
   });
 }
+// Plateaux : tes plateaux enregistrés (événements « Scènes » réutilisables), à placer sur un jour, ou un nouveau
+function themeScenes() {
+  let th = topThemes().find(isSceneTheme) || S.themes.find(isSceneTheme);
+  if (!th) { th = { id: uid(), name: 'Scènes', emoji: '🎤', color: 'purple', autoEmoji: false, order: Math.max(-1, ...S.themes.map(x => x.order || 0)) + 1 }; save('themes', th); }
+  return th;
+}
+function openPlateauPick(d) {
+  const tpls = () => S.tasks.filter(x => x.free && x.info && isSceneTheme(themeOf(x))).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+  const s = openSheet({ isStatic: true, label: 'Plateaux', bar: '<button type="button" class="btn" data-f="cancel">Fermer</button>' });
+  s.body.innerHTML = `<h2 class="sheet-title">🎤 Plateau · ${h(whenLabel(d))}</h2>
+    <input class="name-in" data-f="q" placeholder="Chercher, ou nom d'un nouveau plateau" autocomplete="off" enterkeyhint="done" aria-label="Chercher un plateau">
+    <div class="pl-res"></div>`;
+  const res = $('.pl-res', s.body), inp = $('[data-f="q"]', s.body);
+  const majListe = () => {
+    const q = inp.value.trim(), ql = q.toLowerCase();
+    const list = tpls().filter(x => !ql || x.title.toLowerCase().includes(ql));
+    res.innerHTML = `${q && !tpls().some(x => x.title.toLowerCase() === ql) ? `<button type="button" class="btn wide" data-f="nouveau">${ic(P.plus, 18, 2)}Nouveau plateau « ${h(q)} »</button>` : ''}
+      <div class="pick-list">${list.map(x => `<button type="button" class="pick-row" data-f="pick" data-v="${x.id}">${h(x.title)}${x.time ? `<span class="muted">${h(evWhen(x))}</span>` : ''}</button>`).join('') || `<p class="panel-note">${tpls().length ? 'Aucun plateau ne correspond.' : 'Aucun plateau enregistré pour l\u2019instant : écris son nom pour le créer.'}</p>`}</div>`;
+  };
+  majListe();
+  inp.addEventListener('input', majListe);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+  const placer = (tpl) => {
+    makeInstance(tpl, d, tpl.time || (tpl.creneaux || []).length ? {} : { creneaux: ['soir'] });   // un plateau sans heure : la soirée
+    closeTop(); refresh(); closeDayAddSoon();
+    toast(`🎤 ${tpl.title} ${whenLabel(d)}`);
+  };
+  s.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    const k = b.dataset.f;
+    if (k === 'cancel') closeTop();
+    if (k === 'pick') { const x = S.tasks.find(y => y.id === b.dataset.v); if (x) placer(x); }
+    if (k === 'nouveau') {
+      const nom = inp.value.trim(); if (!nom) return;
+      const tpl = { id: uid(), info: true, free: true, freeLog: [], title: nom, themeId: themeScenes().id, time: '', note: '', creneaux: ['soir'], date: null, rep: null, created: today() };
+      save('tasks', tpl);
+      try { const q = window.parent !== window && window.parent.quotidien; if (q) q.demander('backstage', { action: 'creerPlateau', nom }); } catch (err) {}   // aussi dans l'Agenda de Backstage
+      placer(tpl);
+    }
+  });
+}
 // Placer une tâche sur un jour : une tâche « Libre » reste dans To-do et on en crée une copie datée
 function makeInstance(src, d, extra = {}) {
   // Étapes déjà faites sur une copie retirée d'un jour : elles reviennent cochées
   const reste = (src.subReste || []).filter(id => (src.subs || []).some(s => s.id === id));
-  const inst = { id: uid(), info: !!src.info, time: src.time || '', creneaux: src.creneaux || [], title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: reste.length ? { x: reste } : {}, created: today(), srcId: src.id, ...extra };
+  const inst = { id: uid(), info: !!src.info, time: src.time || '', creneaux: src.creneaux || [], souple: !!src.souple, title: src.title, themeId: src.themeId || null, date: d, prio: false, rep: null, duration: src.duration || 0, seg: src.seg || null, note: src.note || '', done: false, doneDates: [], subs: (src.subs || []).map(x => ({ ...x })), subDone: reste.length ? { x: reste } : {}, created: today(), srcId: src.id, ...extra };
   if (src.subReste) { const s2 = { ...src }; delete s2.subReste; save('tasks', s2); }
   save('tasks', inst);
   return inst;
@@ -1232,7 +1276,7 @@ function openDayAdd(d) {
   const sh = openSheet({ label: 'Ajouter · ' + name, render: () => {
     const rs = S.routines.slice().sort(byOrder).filter(r => routineSteps(r).some(z => !z.info.done));
     return `<h2 class="sheet-title">${h(name)}</h2>
-      <div class="btn-row"><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(IC.cal, 18, 1.8)}Événement</button><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.todo, 18, 1.8)}Tâche</button></div>
+      <div class="btn-row trois"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.todo, 18, 1.8)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(IC.cal, 18, 1.8)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button></div>
       ${rs.length ? `<h3 class="sec-sub">Routine</h3><div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
       `;
   } });
@@ -1957,6 +2001,7 @@ function openEventForm(ev, preset = {}) {
       </div>
       <div class="field-col cren"><span class="f-label">Ça me prend</span><div class="chips even">${CRENEAUX.map(([v, l]) => `<button type="button" class="chip${cren().includes(v) ? ' on' : ''}" data-f="cren" data-v="${v}" aria-pressed="${cren().includes(v)}">${l}</button>`).join('')}</div>
         ${!cManuel && !f.time ? '<p class="panel-note">Sans heure : choisis ce que ça occupe (sinon, toute la journée compte comme prise).</p>' : ''}</div>
+      <div class="field"><span class="f-label">Bloque mes dispos</span><span class="f-grow"></span><button type="button" class="switch${f.souple ? '' : ' on'}" role="switch" aria-checked="${!f.souple}" aria-label="Bloque mes dispos" data-f="souple"><span class="knob"></span></button></div>
       ${isTpl || (sel.size > 1) ? '' : `<div class="field"><span class="f-label">Chaque année</span><span class="f-grow"></span><button type="button" class="switch${f.rep && f.rep.unit === 'an' ? ' on' : ''}" role="switch" aria-checked="${!!(f.rep && f.rep.unit === 'an')}" aria-label="Chaque année" data-f="yearly"><span class="knob"></span></button></div>`}
       ${isNew && !tpl ? `<div class="field"><span class="f-label">Le garder pour le réutiliser</span><span class="f-grow"></span><button type="button" class="switch${keep ? ' on' : ''}" role="switch" aria-checked="${keep}" aria-label="Le garder pour le réutiliser" data-f="keep"><span class="knob"></span></button></div>` : ''}
       <input class="note-in" data-f="note" value="${h(f.note || '')}" placeholder="Note (lieu, adresse…)" autocomplete="off" enterkeyhint="done" aria-label="Note">
@@ -1990,6 +2035,7 @@ function openEventForm(ev, preset = {}) {
       if (sel.size > 1 && f.rep) f.rep = null;
     }
     else if (k === 'notime') { f.time = ''; panel = null; }
+    else if (k === 'souple') { f.souple = !f.souple; }
     else if (k === 'cren') { const s2 = new Set(cren()); s2.has(b.dataset.v) ? s2.delete(b.dataset.v) : s2.add(b.dataset.v); f.creneaux = CRENEAUX.map(c => c[0]).filter(c => s2.has(c)); cManuel = f.creneaux.length > 0; }
     else if (k === 'cat') { f.themeId = b.dataset.v || null; panel = null; }
     else if (k === 'cat-new') { openGroupForm('themes', null, th => { f.themeId = th.id; panel = null; draw(); }); return; }
@@ -2020,9 +2066,9 @@ function openEventForm(ev, preset = {}) {
         save('tasks', nx); closeTop(); refresh(); toast('Événement modifié ✅'); return;
       }
       let src = tpl ? S.tasks.find(y => y.id === tpl) : null;
-      if (!src && keep) { src = { id: uid(), info: true, free: true, freeLog: [], title: f.title, themeId: f.themeId, time: f.time, note: f.note, creneaux: f.creneaux, date: null, rep: null, created: t0 }; save('tasks', src); }
-      if (src) days.forEach(d => makeInstance(src, d, { time: f.time || src.time || '', note: f.note || src.note || '', themeId: f.themeId || src.themeId || null, creneaux: f.creneaux.length ? f.creneaux : (src.creneaux || []) }));
-      else days.forEach(d => save('tasks', { id: uid(), info: true, title: f.title, themeId: f.themeId, date: d, time: f.time, note: f.note, creneaux: f.creneaux, rep: days.length === 1 ? f.rep : null, done: false, doneDates: [], created: t0 }));
+      if (!src && keep) { src = { id: uid(), info: true, free: true, freeLog: [], title: f.title, themeId: f.themeId, time: f.time, note: f.note, creneaux: f.creneaux, souple: !!f.souple, date: null, rep: null, created: t0 }; save('tasks', src); }
+      if (src) days.forEach(d => makeInstance(src, d, { time: f.time || src.time || '', note: f.note || src.note || '', themeId: f.themeId || src.themeId || null, creneaux: f.creneaux.length ? f.creneaux : (src.creneaux || []), souple: !!(f.souple || src.souple) }));
+      else days.forEach(d => save('tasks', { id: uid(), info: true, title: f.title, themeId: f.themeId, date: d, time: f.time, note: f.note, creneaux: f.creneaux, souple: !!f.souple, rep: days.length === 1 ? f.rep : null, done: false, doneDates: [], created: t0 }));
       closeTop(); refresh();
       toast(days.length > 1 ? `📅 ${plural(days.length, 'jour ajouté', 'jours ajoutés')}` : `📅 Ajouté ${whenLabel(days[0])}`);
       closeDayAddSoon();
@@ -3111,6 +3157,7 @@ const A = {
   'open-backup': () => openBackup(),
   'new-task': (el, c) => openTaskForm(null, { date: c.d || today() }),
   'new-event': (el, c) => openEventForm(null, { date: c.d || today() }),
+  'new-plateau': (el, c) => openPlateauPick(c.d || today()),
   'plan-other': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; openDatePicker(`« ${t.title} »`, d => { placeTask(S.tasks.find(x => x.id === c.id) || t, d); refresh(); toast(`Prévu ${whenLabel(d)} 📅`); }); },
   'plan-tomorrow': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, addDays(today(), 1)); refresh(); toast('Prévu demain 📅'); },
   'new-task-theme': (el, c) => openTaskForm(null, { themeId: c.id || null }),

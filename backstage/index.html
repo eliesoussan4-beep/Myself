@@ -5940,6 +5940,13 @@ window.quotidienNotion = () => [...document.querySelectorAll('#notion-buttons .r
 window.quotidienAction = function(p){
   if(!p) return;
   if(p.action === 'objectifs'){ goto('33'); return true; }
+  if(p.action === 'creerPlateau'){
+    const nom = String(p.nom || '').trim(); if(!nom) return false;
+    const list = loadPlateaux();
+    if(list.some(x => (x.name || '').toLowerCase() === nom.toLowerCase())) return true;
+    list.push({id:Date.now(), name:nom, city:currentPlateauxCity || 'Paris', days:[], interval:1, anchorDate:null, time:'', type:null, address:'', instagram:''});
+    savePlateaux(list); return true;
+  }
   if(p.action === 'mot'){ generateRandomWord(); return document.getElementById('random-word-display').textContent; }
   if(p.action === 'texteEcriture'){ handleWritingListClick(); return {texte:document.getElementById('writing-list-display').textContent, sous:document.getElementById('writing-list-sub').textContent}; }
   if(p.action === 'ajouterPlateau'){ goto('plateaux'); openAddPlateauForm(); setTimeout(() => { const f = document.getElementById('pl-add-form'); if(f) f.scrollIntoView({block:'start'}); const n = document.getElementById('pl-name'); if(n) n.focus(); }, 80); return; }

@@ -127,14 +127,26 @@ main{gap:22px}
 [data-bloc="garde-robe"] .slides.mini .slide{flex-basis:100%;scroll-snap-align:start;padding:6px;gap:4px}
 .tenue-co{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
 .co-carre{display:flex;flex-direction:column;gap:6px;min-width:0}
-.dispo-carre{height:var(--gr-h);box-sizing:border-box;background:var(--sunk);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}
+.dispo-carre{min-width:0;display:flex;flex-direction:column;gap:6px}
+.dp-slides .slide{background:var(--sunk);padding:12px;gap:6px;justify-content:space-between}
+.dp-btns{display:flex;flex-direction:column;gap:5px}
+.dp-b{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:10px;padding:7px 0;font:700 13px/1 var(--body)}
+.dp-b.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
+.dp-plus{border:0;background:none;color:var(--muted);font:600 11.5px/1 var(--body);display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 0}
+.dp-res .dp-l{overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-x pan-y;scrollbar-width:none}
+.dp-res .dp-l::-webkit-scrollbar{display:none}
+.dp-l > div{display:flex;flex-direction:column;flex:none}
+.dp-n{font-style:normal;font-size:11px;font-weight:600;color:var(--today);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:14px}
+.dp-partager{border:0;border-radius:10px;background:var(--denim);color:var(--on-denim);font:700 13px/1 var(--body);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:6px}
+.dliste small{display:block;font-size:11.5px;font-weight:600;color:var(--today);margin-top:2px}
 .dp-h{display:flex;flex-direction:column}
-.dp-h b{font-family:var(--display);font-size:18px;font-weight:800}
+.dp-h b{font-family:var(--display);font-size:16px;font-weight:800}
 .dp-h span{font-size:11.5px;font-weight:700;color:var(--denim)}
 .dp-l{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;overflow:hidden}
-.dp-l div{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dp-l div::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#7CC992;margin-right:7px;vertical-align:1px}
+.dp-l > div > span{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-l > div > span::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#7CC992;margin-right:7px;vertical-align:1px}
 .dp-l .vide::before{display:none}
+[data-bloc="duo"] .dp-slides{height:var(--gr-h)}
 .dp-pied{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--muted)}
 #dispos{overflow:hidden}
 #dispos .feuille.dispos-f{height:min(760px,90dvh);box-sizing:border-box}
@@ -536,6 +548,7 @@ function creerFrame(app, query = ''){
   f.charge = new Promise(res => f.addEventListener('load', res, {once:true}));
   f.addEventListener('load', () => {
     try{ appliquerTheme(f.contentDocument); }catch(e){}
+    try{ sansClavierAuto(f.contentWindow); }catch(e){}
     brancherHistorique(f, app);
     planifierAccueil(1500);   // ex. les Courses complètent leur liste à l'ouverture
   });
@@ -544,6 +557,23 @@ function creerFrame(app, query = ''){
   frames.set(app.id, f);
   return f;
 }
+/* Jamais de clavier qui s'ouvre tout seul : une app ne peut plus placer le curseur dans un champ texte
+   (seul un appui sur le champ l'ouvre). Vaut aussi pour les fenêtres qui s'ouvrent avec le curseur dans le 1er champ. */
+function sansClavierAuto(w){
+  try{
+    if(!w || w.__sansClavier) return; w.__sansClavier = true;
+    const texte = el => !!el && (el.tagName === 'TEXTAREA' || el.isContentEditable || (el.tagName === 'INPUT' && !/^(checkbox|radio|range|button|submit|reset|file|color|hidden|image)$/i.test(el.type || '')));
+    let touche = null, toucheAt = 0;
+    w.document.addEventListener('pointerdown', e => { touche = e.target; toucheAt = Date.now(); }, true);
+    for(const C of [w.HTMLInputElement, w.HTMLTextAreaElement]){
+      const orig = C.prototype.focus;
+      C.prototype.focus = function(...a){ if(texte(this) && !(touche === this && Date.now() - toucheAt < 800)) return; return orig.apply(this, a); };
+    }
+    const sm = w.HTMLDialogElement && w.HTMLDialogElement.prototype.showModal;
+    if(sm) w.HTMLDialogElement.prototype.showModal = function(...a){ const r = sm.apply(this, a); const ae = w.document.activeElement; if(texte(ae) && this.contains(ae)) ae.blur(); return r; };
+  }catch(e){ console.warn('clavier', e); }
+}
+sansClavierAuto(window);
 /* Bouton « retour » : les apps ne créent plus d'entrées d'historique dans leur fenêtre.
    Leur history.pushState / back passe par la coquille, qui garde une seule pile (fiable sur Android). */
 function brancherHistorique(f, app){
@@ -932,7 +962,7 @@ function blocDuo(co){
 /* ---------- Disponibilités : d'après les événements de l'Organisation et ce qu'ils occupent (matin, après-midi, soirée) ---------- */
 const CREN = [['matin', 'Matin'], ['aprem', 'Après-midi'], ['soir', 'Soirée']];
 const CLE_DISPOS = 'quotidien-dispos';
-function critDispos(){ try{ return {cren:['soir'], jours:[0, 1, 2, 3, 4, 5, 6], periode:30, ...JSON.parse(localStorage.getItem(CLE_DISPOS) || '{}')}; }catch(e){ return {cren:['soir'], jours:[0, 1, 2, 3, 4, 5, 6], periode:30}; } }
+function critDispos(){ try{ return {cren:[], jours:[0, 1, 2, 3, 4, 5, 6], periode:30, ...JSON.parse(localStorage.getItem(CLE_DISPOS) || '{}')}; }catch(e){ return {cren:[], jours:[0, 1, 2, 3, 4, 5, 6], periode:30}; } }
 function garderCrit(c){ try{ localStorage.setItem(CLE_DISPOS, JSON.stringify(c)); }catch(e){} }
 // Ce qu'un événement occupe : ce que tu as choisi ; sinon d'après l'heure ; sans heure : toute la journée (sauf agendas abonnés)
 function creneauxPris(ev){
@@ -940,30 +970,60 @@ function creneauxPris(ev){
   if(ev.time){ const hh = +ev.time.slice(0, 2); return [hh < 12 ? 'matin' : hh < 18 ? 'aprem' : 'soir']; }
   return ev.feedId ? [] : ['matin', 'aprem', 'soir'];
 }
-let evtsDispos = null;
+let evtsDispos = null, themesDispos = new Map();
 async function chargerDispos(){
-  evtsDispos = await lire('organisation', async db => (await tout(db, 'tasks')).filter(x => x.info && !x.free)) || [];
+  const r = await lire('organisation', async db => ({tasks:await tout(db, 'tasks'), themes:await tout(db, 'themes')}));
+  evtsDispos = r ? r.tasks.filter(x => x.info && !x.free) : [];
+  themesDispos = new Map((r ? r.themes : []).map(th => [th.id, th]));
+}
+// « Souple » : n'empêche pas d'être dispo, mais on le signale (le foot, ou ce que tu as marqué « ne bloque pas »)
+const FOOT = /foot|five|match/i;
+function estSouple(ev){
+  const th = themesDispos.get(ev.themeId);
+  return !!ev.souple || FOOT.test(ev.title || '') || (th && FOOT.test(th.name || ''));
 }
 function calculerDispos(crit, debut, nb){
   const out = [], d0 = debut || new Date();
   for(let i = 0; i < (nb || crit.periode); i++){
     const x = new Date(d0); x.setDate(d0.getDate() + i);
     const d = iso(x), wd = (x.getDay() + 6) % 7;
-    const pris = new Set(); (evtsDispos || []).filter(e => occursOn(e, d)).forEach(e => creneauxPris(e).forEach(c => pris.add(c)));
+    const pris = new Set(), notes = [];
+    (evtsDispos || []).filter(e => occursOn(e, d)).forEach(e => {
+      if(estSouple(e)){ notes.push({t:e.title, h:e.time ? e.time.replace(':', 'h').replace(/h00$/, 'h') : '', foot:FOOT.test(e.title || '') || FOOT.test((themesDispos.get(e.themeId) || {}).name || '')}); return; }
+      creneauxPris(e).forEach(c => pris.add(c));
+    });
     const libres = CREN.map(c => c[0]).filter(c => !pris.has(c));
-    out.push({d, wd, libres, ok:crit.jours.includes(wd) && crit.cren.every(c => !pris.has(c))});
+    out.push({d, wd, libres, notes, ok:crit.cren.length > 0 && crit.jours.includes(wd) && crit.cren.every(c => !pris.has(c))});
   }
   return out;
 }
 const libCren = c => (CREN.find(x => x[0] === c) || [c, c])[1];
 const dateCourte = d => parseD(d).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+const noteHTML = r => r.notes.length ? `<em class="dp-n">${r.notes.map(n => (n.foot ? '⚽ ' : '• ') + esc(n.t) + (n.h ? ' ' + esc(n.h) : '')).join(', ')}</em>` : '';
+// Carré « Dispos » : 1re carte pour choisir le moment, 2e carte les jours libres (avec le foot signalé)
 async function rafraichirDispos(){
   const el = $('[data-dispo]'); if(!el) return;
   await chargerDispos();
   const crit = critDispos(), res = calculerDispos(crit).filter(r => r.ok);
-  el.innerHTML = `<div class="dp-h"><b>Dispos</b><span>${esc(crit.cren.map(libCren).join(' + ') || '—')}</span></div>
-    <div class="dp-l">${res.slice(0, 4).map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span></div>`).join('') || '<div class="vide">Aucune sur la période</div>'}</div>
-    <div class="dp-pied"><span>${plur(res.length, 'jour', 'jours')} · ${crit.periode} j</span>${svg('<path d="M9 6l6 6-6 6"/>', 14)}</div>`;
+  const choix = `<div class="slide dp-choix"><div class="dp-h"><b>Mes dispos</b><span>Je cherche…</span></div>
+      <div class="dp-btns">${CREN.map(([v, l]) => `<button type="button" class="dp-b${crit.cren.includes(v) ? ' on' : ''}" data-dp-cren="${v}" aria-pressed="${crit.cren.includes(v)}">${l}</button>`).join('')}</div>
+      <button type="button" class="dp-plus" data-dp-plus>${crit.periode} j · ${crit.jours.length === 7 ? 'tous les jours' : plur(crit.jours.length, 'jour', 'jours') + '/sem.'} ${svg('<path d="M9 6l6 6-6 6"/>', 12)}</button></div>`;
+  const resultat = !crit.cren.length
+    ? `<div class="slide dp-res"><p class="vide">Choisis d’abord matin, après-midi ou soirée.</p></div>`
+    : `<div class="slide dp-res"><div class="dp-h"><b>${plur(res.length, 'jour libre', 'jours libres')}</b><span>${esc(crit.cren.map(libCren).join(' + '))}</span></div>
+      <div class="dp-l">${res.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span>${noteHTML(r)}</div>`).join('') || '<div class="vide">Aucun jour sur la période</div>'}</div>
+      ${res.length ? `<button type="button" class="dp-partager" data-dp-partager>${svg('<path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"/>', 14)} Envoyer</button>` : ''}</div>`;
+  el.innerHTML = `<div class="slides mini dp-slides">${choix}${resultat}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span></div>`;
+  const s = el.querySelector('.dp-slides'), pts = el.querySelectorAll('.points span');
+  if(positionDispos) s.scrollLeft = positionDispos;
+  s.addEventListener('scroll', () => { positionDispos = s.scrollLeft; const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); }, {passive:true});
+  s.dispatchEvent(new Event('scroll'));
+}
+let positionDispos = 0;
+async function partagerDispos(){
+  const crit = critDispos(), txt = texteDispos(calculerDispos(crit).filter(r => r.ok), crit);
+  if(navigator.share){ try{ await navigator.share({text:txt}); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
+  toast((await copierTexte(txt)) ? 'Dispos copiées ✓' : 'Partage indisponible.');
 }
 let critEdit = null;
 async function ouvrirDispos(){
@@ -971,7 +1031,7 @@ async function ouvrirDispos(){
   const dlg = $('#dispos'); dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
 }
 function texteDispos(res, crit){
-  return `Mes dispos (${crit.cren.map(c => libCren(c).toLowerCase()).join(' + ')}) :\n` + res.map(r => '• ' + dateCourte(r.d)).join('\n');
+  return `Mes dispos (${crit.cren.map(c => libCren(c).toLowerCase()).join(' + ')}) :\n` + res.map(r => '• ' + dateCourte(r.d)).join('\n');   // le foot n'est pas envoyé : c'est pour toi
 }
 function dessinerDispos(){
   const c = critEdit, res = calculerDispos(c), ok = res.filter(r => r.ok);
@@ -986,7 +1046,7 @@ function dessinerDispos(){
     <div class="dcrit"><span class="dlab">Sur</span><div class="drow">${[[14, '2 semaines'], [30, '30 jours'], [60, '2 mois']].map(([v, l]) => chip('periode', v, c.periode === v, l)).join('')}</div></div>
     <div class="dcal">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
     <div class="dres"><b>${plur(ok.length, 'jour libre', 'jours libres')}</b></div>
-    <div class="dliste">${ok.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span><em>${esc(r.libres.map(libCren).join(' · '))}</em></div>`).join('') || '<p class="hint">Aucun jour ne correspond. Essaie d’autres critères.</p>'}</div>
+    <div class="dliste">${ok.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}${r.notes.length ? `<small>${r.notes.map(n => (n.foot ? '⚽ ' : '• ') + esc(n.t) + (n.h ? ' ' + esc(n.h) : '')).join(', ')}</small>` : ''}</span><em>${esc(r.libres.map(libCren).join(' · '))}</em></div>`).join('') || `<p class="hint">${c.cren.length ? 'Aucun jour ne correspond. Essaie d’autres critères.' : 'Choisis d’abord matin, après-midi ou soirée.'}</p>`}</div>
     <div class="ligne2"><button type="button" class="btn" data-dact="copier">Copier</button><button type="button" class="btn primaire" data-dact="partager">Partager</button></div>
     <p class="msg" id="d-msg" role="status"></p>
   </div>`;
@@ -997,7 +1057,7 @@ $('#dispos').addEventListener('click', async e => {
   const ch = e.target.closest('[data-dk]');
   if(ch){
     const k = ch.dataset.dk, v = ch.dataset.dv, c = critEdit;
-    if(k === 'cren'){ const s = new Set(c.cren); s.has(v) ? s.delete(v) : s.add(v); if(!s.size) s.add(v); c.cren = CREN.map(x => x[0]).filter(x => s.has(x)); }
+    if(k === 'cren'){ const s = new Set(c.cren); s.has(v) ? s.delete(v) : s.add(v); c.cren = CREN.map(x => x[0]).filter(x => s.has(x)); }
     if(k === 'jour'){ const s = new Set(c.jours); s.has(+v) ? s.delete(+v) : s.add(+v); if(!s.size) s.add(+v); c.jours = [...s].sort(); }
     if(k === 'periode') c.periode = +v;
     garderCrit(c); dessinerDispos(); return;
@@ -1245,7 +1305,15 @@ $('#accueil').addEventListener('click', e => {
     return;
   }
   if(e.target.closest('a.n4')) return;   // lien Notion : s'ouvre tout seul
-  if(e.target.closest('[data-dispo]')){ ouvrirDispos(); return; }
+  const dpc = e.target.closest('[data-dp-cren]');
+  if(dpc){   // choisir matin / après-midi / soirée directement dans le carré
+    const c = critDispos(), s = new Set(c.cren), v = dpc.dataset.dpCren;
+    s.has(v) ? s.delete(v) : s.add(v); c.cren = CREN.map(x => x[0]).filter(x => s.has(x)); garderCrit(c);
+    rafraichirDispos(); return;
+  }
+  if(e.target.closest('[data-dp-partager]')){ partagerDispos(); return; }
+  if(e.target.closest('[data-dp-plus], .dp-res')){ ouvrirDispos(); return; }
+  if(e.target.closest('[data-dispo]')) return;
   if(e.target.closest('.co-carre') && !e.target.closest('[data-aller], [data-coche-co], [data-ajout-course]')){ montrer('courses'); return; }
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }
   const fp = e.target.closest('[data-filtre-pl]');
@@ -1731,7 +1799,7 @@ function ouvrirRetours(){
     <button type="button" class="btn" data-r="fermer">Fermer</button>
   </div>`;
   dlg.showModal();
-  setTimeout(() => { const ta = $('#r-texte'); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60);
+  // le clavier ne s'ouvre que quand tu touches le champ
 }
 $('#retours').addEventListener('input', garderBrouillon);
 $('#retours').addEventListener('close', garderBrouillon);

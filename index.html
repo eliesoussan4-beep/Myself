@@ -134,6 +134,8 @@ main{gap:22px}
 .bt.sky > .sky-bg{width:70%}
 .bt.sky > .sky-deco{width:56px}
 .bientot.defile .bt.sky{min-height:38px}
+.bt.ferie{--sc:#3A6FD8;border-radius:10px;padding:4px 9px;background:linear-gradient(90deg,color-mix(in srgb,#3A6FD8 26%,var(--surface)),var(--surface) 55%,color-mix(in srgb,#E1574F 26%,var(--surface)))}
+.bientot.defile .bt.ferie{min-height:38px}
 /* Aujourd'hui, carte « Événements » */
 .ligne.ev.sky{margin:0 -4px;padding:0 44px 0 4px;border-radius:10px}
 .ligne.ev.sky > .sky-deco{width:64px}
@@ -1284,7 +1286,7 @@ async function rafraichirLigneJour(){
   };
   const wx = `<div class="mt-wrap"><div class="slides mini mt-slides">${slideMeteo(0, 'Aujourd’hui')}${slideMeteo(1, 'Demain')}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span></div></div>`;
   const bt = bientot.length
-    ? `<div class="bientot defile">${bientot.map(x => { const sk = x.evt ? ciel(x) : null; return `<div class="bt${sk ? ' ' + sk.cls : ''}"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}>${sk ? sk.deco : ''}<span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`; }).join('')}</div>`
+    ? `<div class="bientot defile">${bientot.map(x => { const sk = x.evt ? ciel(x) : null; return `<div class="bt${sk ? ' ' + sk.cls : ''}${x.id ? '' : ' ferie'}"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}>${sk ? sk.deco : ''}<span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`; }).join('')}</div>`
     : `<div class="bientot"><p class="vide">Rien de prévu ces prochaines semaines.</p></div>`;
   el.innerHTML = `<div class="bloc jour"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
   brancherSlides(el);

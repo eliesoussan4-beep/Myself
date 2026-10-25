@@ -463,6 +463,12 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .day-time{font-family:'Figtree',system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:8px}
 .task-wrap.evt .check .box{border-radius:50%}
 .ev-when{font-weight:600;color:var(--ink)}
+.task-wrap.evt .task{position:relative}
+.ev-cren{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:46px;padding:4px 6px;margin:-2px -2px -2px 4px;border-radius:10px;background:color-mix(in srgb,var(--c, var(--muted)) 16%,transparent);text-align:center}
+.ev-cren-i{font-size:15px;line-height:1}
+.ev-cren-t{font-size:10px;font-weight:700;color:var(--c, var(--muted));line-height:1.1;max-width:62px}
+.task-wrap.mini .ev-cren{min-width:36px;padding:2px 4px}
+.task-wrap.mini .ev-cren-t{display:none}
 .task.done .ev-when{color:var(--muted)}
 .grp-h{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:var(--c);margin:6px 2px 0}
 .grp-h .muted{font-family:'Figtree',system-ui,sans-serif;font-size:14px;font-weight:500}
@@ -1081,7 +1087,17 @@ function eventRow(t, d, o = {}) {
   return `<div class="task-wrap evt${mini ? ' mini' : ''}${th ? ' cat c-' + (th.color || 'slate') : ''}"><div class="task${done ? ' done' : ''}" data-id="${t.id}" data-d="${d || ''}">
     <span class="info-ico" aria-hidden="true">${ic(IC.cal, 16, 1.7)}</span>
     <button type="button" class="task-body" data-a="tap">${mini && th ? `<span class="t-cat">${h(th.emoji + ' ' + th.name)}</span>` : ''}<span class="t-title">${h(t.title)}</span>${when || t.rep || ((o.ctx === 'day' || o.ctx === 'week') && th) ? `<span class="t-meta">${when ? `<span class="ev-when">${h(when)}</span>` : ''}${(o.ctx === 'day' || o.ctx === 'week') && th ? `<span class="cat-name">${h(th.emoji + ' ' + th.name)}</span>` : ''}${t.rep ? `<span class="rep-lbl" title="${h(repLabel(t))}">${ic(P.rep, 13, 2)}</span>` : ''}</span>` : ''}</button>
+    ${o.ctx === 'todo' ? '' : creneauBadge(t)}
   </div></div>`;
+}
+// À droite d'un événement : ce qu'il occupe (matin, après-midi, soirée, ou toute la journée)
+function creneauBadge(t) {
+  const c = Array.isArray(t.creneaux) && t.creneaux.length ? t.creneaux : t.time ? creneauDe(t.time) : ['matin', 'aprem', 'soir'];
+  const tous = c.length === 3;
+  const lib = { matin: ['🌅', 'Matin'], aprem: ['☀️', 'Aprèm'], soir: ['🌙', 'Soir'] };
+  const ico = tous ? '🗓️' : c.map(x => lib[x][0]).join('');
+  const txt = tous ? 'Journée' : c.length === 1 ? lib[c[0]][1] : c.map(x => lib[x][1]).join(' + ');
+  return `<span class="ev-cren${tous ? ' tous' : ''}" title="${h(txt)}"><span class="ev-cren-i" aria-hidden="true">${ico}</span><span class="ev-cren-t">${h(txt)}</span></span>`;
 }
 function taskRow(t, d, o = {}) {
   if (isEvent(t)) return eventRow(t, d, o);

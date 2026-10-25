@@ -130,6 +130,15 @@ main{gap:22px}
 .dispo-carre{min-width:0;display:flex;flex-direction:column;gap:6px}
 .dp-slides .slide{background:var(--sunk);padding:12px;gap:6px;justify-content:space-between}
 .dp-btns{display:flex;flex-direction:column;gap:5px}
+.dp-mois{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.dp-mois b{font-family:var(--display);font-size:16px;font-weight:800}
+.dp-m{border:0;background:var(--surface);color:var(--ink);width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0}
+.dp-m:disabled{opacity:.3}
+.dp-jours{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;flex:1;align-content:center}
+.dp-jours .dp-b{padding:10px 0}
+.dmois{align-items:center;gap:12px}
+.dmois b{font-size:15px}
+.chip-d:disabled{opacity:.35}
 .dp-b{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:10px;padding:7px 0;font:700 13px/1 var(--body)}
 .dp-b.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
 .dp-plus{border:0;background:none;color:var(--muted);font:600 11.5px/1 var(--body);display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 0}
@@ -962,7 +971,14 @@ function blocDuo(co){
 /* ---------- Disponibilités : d'après les événements de l'Organisation et ce qu'ils occupent (matin, après-midi, soirée) ---------- */
 const CREN = [['matin', 'Matin'], ['aprem', 'Après-midi'], ['soir', 'Soirée']];
 const CLE_DISPOS = 'quotidien-dispos';
-function critDispos(){ try{ return {cren:[], jours:[0, 1, 2, 3, 4, 5, 6], periode:30, ...JSON.parse(localStorage.getItem(CLE_DISPOS) || '{}')}; }catch(e){ return {cren:[], jours:[0, 1, 2, 3, 4, 5, 6], periode:30}; } }
+const moisCourant = () => iso(new Date()).slice(0, 7);
+function critDispos(){
+  let c; try{ c = {cren:[], jours:[0, 1, 2, 3, 4, 5, 6], ...JSON.parse(localStorage.getItem(CLE_DISPOS) || '{}')}; }catch(e){ c = {cren:[], jours:[0, 1, 2, 3, 4, 5, 6]}; }
+  if(!c.mois || c.mois < moisCourant()) c.mois = moisCourant();   // un mois passé : on revient au mois en cours
+  return c;
+}
+const nomMois = m => cap(new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString('fr-FR', {month:'long'}));
+const decalerMois = (m, n) => { const x = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1); return iso(x).slice(0, 7); };
 function garderCrit(c){ try{ localStorage.setItem(CLE_DISPOS, JSON.stringify(c)); }catch(e){} }
 // Ce qu'un événement occupe : ce que tu as choisi ; sinon d'après l'heure ; sans heure : toute la journée (sauf agendas abonnés)
 function creneauxPris(ev){
@@ -982,9 +998,13 @@ function estSouple(ev){
   const th = themesDispos.get(ev.themeId);
   return !!ev.souple || FOOT.test(ev.title || '') || (th && FOOT.test(th.name || ''));
 }
-function calculerDispos(crit, debut, nb){
-  const out = [], d0 = debut || new Date();
-  for(let i = 0; i < (nb || crit.periode); i++){
+function calculerDispos(crit){
+  // le mois choisi, en entier (le mois en cours : à partir d'aujourd'hui)
+  const y = +crit.mois.slice(0, 4), m = +crit.mois.slice(5, 7) - 1, fin = new Date(y, m + 1, 0).getDate();
+  const out = [], auj = new Date(); auj.setHours(0, 0, 0, 0);
+  const d0 = new Date(y, m, 1) < auj ? auj : new Date(y, m, 1);
+  const nb = fin - d0.getDate() + 1;
+  for(let i = 0; i < nb; i++){
     const x = new Date(d0); x.setDate(d0.getDate() + i);
     const d = iso(x), wd = (x.getDay() + 6) % 7;
     const pris = new Set(), notes = [];
@@ -1000,20 +1020,23 @@ function calculerDispos(crit, debut, nb){
 const libCren = c => (CREN.find(x => x[0] === c) || [c, c])[1];
 const dateCourte = d => parseD(d).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
 const noteHTML = r => r.notes.length ? `<em class="dp-n">${r.notes.map(n => (n.foot ? '⚽ ' : '• ') + esc(n.t) + (n.h ? ' ' + esc(n.h) : '')).join(', ')}</em>` : '';
-// Carré « Dispos » : 1re carte pour choisir le moment, 2e carte les jours libres (avec le foot signalé)
+// Carré « Dispos » : 1) le moment et le mois, 2) les jours de la semaine, 3) le résultat
 async function rafraichirDispos(){
   const el = $('[data-dispo]'); if(!el) return;
   await chargerDispos();
   const crit = critDispos(), res = calculerDispos(crit).filter(r => r.ok);
-  const choix = `<div class="slide dp-choix"><div class="dp-h"><b>Mes dispos</b><span>Je cherche…</span></div>
-      <div class="dp-btns">${CREN.map(([v, l]) => `<button type="button" class="dp-b${crit.cren.includes(v) ? ' on' : ''}" data-dp-cren="${v}" aria-pressed="${crit.cren.includes(v)}">${l}</button>`).join('')}</div>
-      <button type="button" class="dp-plus" data-dp-plus>${crit.periode} j · ${crit.jours.length === 7 ? 'tous les jours' : plur(crit.jours.length, 'jour', 'jours') + '/sem.'} ${svg('<path d="M9 6l6 6-6 6"/>', 12)}</button></div>`;
-  const resultat = !crit.cren.length
+  const fl = (n, ok) => `<button type="button" class="dp-m" data-dp-mois="${n}" aria-label="${n < 0 ? 'Mois précédent' : 'Mois suivant'}"${ok ? '' : ' disabled'}>${svg(n < 0 ? '<path d="M15 6l-6 6 6 6"/>' : '<path d="M9 6l6 6-6 6"/>', 14)}</button>`;
+  const c1 = `<div class="slide dp-choix"><div class="dp-mois">${fl(-1, crit.mois > moisCourant())}<b>${esc(nomMois(crit.mois))}</b>${fl(1, true)}</div>
+      <div class="dp-btns">${CREN.map(([v, l]) => `<button type="button" class="dp-b${crit.cren.includes(v) ? ' on' : ''}" data-dp-cren="${v}" aria-pressed="${crit.cren.includes(v)}">${l}</button>`).join('')}</div></div>`;
+  const tous = crit.jours.length === 7;
+  const c2 = `<div class="slide dp-choix"><div class="dp-h"><b>Les jours</b></div>
+      <div class="dp-jours">${['L','M','M','J','V','S','D'].map((l, i) => `<button type="button" class="dp-b${crit.jours.includes(i) ? ' on' : ''}" data-dp-jour="${i}" aria-pressed="${crit.jours.includes(i)}" aria-label="${['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][i]}">${l}</button>`).join('')}<button type="button" class="dp-b${tous ? ' on' : ''}" data-dp-jour="tous" aria-pressed="${tous}">Tous</button></div></div>`;
+  const c3 = !crit.cren.length
     ? `<div class="slide dp-res"><p class="vide">Choisis d’abord matin, après-midi ou soirée.</p></div>`
-    : `<div class="slide dp-res"><div class="dp-h"><b>${plur(res.length, 'jour libre', 'jours libres')}</b><span>${esc(crit.cren.map(libCren).join(' + '))}</span></div>
-      <div class="dp-l">${res.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span>${noteHTML(r)}</div>`).join('') || '<div class="vide">Aucun jour sur la période</div>'}</div>
-      ${res.length ? `<button type="button" class="dp-partager" data-dp-partager>${svg('<path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"/>', 14)} Envoyer</button>` : ''}</div>`;
-  el.innerHTML = `<div class="slides mini dp-slides">${choix}${resultat}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span></div>`;
+    : `<div class="slide dp-res"><div class="dp-h"><b>${plur(res.length, 'jour libre', 'jours libres')}</b><span>${esc(nomMois(crit.mois))} · ${esc(crit.cren.map(libCren).join(' + '))}</span></div>
+      <div class="dp-l">${res.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span>${noteHTML(r)}</div>`).join('') || '<div class="vide">Aucun jour dans ce mois</div>'}</div>
+      ${res.length ? `<button type="button" class="dp-partager" data-dp-copier>${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}</div>`;
+  el.innerHTML = `<div class="slides mini dp-slides">${c1}${c2}${c3}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span><span></span></div>`;
   const s = el.querySelector('.dp-slides'), pts = el.querySelectorAll('.points span');
   if(positionDispos) s.scrollLeft = positionDispos;
   s.addEventListener('scroll', () => { positionDispos = s.scrollLeft; const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); }, {passive:true});
@@ -1030,6 +1053,13 @@ async function ouvrirDispos(){
   critEdit = critDispos(); await chargerDispos(); dessinerDispos();
   const dlg = $('#dispos'); dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
 }
+const numerosDispos = res => res.map(r => +r.d.slice(8, 10)).join('/');
+async function copierDispos(){
+  const crit = critDispos(), res = calculerDispos(crit).filter(r => r.ok);
+  if(!res.length){ toast('Aucun jour libre à copier.'); return; }
+  const txt = numerosDispos(res);
+  toast((await copierTexte(txt)) ? `Copié : ${txt}` : 'Copie impossible.');
+}
 function texteDispos(res, crit){
   return `Mes dispos (${crit.cren.map(c => libCren(c).toLowerCase()).join(' + ')}) :\n` + res.map(r => '• ' + dateCourte(r.d)).join('\n');   // le foot n'est pas envoyé : c'est pour toi
 }
@@ -1043,11 +1073,11 @@ function dessinerDispos(){
     <h2 tabindex="-1">Mes dispos</h2>
     <div class="dcrit"><span class="dlab">Je cherche</span><div class="drow">${CREN.map(([v, l]) => chip('cren', v, c.cren.includes(v), l)).join('')}</div></div>
     <div class="dcrit"><span class="dlab">Les jours</span><div class="drow jours">${['L','M','M','J','V','S','D'].map((l, i) => chip('jour', i, c.jours.includes(i), l)).join('')}</div></div>
-    <div class="dcrit"><span class="dlab">Sur</span><div class="drow">${[[14, '2 semaines'], [30, '30 jours'], [60, '2 mois']].map(([v, l]) => chip('periode', v, c.periode === v, l)).join('')}</div></div>
+    <div class="dcrit"><span class="dlab">Le mois</span><div class="drow dmois"><button type="button" class="chip-d" data-dk="mois" data-dv="-1"${c.mois > moisCourant() ? '' : ' disabled'} aria-label="Mois précédent">‹</button><b>${esc(nomMois(c.mois))} ${esc(c.mois.slice(0, 4))}</b><button type="button" class="chip-d" data-dk="mois" data-dv="1" aria-label="Mois suivant">›</button></div></div>
     <div class="dcal">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
     <div class="dres"><b>${plur(ok.length, 'jour libre', 'jours libres')}</b></div>
     <div class="dliste">${ok.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}${r.notes.length ? `<small>${r.notes.map(n => (n.foot ? '⚽ ' : '• ') + esc(n.t) + (n.h ? ' ' + esc(n.h) : '')).join(', ')}</small>` : ''}</span><em>${esc(r.libres.map(libCren).join(' · '))}</em></div>`).join('') || `<p class="hint">${c.cren.length ? 'Aucun jour ne correspond. Essaie d’autres critères.' : 'Choisis d’abord matin, après-midi ou soirée.'}</p>`}</div>
-    <div class="ligne2"><button type="button" class="btn" data-dact="copier">Copier</button><button type="button" class="btn primaire" data-dact="partager">Partager</button></div>
+    <button type="button" class="btn primaire" data-dact="copier">Copier mes dispos${ok.length ? ` · ${esc(numerosDispos(ok))}` : ''}</button>
     <p class="msg" id="d-msg" role="status"></p>
   </div>`;
 }
@@ -1058,13 +1088,13 @@ $('#dispos').addEventListener('click', async e => {
   if(ch){
     const k = ch.dataset.dk, v = ch.dataset.dv, c = critEdit;
     if(k === 'cren'){ const s = new Set(c.cren); s.has(v) ? s.delete(v) : s.add(v); c.cren = CREN.map(x => x[0]).filter(x => s.has(x)); }
-    if(k === 'jour'){ const s = new Set(c.jours); s.has(+v) ? s.delete(+v) : s.add(+v); if(!s.size) s.add(+v); c.jours = [...s].sort(); }
-    if(k === 'periode') c.periode = +v;
+    if(k === 'jour'){ const s = new Set(c.jours); s.has(+v) ? s.delete(+v) : s.add(+v); c.jours = [...s].sort(); }
+    if(k === 'mois'){ c.mois = decalerMois(c.mois, +v); if(c.mois < moisCourant()) c.mois = moisCourant(); }
     garderCrit(c); dessinerDispos(); return;
   }
   const a = e.target.closest('[data-dact]'); if(!a) return;
-  const txt = texteDispos(calculerDispos(critEdit).filter(r => r.ok), critEdit);
-  if(a.dataset.dact === 'copier') $('#d-msg').textContent = (await copierTexte(txt)) ? 'Copié ✓ Colle-le dans ton message.' : 'Copie impossible.';
+  const txt = numerosDispos(calculerDispos(critEdit).filter(r => r.ok));
+  if(a.dataset.dact === 'copier') $('#d-msg').textContent = !txt ? 'Aucun jour libre à copier.' : (await copierTexte(txt)) ? `Copié : ${txt}` : 'Copie impossible.';
   if(a.dataset.dact === 'partager'){
     if(navigator.share){ try{ await navigator.share({text:txt}); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
     $('#d-msg').textContent = (await copierTexte(txt)) ? 'Partage indisponible : texte copié.' : 'Partage indisponible.';
@@ -1311,8 +1341,17 @@ $('#accueil').addEventListener('click', e => {
     s.has(v) ? s.delete(v) : s.add(v); c.cren = CREN.map(x => x[0]).filter(x => s.has(x)); garderCrit(c);
     rafraichirDispos(); return;
   }
-  if(e.target.closest('[data-dp-partager]')){ partagerDispos(); return; }
-  if(e.target.closest('[data-dp-plus], .dp-res')){ ouvrirDispos(); return; }
+  const dpj = e.target.closest('[data-dp-jour]');
+  if(dpj){
+    const c = critDispos(), v = dpj.dataset.dpJour;
+    if(v === 'tous') c.jours = c.jours.length === 7 ? [] : [0, 1, 2, 3, 4, 5, 6];
+    else { const s = new Set(c.jours); s.has(+v) ? s.delete(+v) : s.add(+v); c.jours = [...s].sort(); }
+    garderCrit(c); rafraichirDispos(); return;
+  }
+  const dpm = e.target.closest('[data-dp-mois]');
+  if(dpm){ const c = critDispos(); c.mois = decalerMois(c.mois, +dpm.dataset.dpMois); if(c.mois < moisCourant()) c.mois = moisCourant(); garderCrit(c); rafraichirDispos(); return; }
+  if(e.target.closest('[data-dp-copier]')){ copierDispos(); return; }
+  if(e.target.closest('.dp-res')){ ouvrirDispos(); return; }
   if(e.target.closest('[data-dispo]')) return;
   if(e.target.closest('.co-carre') && !e.target.closest('[data-aller], [data-coche-co], [data-ajout-course]')){ montrer('courses'); return; }
   if(e.target.closest('[data-ajout-course]')){ ouvrirAjoutCourse(); return; }

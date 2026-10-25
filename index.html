@@ -175,6 +175,15 @@ main{gap:22px}
 .dp-partager{border:0;border-radius:10px;background:var(--denim);color:var(--on-denim);font:700 13px/1 var(--body);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:6px}
 .dliste small{display:block;font-size:11.5px;font-weight:600;color:var(--today);margin-top:2px}
 .dp-h{display:flex;flex-direction:column}
+.ligne.simple{padding-left:12px}
+.l-note{font-style:normal;font-size:12.5px;color:var(--muted);margin-left:auto;padding-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+.dp-pl .dp-h b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-pl .dp-l{overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-x pan-y;scrollbar-width:none}
+.dp-pl .dp-l::-webkit-scrollbar{display:none}
+.dp-pl-b{display:flex;gap:5px}
+.dp-pl-b > button{flex:1;min-width:0}
+.dp-fait{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:700 13px/1 var(--body);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:6px}
+.dp-pl.faite{opacity:.45;transition:opacity .3s}
 .dp-h b{font-family:var(--display);font-size:16px;font-weight:800}
 .dp-h span{font-size:11.5px;font-weight:700;color:var(--denim)}
 .dp-l{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;overflow:hidden}
@@ -1012,10 +1021,11 @@ function creneauxPris(ev){
   if(ev.time){ const hh = +ev.time.slice(0, 2); return [hh < 12 ? 'matin' : hh < 18 ? 'aprem' : 'soir']; }
   return ev.feedId ? [] : ['matin', 'aprem', 'soir'];
 }
-let evtsDispos = null, themesDispos = new Map();
+let evtsDispos = null, themesDispos = new Map(), rappelsDispos = [];
 async function chargerDispos(){
   const r = await lire('organisation', async db => ({tasks:await tout(db, 'tasks'), themes:await tout(db, 'themes')}));
   evtsDispos = r ? r.tasks.filter(x => x.info && !x.free) : [];
+  rappelsDispos = r ? r.tasks.filter(x => x.bsRappel) : [];
   themesDispos = new Map((r ? r.themes : []).map(th => [th.id, th]));
 }
 // « Souple » : n'empêche pas d'être dispo, mais on le signale (le foot, ou ce que tu as marqué « ne bloque pas »)
@@ -1046,7 +1056,72 @@ function calculerDispos(crit){
 const libCren = c => (CREN.find(x => x[0] === c) || [c, c])[1];
 const dateCourte = d => parseD(d).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
 const noteHTML = r => r.notes.length ? `<em class="dp-n">${r.notes.map(n => (n.foot ? '⚽ ' : '• ') + esc(n.t) + (n.h ? ' ' + esc(n.h) : '')).join(', ')}</em>` : '';
-// Carré « Dispos » : 1) le moment et le mois, 2) les jours de la semaine, 3) le résultat
+/* ---------- Plateaux à recontacter : une carte par plateau, avec tes dispos le mois suivant ----------
+   Le rappel « Recontacter » vient de l'Organisation (champ bsRappel = 'bs-' + id du plateau) ;
+   les jours du plateau viennent de Backstage (même logique que getSlotsForDay / isIntervalOccurring là-bas). */
+function plateauxBS(){ try{ const l = JSON.parse(localStorage.getItem('backstage_plateaux_v1') || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; } }
+function seancesPlateau(p, dow){
+  if(p.paused) return [];
+  const base = ((p.times && p.times.length) ? p.times : [{time:p.time}]).filter(b => !b.paused && !(b.pausedDays && b.pausedDays.includes(dow)));
+  const out = (p.days || []).includes(dow) ? base.map(b => b.time || '') : [];
+  (p.exceptions || []).forEach(ex => { if(ex.days && ex.days.includes(dow) && !(ex.pausedDays && ex.pausedDays.includes(dow))) out.push(ex.time || ''); });
+  return out;
+}
+function plateauCeJour(p, d){
+  if(!p.anchorDate || (p.interval || 1) <= 1) return true;
+  const sem = Math.round(Math.round((parseD(d) - parseD(p.anchorDate)) / 864e5) / 7), n = p.interval;
+  return ((sem % n) + n) % n === 0;
+}
+const heurePl = t => { const m = String(t || '').match(/(\d{1,2})\s*(?:[h:]\s*(\d{2}))?/); return m ? +m[1] + (m[2] ? +m[2] / 60 : 0) : null; };
+const crenPl = t => { const h = heurePl(t); return h === null ? 'soir' : h < 12 ? 'matin' : h < 18 ? 'aprem' : 'soir'; };
+// Les rappels à faire : la dernière échéance (aujourd'hui ou avant) pas encore cochée
+function rappelsAFaire(){
+  const t = iso(new Date()), pls = plateauxBS();
+  return (rappelsDispos || []).map(x => {
+    const d = occursOn(x, t) ? t : prevOcc(x, t);
+    if(!d || isDone(x, d)) return null;
+    const p = pls.find(y => 'bs-' + y.id === x.bsRappel); if(!p) return null;
+    const mois = decalerMois(d.slice(0, 7), 1);   // un message en octobre, c'est pour novembre
+    return {t:x, d, late:d < t, p, mois};
+  }).filter(Boolean).sort((a, b) => a.d < b.d ? -1 : 1);
+}
+function datesPlateau(p, mois){
+  const y = +mois.slice(0, 4), m = +mois.slice(5, 7) - 1, fin = new Date(y, m + 1, 0).getDate(), out = [];
+  for(let j = 1; j <= fin; j++){
+    const d = iso(new Date(y, m, j)), heures = seancesPlateau(p, parseD(d).getDay());
+    if(!heures.length || !plateauCeJour(p, d)) continue;
+    const pris = new Set(), notes = [];
+    (evtsDispos || []).filter(e => occursOn(e, d)).forEach(e => {
+      if(estSouple(e)){ notes.push({t:e.title, h:e.time ? e.time.replace(':', 'h').replace(/h00$/, 'h') : '', foot:FOOT.test(e.title || '') || FOOT.test((themesDispos.get(e.themeId) || {}).name || '')}); return; }
+      creneauxPris(e).forEach(c => pris.add(c));
+    });
+    if(heures.some(h => !pris.has(crenPl(h)))) out.push({d, notes});
+  }
+  return out;
+}
+function slidePlateau(r){
+  const res = datesPlateau(r.p, r.mois), h = ((r.p.times || [])[0] || {}).time || r.p.time || '';
+  const sous = r.p.paused ? 'En pause' : `${nomMois(r.mois)}${h ? ' · ' + String(h).replace(':', 'h').replace(/h00$/, 'h') : ''}`;
+  return `<div class="slide dp-pl"><div class="dp-h"><b>📩 ${esc(r.p.name || 'Plateau')}</b><span>${esc(sous)}</span></div>
+    <div class="dp-l">${res.map(x => `<div><span>${esc(cap(dateCourte(x.d)))}</span>${noteHTML(x)}</div>`).join('') || `<div class="vide">${r.p.paused ? 'Ce plateau est en pause' : 'Aucune date libre'}</div>`}</div>
+    <div class="dp-pl-b">${res.length ? `<button type="button" class="dp-partager" data-dp-pl-copier="${esc(res.map(x => +x.d.slice(8, 10)).join('/'))}" aria-label="Copier les dates pour ${esc(r.p.name)}">${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}<button type="button" class="dp-fait" data-dp-fait="${esc(r.t.id)}" data-d="${esc(r.d)}"${r.late ? ' data-late="1"' : ''} aria-label="Message envoyé à ${esc(r.p.name)}">${svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14)} Fait</button></div></div>`;
+}
+// « Fait » : c'est l'Organisation qui coche le rappel (mêmes règles que depuis Aujourd'hui)
+async function rappelFait(btn){
+  if(btn.disabled) return; btn.disabled = true;
+  const sl = btn.closest('.slide'); if(sl) sl.classList.add('faite');
+  try{
+    const app = APPS.find(a => a.id === 'organisation'), f = creerFrame(app);
+    await f.charge;
+    let w = f.contentWindow;
+    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero')); i++){ await pause(150); w = f.contentWindow; }
+    if(typeof w.toggleTask !== 'function') throw new Error('Organisation pas prête');
+    w.toggleTask(btn.dataset.dpFait, btn.dataset.d, !!btn.dataset.late);
+    toast('C’est noté ✅');
+  }catch(e){ console.warn(e); btn.disabled = false; if(sl) sl.classList.remove('faite'); toast('Impossible de cocher pour l’instant.'); return; }
+  setTimeout(() => { rafraichirDispos(); planifierAccueil(350); }, 500);
+}
+// Carré « Dispos » : 1) le moment et le mois, 2) les jours de la semaine, 3) le résultat, puis un carré par plateau à recontacter
 async function rafraichirDispos(){
   const el = $('[data-dispo]'); if(!el) return;
   await chargerDispos();
@@ -1062,7 +1137,8 @@ async function rafraichirDispos(){
     : `<div class="slide dp-res"><div class="dp-h"><b>${plur(res.length, 'jour libre', 'jours libres')}</b><span>${esc(nomMois(crit.mois))} · ${esc(crit.cren.map(libCren).join(' + '))}</span></div>
       <div class="dp-l">${res.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span>${noteHTML(r)}</div>`).join('') || '<div class="vide">Aucun jour dans ce mois</div>'}</div>
       ${res.length ? `<button type="button" class="dp-partager" data-dp-copier>${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}</div>`;
-  el.innerHTML = `<div class="slides mini dp-slides">${c1}${c2}${c3}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span><span></span></div>`;
+  const pls = rappelsAFaire().map(slidePlateau);
+  el.innerHTML = `<div class="slides mini dp-slides">${c1}${c2}${c3}${pls.join('')}</div><div class="points" aria-hidden="true">${[c1, c2, c3, ...pls].map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>`;
   const s = el.querySelector('.dp-slides'), pts = el.querySelectorAll('.points span');
   if(positionDispos) s.scrollLeft = positionDispos;
   s.addEventListener('scroll', () => { positionDispos = s.scrollLeft; const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); }, {passive:true});
@@ -1300,10 +1376,15 @@ async function rafraichirListes(){
   if(!d || !d.lists.length){ el.innerHTML = d ? `<div class="bloc"${styleCouleur(app)}><div class="bande">${btn}<div class="bande-car"><p class="vide">Pas encore de liste.</p></div></div></div>` : ''; return; }
   const listes = d.lists.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
   const slides = listes.map(l => {
-    const todo = d.items.filter(i => i.listId === l.id && !i.done).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    // même tri que dans l'Organisation (triItems) ; une « simple liste » n'a pas de cases à cocher
+    const simple = l.type === 'simple';
+    const todo = d.items.filter(i => i.listId === l.id && (simple || !i.done)).sort(
+      l.tri === 'az' ? (a, b) => (a.name || '').localeCompare(b.name || '', 'fr', {sensitivity:'base', numeric:true})
+      : l.tri === 'main' ? (a, b) => (a.rang ?? a.createdAt ?? 0) - (b.rang ?? b.createdAt ?? 0)
+      : (a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     return `<div class="slide groupe" style="--sc:var(--c-${esc(l.color || 'slate')})" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}">
       <div class="slide-cat"><span class="lc-n">${esc((l.emoji ? l.emoji + ' ' : '') + l.name)}</span><span class="lc-d"><em>${todo.length || ''}</em><button type="button" class="lc-plus" data-aller="organisation" data-action="liste-ajout" data-id="${esc(l.id)}" aria-label="Ajouter à ${esc(l.name)}">${svg('<path d="M12 5v14M5 12h14"/>', 15)}</button></span></div>
-      <div class="liste" style="height:${Math.max(1, Math.min(todo.length, 2)) * 44}px">${todo.length ? todo.map(i => `<div class="ligne tache" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}"><button type="button" class="coche" data-coche-item="${esc(i.id)}" aria-label="Cocher ${esc(i.name)}"></button><span class="l-t">${i.emoji ? esc(i.emoji) + ' ' : ''}${esc(i.name)}</span></div>`).join('') : '<div class="ligne"><span class="l-t vide-l">Tout est fait ✔️</span></div>'}</div></div>`;
+      <div class="liste" style="height:${Math.max(1, Math.min(todo.length, 2)) * 44}px">${todo.length ? todo.map(i => `<div class="ligne tache${simple ? ' simple' : ''}" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}">${simple ? '' : `<button type="button" class="coche" data-coche-item="${esc(i.id)}" aria-label="Cocher ${esc(i.name)}"></button>`}<span class="l-t">${i.emoji ? esc(i.emoji) + ' ' : ''}${esc(i.name)}</span>${simple && i.note ? `<em class="l-note">${esc(i.note)}</em>` : ''}</div>`).join('') : `<div class="ligne"><span class="l-t vide-l">${simple ? 'Liste vide' : 'Tout est fait ✔️'}</span></div>`}</div></div>`;
   });
   el.innerHTML = `<div class="bloc" data-ouvrir="organisation"${styleCouleur(app)}><div class="bande">${btn}<div class="bande-car"><div class="slides" data-ouvrir="organisation">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div></div></div>`;
   brancherSlides(el);
@@ -1395,6 +1476,8 @@ $('#accueil').addEventListener('click', e => {
   const dpm = e.target.closest('[data-dp-mois]');
   if(dpm){ const c = critDispos(); c.mois = decalerMois(c.mois, +dpm.dataset.dpMois); if(c.mois < moisCourant()) c.mois = moisCourant(); garderCrit(c); rafraichirDispos(); return; }
   if(e.target.closest('[data-dp-copier]')){ copierDispos(); return; }
+  const dpf = e.target.closest('[data-dp-fait]'); if(dpf){ rappelFait(dpf); return; }
+  const dpp = e.target.closest('[data-dp-pl-copier]'); if(dpp){ copierTexte(dpp.dataset.dpPlCopier).then(ok => toast(ok ? 'Dates copiées ✓' : 'Copie impossible.')); return; }
   if(e.target.closest('.dp-res')){ ouvrirDispos(); return; }
   if(e.target.closest('[data-dispo]')) return;
   if(e.target.closest('.co-carre') && !e.target.closest('[data-aller], [data-coche-co], [data-ajout-course]')){ montrer('courses'); return; }

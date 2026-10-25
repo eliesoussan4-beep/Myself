@@ -123,6 +123,10 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 .day.today .task.done .check .box{background:var(--today);border-color:var(--today);color:var(--today-card)}
 .day.tomorrow .check .box{border-color:var(--tomorrow-box);background:transparent}
 .day.tomorrow .task.done .check .box{background:var(--tomorrow);border-color:var(--tomorrow);color:var(--tomorrow-card)}
+.grip{width:40px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--muted);touch-action:none;cursor:grab}
+[data-drag-item]{transition:transform .15s}
+[data-drag-item].drag{transition:none;position:relative;z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.task.simple{padding-left:10px}
 .task-body{flex:1;min-width:0;min-height:48px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px}
 .t-title{font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task.done .t-title{color:var(--muted);text-decoration:line-through}
@@ -2270,20 +2274,28 @@ function openFeedForm(feed) {
 }
 
 /* ---------- Listes ---------- */
+// Une liste est « à cocher » (par défaut) ou « simple » (des infos à garder : codes, adresses…) ;
+// ses éléments se trient par ordre d'ajout (par défaut), de A à Z, ou à la main (poignée ⠿ à faire glisser)
+const isSimple = l => !!l && l.type === 'simple';
+const triItems = (l, arr) => arr.slice().sort(
+  l.tri === 'az' ? (a, b) => (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base', numeric: true })
+  : l.tri === 'main' ? (a, b) => (a.rang ?? a.createdAt ?? 0) - (b.rang ?? b.createdAt ?? 0)
+  : (a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+const GRIP = 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01';
 function listCard(l) {
-  const items = S.items.filter(i => i.listId === l.id);
-  const todo = items.filter(i => !i.done).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  const done = items.filter(i => i.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
-  const open = U.openLists.has(l.id);
-  const row = i => `<div class="task-wrap"><div class="task${i.done ? ' done' : ''}" data-id="${i.id}">
-      <button type="button" class="check" data-a="item-check" aria-label="${i.done ? 'Décocher' : 'Cocher'} ${h(i.name)}"><span class="box">${i.done ? CHECK : ''}</span></button>
-      <button type="button" class="task-body" data-a="item-edit"><span class="t-title">${i.emoji ? `<span class="i-emoji">${h(i.emoji)}</span> ` : ''}${h(i.name)}</span>${i.note ? `<span class="t-meta t-note">${h(i.note)}</span>` : ''}</button></div></div>`;
+  const items = S.items.filter(i => i.listId === l.id), simple = isSimple(l);
+  const todo = triItems(l, simple ? items : items.filter(i => !i.done));
+  const done = simple ? [] : items.filter(i => i.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+  const open = U.openLists.has(l.id), main = l.tri === 'main';
+  const row = i => `<div class="task-wrap"${main && (simple || !i.done) ? ` data-drag-item="${i.id}"` : ''}><div class="task${i.done && !simple ? ' done' : ''}${simple ? ' simple' : ''}" data-id="${i.id}">
+      ${simple ? '' : `<button type="button" class="check" data-a="item-check" aria-label="${i.done ? 'Décocher' : 'Cocher'} ${h(i.name)}"><span class="box">${i.done ? CHECK : ''}</span></button>`}
+      <button type="button" class="task-body" data-a="item-edit"><span class="t-title">${i.emoji ? `<span class="i-emoji">${h(i.emoji)}</span> ` : ''}${h(i.name)}</span>${i.note ? `<span class="t-meta t-note">${h(i.note)}</span>` : ''}</button>${main && (simple || !i.done) ? `<span class="grip" data-grip aria-label="Déplacer ${h(i.name)}" role="button">${ic(GRIP, 20, 2.6)}</span>` : ''}</div></div>`;
   let html = `<div class="gcard tint c-${l.color || 'slate'}"><div class="gcard-head split"><button type="button" class="gcard-toggle" data-a="list-toggle" data-id="${l.id}" aria-expanded="${open}">
     <span class="g-emoji">${h(l.emoji)}</span><span class="title g-name">${h(l.name)}</span><span class="g-count">${todo.length || ''}</span>${chev(open)}</button>
     <button type="button" class="g-add" data-a="list-quick" data-id="${l.id}" aria-label="Ajouter à ${h(l.name)}">${ic(P.plus, 18, 2)}</button></div>`;
   if (open) {
     const showDone = U.doneLists.has(l.id);
-    html += `<div class="gcard-body">${todo.map(row).join('')}
+    html += `<div class="gcard-body" data-drag-list="${l.id}">${todo.map(row).join('')}
       <div class="quick-add"><input type="text" data-list="${l.id}" placeholder="Ajouter…" enterkeyhint="done" aria-label="Ajouter à ${h(l.name)}"><button type="button" class="btn-ico" data-a="item-add" data-id="${l.id}" aria-label="Ajouter">${ic(P.plus, 20, 2)}</button></div>
       <div class="gcard-foot">
         <span class="f-grow"></span>
@@ -2311,7 +2323,7 @@ function openListQuick(id) {
   const add = () => {
     const n = $('[data-f="name"]', s.body), no = $('[data-f="note"]', s.body);
     const name = n.value.trim(); if (!name) { n.focus(); return; }
-    save('items', { id: uid(), listId: l.id, name, emoji: guessEmoji('items', name), note: no.value.trim(), done: false, createdAt: Date.now() });
+    save('items', { id: uid(), listId: l.id, name, emoji: guessEmoji('items', name), note: no.value.trim(), done: false, createdAt: Date.now(), rang: rangFin(l.id) });
     added.push(name); n.value = ''; no.value = ''; n.focus(); refresh();
     $('.added', s.body).innerHTML = added.map(x => `<span class="chip">${ic(P.check, 14, 2.6)}${h(x)}</span>`).join('');
   };
@@ -2319,11 +2331,36 @@ function openListQuick(id) {
   s.el.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; if (b.dataset.f === 'cancel') closeTop(); if (b.dataset.f === 'add') add(); });
   setTimeout(() => { const i = $('[data-f="name"]', s.body); if (i) i.focus(); }, 260);
 }
+const rangFin = listId => { const r = S.items.filter(i => i.listId === listId).map(i => i.rang ?? -1); return r.length ? Math.max(...r) + 1 : 0; };
+/* Tri à la main : appui sur la poignée ⠿, on fait glisser, on lâche */
+document.addEventListener('pointerdown', e => {
+  const g = e.target.closest('[data-grip]'); if (!g) return;
+  const row = g.closest('[data-drag-item]'), box = row && row.closest('[data-drag-list]'); if (!box) return;
+  e.preventDefault();
+  const rows = [...box.querySelectorAll(':scope > [data-drag-item]')], y0 = e.clientY, h0 = row.getBoundingClientRect().height + 6;
+  const idx = rows.indexOf(row); let cible = idx;
+  row.classList.add('drag'); try { g.setPointerCapture(e.pointerId); } catch (err) {}
+  const move = ev => {
+    const dy = ev.clientY - y0;
+    cible = Math.max(0, Math.min(rows.length - 1, idx + Math.round(dy / h0)));
+    row.style.transform = `translateY(${dy}px)`;
+    rows.forEach((r, k) => { if (r === row) return; const dec = k > idx && k <= cible ? -h0 : k < idx && k >= cible ? h0 : 0; r.style.transform = dec ? `translateY(${dec}px)` : ''; });
+  };
+  const fin = () => {
+    g.removeEventListener('pointermove', move); g.removeEventListener('pointerup', fin); g.removeEventListener('pointercancel', fin);
+    rows.forEach(r => { r.style.transform = ''; }); row.classList.remove('drag');
+    if (cible === idx) return;
+    const ids = rows.map(r => r.dataset.dragItem); ids.splice(cible, 0, ids.splice(idx, 1)[0]);
+    ids.forEach((id, k) => { const it = S.items.find(x => x.id === id); if (it && it.rang !== k) save('items', { ...it, rang: k }); });
+    refresh();
+  };
+  g.addEventListener('pointermove', move); g.addEventListener('pointerup', fin); g.addEventListener('pointercancel', fin);
+});
 function addItem(listId) {
   const inp = $(`input[data-list="${listId}"]`);
   const name = inp ? inp.value.trim() : '';
   if (!name) { if (inp) inp.focus(); return; }
-  save('items', { id: uid(), listId, name, emoji: guessEmoji('items', name), note: '', done: false, createdAt: Date.now() });
+  save('items', { id: uid(), listId, name, emoji: guessEmoji('items', name), note: '', done: false, createdAt: Date.now(), rang: rangFin(listId) });
   refresh();
   const again = $(`input[data-list="${listId}"]`);
   if (again) again.focus();
@@ -2630,6 +2667,11 @@ function openGroupForm(kind, obj, onSaved, preset = {}) {
       ${isCat && !childrenOf(f.id).length ? `<div class="field-col"><span class="f-label">Dans la catégorie</span><div class="chips">
         <button type="button" class="chip${!f.parentId ? ' on' : ''}" data-f="parent" data-v="">Aucune (catégorie principale)</button>
         ${topThemes().filter(x => x.id !== f.id).map(x => `<button type="button" class="chip${f.parentId === x.id ? ' on' : ''}" data-f="parent" data-v="${x.id}"><span class="cdot c-${x.color || 'slate'}"></span>${h(x.emoji + ' ' + x.name)}</button>`).join('')}</div></div>` : ''}
+      ${!isCat ? `<div class="field-col"><span class="f-label">Type de liste</span><div class="chips">
+        <button type="button" class="chip${!isSimple(f) ? ' on' : ''}" data-f="ltype" data-v="">☑️ À cocher</button>
+        <button type="button" class="chip${isSimple(f) ? ' on' : ''}" data-f="ltype" data-v="simple">📋 Simple liste</button></div></div>
+      <div class="field-col"><span class="f-label">Trier</span><div class="chips">
+        ${[['', 'Ordre d’ajout'], ['az', 'A → Z'], ['main', 'À la main']].map(([v, t]) => `<button type="button" class="chip${(f.tri || '') === v ? ' on' : ''}" data-f="ltri" data-v="${v}">${t}</button>`).join('')}</div></div>` : ''}
       ${isCat ? `<div class="field"><span class="f-label">Toujours dans « Bientôt »</span><button type="button" class="switch${isPinned(f) ? ' on' : ''}" role="switch" aria-checked="${isPinned(f)}" aria-label="Toujours afficher dans Bientôt" data-f="pin"><span class="knob"></span></button></div>` : ''}
       ${isNew ? '' : `<button type="button" class="btn danger wide del-btn" data-f="del">Supprimer ${isCat ? 'la catégorie' : 'la liste'}</button>`}`;
   };
@@ -2659,12 +2701,21 @@ function openGroupForm(kind, obj, onSaved, preset = {}) {
     if (k === 'pick') { f.emoji = b.dataset.e; f.autoEmoji = false; draw(); }
     if (k === 'color') { f.color = b.dataset.c; draw(); }
     if (k === 'pin') { f.pin = !isPinned(f); draw(); }
+    if (k === 'ltype') { f.type = b.dataset.v || undefined; draw(); }
+    if (k === 'ltri') {
+      f.tri = b.dataset.v || undefined;
+      // passer « à la main » : on part de l'ordre affiché jusque-là
+      if (f.tri === 'main' && obj && obj.tri !== 'main') f.__rangDepuis = triItems(obj, S.items.filter(i => i.listId === f.id)).map(i => i.id);
+      draw();
+    }
     if (k === 'parent') { f.parentId = b.dataset.v || null; const par = parentOf(f); if (par && isNew) f.color = par.color || f.color; draw(); }
     if (k === 'cancel') closeTop();
     if (k === 'save') {
       f.name = f.name.trim();
       if (!f.name) { shakeField($('[data-f="name"]', s.body)); return; }
       if (!f.emoji) f.emoji = EMOJIS[kind][0];
+      if (f.__rangDepuis) { if (f.tri === 'main') f.__rangDepuis.forEach((id, k) => { const it = S.items.find(x => x.id === id); if (it) save('items', { ...it, rang: k }); }); }
+      delete f.__rangDepuis;
       save(store, f);
       if (isNew) (isCat ? U.openThemes : U.openLists).add(f.parentId || f.id);
       closeTop(); refresh(); if (onSaved) onSaved(f);

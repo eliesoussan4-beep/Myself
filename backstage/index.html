@@ -244,7 +244,7 @@
   }
   .big-btn .arrow{font-size:20px;opacity:0.8;}
 
-  .row-btn[hidden],#home-today-plateaux[hidden]{display:none !important}
+  .row-btn[hidden],#home-today-plateaux[hidden],#notion-buttons[hidden]{display:none !important}
   .row-btn{
     width:100%;
     border:1px solid var(--border);
@@ -1312,8 +1312,8 @@
       <div id="home-week-summary" style="margin-top:20px;"></div>
 
 
-      <!-- Liens Notion cachés ici : ils sont sur l'accueil de Mon quotidien, qui les lit dans ce bloc -->
-      <div class="btn-grid-2" id="notion-buttons" style="margin-top:20px;">
+      <!-- Liens Notion cachés ici : ils sont sur l'accueil de Mon quotidien, qui les lit dans ce bloc. Objectifs : depuis l'accueil de Mon quotidien -->
+      <div class="btn-grid-2" id="notion-buttons" hidden>
         <button class="row-btn" hidden onclick="window.open('https://app.notion.com/p/TEXTES-3c91528089b78038b760f17984faebe7?source=copy_link', '_blank')">
           <span class="label-group">
             <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
@@ -1360,13 +1360,6 @@
           <span class="label-group">
             <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
             <span>Impros</span>
-          </span>
-          <span class="arrow">›</span>
-        </button>
-        <button class="row-btn" style="grid-column:1/-1" onclick="goto('33')">
-          <span class="label-group">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
-            <span>Objectifs</span>
           </span>
           <span class="arrow">›</span>
         </button>

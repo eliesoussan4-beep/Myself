@@ -180,10 +180,6 @@ main{gap:22px}
 .dp-pl .dp-h b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dp-pl .dp-l{overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-x pan-y;scrollbar-width:none}
 .dp-pl .dp-l::-webkit-scrollbar{display:none}
-.dp-pl-b{display:flex;gap:5px}
-.dp-pl-b > button{flex:1;min-width:0}
-.dp-fait{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:700 13px/1 var(--body);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:6px}
-.dp-pl.faite{opacity:.45;transition:opacity .3s}
 .dp-h b{font-family:var(--display);font-size:16px;font-weight:800}
 .dp-h span{font-size:11.5px;font-weight:700;color:var(--denim)}
 .dp-l{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;overflow:hidden}
@@ -1102,26 +1098,11 @@ function datesPlateau(p, mois){
 function slidePlateau(r){
   const res = datesPlateau(r.p, r.mois), h = ((r.p.times || [])[0] || {}).time || r.p.time || '';
   const sous = r.p.paused ? 'En pause' : `${nomMois(r.mois)}${h ? ' · ' + String(h).replace(':', 'h').replace(/h00$/, 'h') : ''}`;
-  return `<div class="slide dp-pl"><div class="dp-h"><b>📩 ${esc(r.p.name || 'Plateau')}</b><span>${esc(sous)}</span></div>
+  return `<div class="slide dp-pl"><div class="dp-h"><b>${esc(r.p.name || 'Plateau')}</b><span>${esc(sous)}</span></div>
     <div class="dp-l">${res.map(x => `<div><span>${esc(cap(dateCourte(x.d)))}</span>${noteHTML(x)}</div>`).join('') || `<div class="vide">${r.p.paused ? 'Ce plateau est en pause' : 'Aucune date libre'}</div>`}</div>
-    <div class="dp-pl-b">${res.length ? `<button type="button" class="dp-partager" data-dp-pl-copier="${esc(res.map(x => +x.d.slice(8, 10)).join('/'))}" aria-label="Copier les dates pour ${esc(r.p.name)}">${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}<button type="button" class="dp-fait" data-dp-fait="${esc(r.t.id)}" data-d="${esc(r.d)}"${r.late ? ' data-late="1"' : ''} aria-label="Message envoyé à ${esc(r.p.name)}">${svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14)} Fait</button></div></div>`;
+    ${res.length ? `<button type="button" class="dp-partager" data-dp-pl-copier="${esc(res.map(x => +x.d.slice(8, 10)).join('/'))}" aria-label="Copier les dates pour ${esc(r.p.name)}">${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}</div>`;
 }
-// « Fait » : c'est l'Organisation qui coche le rappel (mêmes règles que depuis Aujourd'hui)
-async function rappelFait(btn){
-  if(btn.disabled) return; btn.disabled = true;
-  const sl = btn.closest('.slide'); if(sl) sl.classList.add('faite');
-  try{
-    const app = APPS.find(a => a.id === 'organisation'), f = creerFrame(app);
-    await f.charge;
-    let w = f.contentWindow;
-    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero')); i++){ await pause(150); w = f.contentWindow; }
-    if(typeof w.toggleTask !== 'function') throw new Error('Organisation pas prête');
-    w.toggleTask(btn.dataset.dpFait, btn.dataset.d, !!btn.dataset.late);
-    toast('C’est noté ✅');
-  }catch(e){ console.warn(e); btn.disabled = false; if(sl) sl.classList.remove('faite'); toast('Impossible de cocher pour l’instant.'); return; }
-  setTimeout(() => { rafraichirDispos(); planifierAccueil(350); }, 500);
-}
-// Carré « Dispos » : 1) le moment et le mois, 2) les jours de la semaine, 3) le résultat, puis un carré par plateau à recontacter
+// Carré « Dispos » : d'abord un carré par plateau à recontacter (il part quand le rappel est coché dans l'agenda), puis 1) le moment et le mois, 2) les jours de la semaine, 3) le résultat
 async function rafraichirDispos(){
   const el = $('[data-dispo]'); if(!el) return;
   await chargerDispos();
@@ -1138,13 +1119,14 @@ async function rafraichirDispos(){
       <div class="dp-l">${res.map(r => `<div><span>${esc(cap(dateCourte(r.d)))}</span>${noteHTML(r)}</div>`).join('') || '<div class="vide">Aucun jour dans ce mois</div>'}</div>
       ${res.length ? `<button type="button" class="dp-partager" data-dp-copier>${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}</div>`;
   const pls = rappelsAFaire().map(slidePlateau);
-  el.innerHTML = `<div class="slides mini dp-slides">${c1}${c2}${c3}${pls.join('')}</div><div class="points" aria-hidden="true">${[c1, c2, c3, ...pls].map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>`;
+  if(pls.length !== nbPlDispos){ nbPlDispos = pls.length; positionDispos = 0; }   // un plateau en plus ou en moins : on revient au début
+  el.innerHTML = `<div class="slides mini dp-slides">${pls.join('')}${c1}${c2}${c3}</div><div class="points" aria-hidden="true">${[...pls, c1, c2, c3].map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>`;
   const s = el.querySelector('.dp-slides'), pts = el.querySelectorAll('.points span');
   if(positionDispos) s.scrollLeft = positionDispos;
   s.addEventListener('scroll', () => { positionDispos = s.scrollLeft; const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); }, {passive:true});
   s.dispatchEvent(new Event('scroll'));
 }
-let positionDispos = 0;
+let positionDispos = 0, nbPlDispos = -1;
 async function partagerDispos(){
   const crit = critDispos(), txt = texteDispos(calculerDispos(crit).filter(r => r.ok), crit);
   if(navigator.share){ try{ await navigator.share({text:txt}); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
@@ -1376,12 +1358,8 @@ async function rafraichirListes(){
   if(!d || !d.lists.length){ el.innerHTML = d ? `<div class="bloc"${styleCouleur(app)}><div class="bande">${btn}<div class="bande-car"><p class="vide">Pas encore de liste.</p></div></div></div>` : ''; return; }
   const listes = d.lists.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
   const slides = listes.map(l => {
-    // même tri que dans l'Organisation (triItems) ; une « simple liste » n'a pas de cases à cocher
-    const simple = l.type === 'simple';
-    const todo = d.items.filter(i => i.listId === l.id && (simple || !i.done)).sort(
-      l.tri === 'az' ? (a, b) => (a.name || '').localeCompare(b.name || '', 'fr', {sensitivity:'base', numeric:true})
-      : l.tri === 'main' ? (a, b) => (a.rang ?? a.createdAt ?? 0) - (b.rang ?? b.createdAt ?? 0)
-      : (a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const simple = l.type === 'simple';   // une « simple liste » n'a pas de cases à cocher
+    const todo = d.items.filter(i => i.listId === l.id && (simple || !i.done)).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     return `<div class="slide groupe" style="--sc:var(--c-${esc(l.color || 'slate')})" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}">
       <div class="slide-cat"><span class="lc-n">${esc((l.emoji ? l.emoji + ' ' : '') + l.name)}</span><span class="lc-d"><em>${todo.length || ''}</em><button type="button" class="lc-plus" data-aller="organisation" data-action="liste-ajout" data-id="${esc(l.id)}" aria-label="Ajouter à ${esc(l.name)}">${svg('<path d="M12 5v14M5 12h14"/>', 15)}</button></span></div>
       <div class="liste" style="height:${Math.max(1, Math.min(todo.length, 2)) * 44}px">${todo.length ? todo.map(i => `<div class="ligne tache${simple ? ' simple' : ''}" data-aller="organisation" data-action="listes" data-id="${esc(l.id)}">${simple ? '' : `<button type="button" class="coche" data-coche-item="${esc(i.id)}" aria-label="Cocher ${esc(i.name)}"></button>`}<span class="l-t">${i.emoji ? esc(i.emoji) + ' ' : ''}${esc(i.name)}</span>${simple && i.note ? `<em class="l-note">${esc(i.note)}</em>` : ''}</div>`).join('') : `<div class="ligne"><span class="l-t vide-l">${simple ? 'Liste vide' : 'Tout est fait ✔️'}</span></div>`}</div></div>`;
@@ -1476,7 +1454,6 @@ $('#accueil').addEventListener('click', e => {
   const dpm = e.target.closest('[data-dp-mois]');
   if(dpm){ const c = critDispos(); c.mois = decalerMois(c.mois, +dpm.dataset.dpMois); if(c.mois < moisCourant()) c.mois = moisCourant(); garderCrit(c); rafraichirDispos(); return; }
   if(e.target.closest('[data-dp-copier]')){ copierDispos(); return; }
-  const dpf = e.target.closest('[data-dp-fait]'); if(dpf){ rappelFait(dpf); return; }
   const dpp = e.target.closest('[data-dp-pl-copier]'); if(dpp){ copierTexte(dpp.dataset.dpPlCopier).then(ok => toast(ok ? 'Dates copiées ✓' : 'Copie impossible.')); return; }
   if(e.target.closest('.dp-res')){ ouvrirDispos(); return; }
   if(e.target.closest('[data-dispo]')) return;

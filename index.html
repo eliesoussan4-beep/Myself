@@ -177,6 +177,7 @@ main{gap:22px}
 .dp-h{display:flex;flex-direction:column}
 .ligne.simple{padding-left:12px}
 .l-note{font-style:normal;font-size:12.5px;color:var(--muted);margin-left:auto;padding-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+.dp-hl{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);margin-left:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dp-pl .dp-h b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dp-pl .dp-l{overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-x pan-y;scrollbar-width:none}
 .dp-pl .dp-l::-webkit-scrollbar{display:none}
@@ -1069,6 +1070,7 @@ function plateauCeJour(p, d){
   return ((sem % n) + n) % n === 0;
 }
 const heurePl = t => { const m = String(t || '').match(/(\d{1,2})\s*(?:[h:]\s*(\d{2}))?/); return m ? +m[1] + (m[2] ? +m[2] / 60 : 0) : null; };
+const fmtHPl = t => { const h = heurePl(t); if(h === null) return String(t); const mn = Math.round((h % 1) * 60); return Math.floor(h) + 'h' + (mn ? String(mn).padStart(2, '0') : ''); };
 const crenPl = t => { const h = heurePl(t); return h === null ? 'soir' : h < 12 ? 'matin' : h < 18 ? 'aprem' : 'soir'; };
 // Les rappels à faire : la dernière échéance (aujourd'hui ou avant) pas encore cochée
 function rappelsAFaire(){
@@ -1077,29 +1079,34 @@ function rappelsAFaire(){
     const d = occursOn(x, t) ? t : prevOcc(x, t);
     if(!d || isDone(x, d)) return null;
     const p = pls.find(y => 'bs-' + y.id === x.bsRappel); if(!p) return null;
+    const nom = (p.name || '').trim().toLowerCase(), fiches = pls.filter(y => (y.name || '').trim().toLowerCase() === nom);
     const mois = decalerMois(d.slice(0, 7), 1);   // un message en octobre, c'est pour novembre
-    return {t:x, d, late:d < t, p, mois};
-  }).filter(Boolean).sort((a, b) => a.d < b.d ? -1 : 1);
+    return {t:x, d, late:d < t, p, fiches, nom, mois};
+  }).filter(Boolean).sort((a, b) => a.d < b.d ? -1 : 1)
+    .filter((r, i, l) => l.findIndex(y => y.nom === r.nom) === i);   // un seul carré par plateau
 }
-function datesPlateau(p, mois){
+function datesPlateau(fiches, mois){
   const y = +mois.slice(0, 4), m = +mois.slice(5, 7) - 1, fin = new Date(y, m + 1, 0).getDate(), out = [];
   for(let j = 1; j <= fin; j++){
-    const d = iso(new Date(y, m, j)), heures = seancesPlateau(p, parseD(d).getDay());
-    if(!heures.length || !plateauCeJour(p, d)) continue;
+    const d = iso(new Date(y, m, j)), dow = parseD(d).getDay();
+    const heures = [...new Set(fiches.filter(p => plateauCeJour(p, d)).flatMap(p => seancesPlateau(p, dow)))];
+    if(!heures.length) continue;
     const pris = new Set(), notes = [];
     (evtsDispos || []).filter(e => occursOn(e, d)).forEach(e => {
       if(estSouple(e)){ notes.push({t:e.title, h:e.time ? e.time.replace(':', 'h').replace(/h00$/, 'h') : '', foot:FOOT.test(e.title || '') || FOOT.test((themesDispos.get(e.themeId) || {}).name || '')}); return; }
       creneauxPris(e).forEach(c => pris.add(c));
     });
-    if(heures.some(h => !pris.has(crenPl(h)))) out.push({d, notes});
+    const libres = heures.filter(h => !pris.has(crenPl(h))).sort((a, b) => (heurePl(a) ?? 99) - (heurePl(b) ?? 99));
+    // une seule séance ce jour-là : pas besoin de l'heure ; plusieurs : on montre celles où tu es libre si ce ne sont pas toutes
+    if(libres.length) out.push({d, notes, heures:libres.length < heures.length ? libres.filter(Boolean).map(fmtHPl) : []});
   }
   return out;
 }
 function slidePlateau(r){
-  const res = datesPlateau(r.p, r.mois), h = ((r.p.times || [])[0] || {}).time || r.p.time || '';
-  const sous = r.p.paused ? 'En pause' : `${nomMois(r.mois)}${h ? ' · ' + String(h).replace(':', 'h').replace(/h00$/, 'h') : ''}`;
+  const res = datesPlateau(r.fiches, r.mois), pause = r.fiches.every(p => p.paused);
+  const sous = pause ? 'En pause' : nomMois(r.mois);
   return `<div class="slide dp-pl"><div class="dp-h"><b>${esc(r.p.name || 'Plateau')}</b><span>${esc(sous)}</span></div>
-    <div class="dp-l">${res.map(x => `<div><span>${esc(cap(dateCourte(x.d)))}</span>${noteHTML(x)}</div>`).join('') || `<div class="vide">${r.p.paused ? 'Ce plateau est en pause' : 'Aucune date libre'}</div>`}</div>
+    <div class="dp-l">${res.map(x => `<div><span>${esc(cap(dateCourte(x.d)))}</span>${x.heures.length ? `<em class="dp-hl">${esc(x.heures.join(', '))}</em>` : ''}${noteHTML(x)}</div>`).join('') || `<div class="vide">${pause ? 'Ce plateau est en pause' : 'Aucune date libre'}</div>`}</div>
     ${res.length ? `<button type="button" class="dp-partager" data-dp-pl-copier="${esc(res.map(x => +x.d.slice(8, 10)).join('/'))}" aria-label="Copier les dates pour ${esc(r.p.name)}">${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)} Copier</button>` : ''}</div>`;
 }
 // Carré « Dispos » : d'abord un carré par plateau à recontacter (il part quand le rappel est coché dans l'agenda), puis 1) le moment et le mois, 2) les jours de la semaine, 3) le résultat

@@ -3436,7 +3436,7 @@ window.quotidienSuperpose = p => {
 window.quotidienBientot = () => {
   const t = today(), hols = [];
   for (let i = 1; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
-  return [...soonItems().map(e => { const th = themeOf(e.t); return { d: e.d, id: e.t.id, titre: e.t.title, emoji: th ? th.emoji : '', color: th ? th.color || 'slate' : 'slate', quand: dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : '') }; }),
+  return [...soonItems().map(e => { const th = themeOf(e.t); return { d: e.d, id: e.t.id, titre: e.t.title, emoji: th ? th.emoji : '', color: th ? th.color || 'slate' : 'slate', quand: dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : ''), evt: isEvent(e.t), time: e.t.time || '', creneaux: e.t.creneaux || [] }; }),
     ...hols.map(x => ({ d: x.d, titre: x.n, emoji: '🇫🇷', color: null, quand: dayMonth(x.d) }))]
     .sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
 };

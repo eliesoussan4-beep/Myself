@@ -113,6 +113,30 @@ main{gap:22px}
 .bt{--sc:var(--muted);display:flex;flex-direction:column;border-left:3px solid var(--sc);padding:2px 0 2px 9px;min-width:0}
 .bt-t{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bt-q{font-size:12px;color:var(--muted)}
+.sky{position:relative;overflow:hidden;isolation:isolate}
+.sky > .sky-bg{position:absolute;inset:0 0 0 auto;width:62%;z-index:-1;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,rgba(0,0,0,.35) 30%,#000 75%);mask-image:linear-gradient(to right,transparent 0,rgba(0,0,0,.35) 30%,#000 75%)}
+.sky > .sky-deco{position:absolute;top:0;right:0;height:100%;width:84px;z-index:-1;pointer-events:none}
+.sky-matin > .sky-bg{background:linear-gradient(170deg,#7FA6D6 0%,#E9B7B0 55%,#F6C38E 100%)}
+.sky-aprem > .sky-bg{background:linear-gradient(180deg,#3E8EDC 0%,#7DB8EC 70%,#B4D7F2 100%)}
+.sky-soir > .sky-bg{background:linear-gradient(180deg,#141A3C 0%,#2A2461 60%,#3D2F72 100%)}
+.sky-ma > .sky-bg{background:linear-gradient(to right,#F2BE97 0%,#E7B9B3 30%,#7DB8EC 75%,#5FA2E4 100%)}
+.sky-as > .sky-bg{background:linear-gradient(to right,#6FB0EA 0%,#E79A72 45%,#4A2F6E 75%,#1A1D45 100%)}
+.sky-ms > .sky-bg{background:linear-gradient(to right,#F2BE97 0%,#C79AB8 40%,#3A2C6C 75%,#161B40 100%)}
+.sky-jour > .sky-bg{background:linear-gradient(to right,#F2BE97 0%,#7DB8EC 35%,#5FA2E4 55%,#E58E6C 72%,#2B2461 88%,#141A3C 100%)}
+.sky .etoile{animation:scintille 3.2s ease-in-out infinite}
+.sky .etoile:nth-child(2n){animation-delay:1.3s}
+.sky .etoile:nth-child(3n){animation-delay:2.1s}
+@keyframes scintille{0%,100%{opacity:.85}50%{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.sky .etoile{animation:none}}
+/* « Bientôt » : chaque événement est une petite carte avec son ciel */
+.bt.sky{border-radius:10px;border-left-width:3px;padding:4px 30px 4px 9px;background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.bt.sky > .sky-bg{width:70%}
+.bt.sky > .sky-deco{width:56px}
+.bientot.defile .bt.sky{min-height:38px}
+/* Aujourd'hui, carte « Événements » */
+.ligne.ev.sky{margin:0 -4px;padding:0 44px 0 4px;border-radius:10px}
+.ligne.ev.sky > .sky-deco{width:64px}
 .bt-plus{font-size:12px;color:var(--muted);padding-left:12px}
 .gr2{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:12px;align-items:stretch}
 .wx2{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;background:var(--sunk);border-radius:16px;padding:12px;height:100%;box-sizing:border-box}
@@ -864,7 +888,7 @@ function blocOrganisation(d0){
   const coul = th => th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : '';
   // 1re carte : tous les événements du jour, dans l'ordre de l'heure
   const diapos = [];
-  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste" style="height:${Math.min(d.evts.length, 2) * 44}px">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<div class="ligne ev"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}"><b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
+  if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste" style="height:${Math.min(d.evts.length, 2) * 44}px">${d.evts.map(e => { const th = d.themes.get(e.themeId); const sk = ciel(e); return `<div class="ligne ev ${sk.cls}"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}">${sk.deco}<b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
   // Puis une carte par catégorie (ordre des catégories de l'Organisation), tâches seulement
   const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
   const groupes = new Map();
@@ -1222,6 +1246,24 @@ function brancherSlides(el){
     s.addEventListener('scroll', maj, {passive:true});
   });
 }
+// Le moment d'un événement, dessiné comme un ciel (mêmes règles et mêmes couleurs que l'Organisation)
+function ciel(ev){
+  const c = Array.isArray(ev.creneaux) && ev.creneaux.length ? ev.creneaux : ev.time ? [(+ev.time.slice(0, 2) < 12 ? 'matin' : +ev.time.slice(0, 2) < 18 ? 'aprem' : 'soir')] : ['matin', 'aprem', 'soir'];
+  const m = c.includes('matin'), a = c.includes('aprem'), s = c.includes('soir');
+  const cls = m && a && s ? 'sky-jour' : m && a ? 'sky-ma' : a && s ? 'sky-as' : m && s ? 'sky-ms' : m ? 'sky-matin' : a ? 'sky-aprem' : 'sky-soir';
+  const astre = (x, y, r, coul) => [2.4, 1.8, 1.35].map((k, i) => `<circle cx="${x}" cy="${y}" r="${r * k}" fill="${coul}" opacity="${[0.10, 0.16, 0.26][i]}"/>`).join('') + `<circle cx="${x}" cy="${y}" r="${r}" fill="${coul}"/>`;
+  const lune = (x, y, r) => [2.2, 1.6].map((k, i) => `<circle cx="${x}" cy="${y}" r="${r * k}" fill="#E9E4FF" opacity="${[0.07, 0.12][i]}"/>`).join('')
+    + `<path fill="#F3F0FF" d="M${x + r * 0.3} ${y - r} A${r} ${r} 0 0 0 ${x + r * 0.3} ${y + r} A${r * 1.25} ${r * 1.25} 0 0 1 ${x + r * 0.3} ${y - r} Z"/>`;
+  const etoiles = pts => pts.map(([x, y, r]) => `<circle class="etoile" cx="${x}" cy="${y}" r="${r}" fill="#FFFFFF"/>`).join('');
+  const dessins = {
+    'sky-matin':astre(70, 50, 9, '#FFD58A'), 'sky-aprem':astre(66, 16, 8, '#FFE9A6'),
+    'sky-soir':lune(66, 20, 8) + etoiles([[36, 12, 0.9], [46, 34, 0.7], [76, 42, 0.8], [54, 8, 0.6], [30, 40, 0.6]]),
+    'sky-ma':astre(64, 22, 8, '#FFE2A0'), 'sky-as':astre(48, 30, 7, '#FFC78A') + lune(72, 18, 6) + etoiles([[62, 40, 0.7], [78, 36, 0.6]]),
+    'sky-ms':astre(44, 44, 7, '#FFD58A') + lune(72, 18, 6) + etoiles([[60, 38, 0.6], [78, 40, 0.6]]),
+    'sky-jour':astre(40, 40, 6, '#FFD58A') + astre(56, 16, 6, '#FFE9A6') + lune(74, 22, 5) + etoiles([[68, 42, 0.6], [80, 34, 0.5]])
+  };
+  return {cls:'sky ' + cls, deco:`<span class="sky-bg" aria-hidden="true"></span><svg class="sky-deco" viewBox="0 0 84 56" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">${dessins[cls]}</svg>`};
+}
 // Ligne du haut : la météo (ville de la garde-robe) et « Bientôt » de l'Organisation
 async function rafraichirLigneJour(){
   const el = $('[data-bloc="jour"]'); if(!el) return;
@@ -1242,7 +1284,7 @@ async function rafraichirLigneJour(){
   };
   const wx = `<div class="mt-wrap"><div class="slides mini mt-slides">${slideMeteo(0, 'Aujourd’hui')}${slideMeteo(1, 'Demain')}</div><div class="points" aria-hidden="true"><span class="on"></span><span></span></div></div>`;
   const bt = bientot.length
-    ? `<div class="bientot defile">${bientot.map(x => `<div class="bt"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}><span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`).join('')}</div>`
+    ? `<div class="bientot defile">${bientot.map(x => { const sk = x.evt ? ciel(x) : null; return `<div class="bt${sk ? ' ' + sk.cls : ''}"${x.color ? ` style="--sc:var(--c-${esc(x.color)})"` : ''}${x.id ? ` data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(x.d)}"` : ''}>${sk ? sk.deco : ''}<span class="bt-t">${x.emoji ? esc(x.emoji) + ' ' : ''}${esc(x.titre)}</span><span class="bt-q">${esc(x.quand)}</span></div>`; }).join('')}</div>`
     : `<div class="bientot"><p class="vide">Rien de prévu ces prochaines semaines.</p></div>`;
   el.innerHTML = `<div class="bloc jour"${styleCouleur({couleur:['#636C7D', '#98A1B1']})}><div class="gr2 compact">${wx}${bt}</div></div>`;
   brancherSlides(el);

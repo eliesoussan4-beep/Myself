@@ -1240,18 +1240,19 @@
   .tb-titre b{font-family:var(--display);font-size:16px;font-weight:800}
   .tb-titre span{font-size:11.5px;font-weight:700;color:var(--accent);white-space:nowrap}
   .tb-sous{font-size:11.5px;font-weight:600;color:var(--text-dim)}
-  .tb-spec{justify-content:space-between;position:relative;overflow:hidden;
-    background:radial-gradient(120% 70% at 50% -12%,color-mix(in srgb,var(--accent) 34%,transparent),transparent 70%),var(--surface-2)}
-  .tb-spec::after{content:"";position:absolute;inset:auto -20% -40% -20%;height:60%;background:radial-gradient(50% 50% at 50% 50%,color-mix(in srgb,var(--star) 16%,transparent),transparent 70%);pointer-events:none}
-  .tb-spec > *{position:relative;z-index:1}
+  .tb-spec{align-items:center;justify-content:space-between;text-align:center;gap:4px}
   .tb-spec-h{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--accent);letter-spacing:.02em;text-transform:uppercase}
   .tb-spec-h svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .tb-spec-p{display:flex;flex-direction:column;gap:5px}
-  .tb-spec-p .tb-sous b{color:var(--text);font-weight:800}
-  .tb-spec-b{height:5px;border-radius:3px;background:color-mix(in srgb,var(--accent) 20%,transparent);overflow:hidden}
-  .tb-spec-b > span{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--star))}
   .tb-spec-d{display:flex;flex-direction:column;font-family:var(--display);line-height:1.05}
-  .tb-spec-d b{font-size:27px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+  .rating-stars-btn[hidden]{display:none !important}
+  .tb-etoiles{display:flex;gap:2px;justify-content:center}
+  .tb-etoiles svg{width:17px;height:17px}
+  .tb-spec-d{align-items:center;gap:1px}
+  .tb-spec-l{font-family:var(--body);font-size:11.5px !important;font-weight:700;color:var(--text-dim);margin:0 !important}
+  .tb-spec-p{display:flex;flex-direction:column;gap:4px;width:100%}
+  .tb-spec-b{height:4px;border-radius:2px;background:color-mix(in srgb,var(--accent) 18%,transparent);overflow:hidden}
+  .tb-spec-b > span{display:block;height:100%;border-radius:2px;background:var(--accent)}
+  .tb-spec-d b{font-size:24px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;line-height:1.15}
   .tb-spec-d small{font-family:var(--body);font-size:11px;font-weight:700;color:var(--text-dim);margin-top:3px;white-space:nowrap}
   .tb-spec-d em{font-style:normal;font-size:15px;font-weight:700}
   /* Carrousels : une carte sur toute la largeur, on fait glisser */
@@ -1263,22 +1264,28 @@
   .tb-points{display:flex;justify-content:center;gap:6px}
   .tb-points span{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,width .2s}
   .tb-points span.on{background:var(--accent);width:16px;border-radius:3px}
-  /* Rotation : une diapo par texte */
-  .tb-r-n{font-family:var(--display);font-size:19px;font-weight:800;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .tb-r-v{display:flex;align-items:baseline;gap:6px;margin-top:auto}
-  .tb-r-v b{font-family:var(--display);font-size:30px;font-weight:800;line-height:1}
-  .tb-r-v span{font-size:13px;font-weight:700;color:var(--text-dim)}
-  .tb-r-tag{align-self:flex-start;font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;background:var(--accent);color:var(--on-accent)}
-  .tb-r-tag.doux{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
-  .tb-r-m{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600;color:var(--text-dim)}
-  .tb-r-m b{color:var(--accent)}
-  .tb-r.fini .tb-r-n{color:var(--text-dim)}
+  /* Rotation : une diapo par texte, même hauteur et même teinte que les plateaux de l'accueil */
+  #home-rotation .tb-car > .tb-tuile{height:106px;padding:14px;gap:6px;justify-content:space-between}
+  .tb-r{--sc:var(--accent)}
+  .tb-r.t0{--sc:var(--s0)} .tb-r.t1{--sc:var(--s1)} .tb-r.t2{--sc:var(--s2)}
+  .tb-r.t0,.tb-r.t1,.tb-r.t2{background:color-mix(in srgb,var(--sc) 22%,var(--surface-2))}
+  .tb-r-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}
+  .tb-r-n{flex:1;min-width:0;font-family:var(--display);font-size:22px;font-weight:800;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-r-c{font-size:11px;font-weight:700;color:var(--text-dim);white-space:nowrap}
+  .tb-r-v{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .tb-r-v b{font-size:16px;font-weight:700;color:var(--sc);white-space:nowrap}
+  .tb-r-v span{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-r-v em{font-style:normal;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap}
+  .tb-r .tb-barre{position:relative;overflow:visible;background:color-mix(in srgb,var(--sc) 22%,transparent)}
+  .tb-r .tb-barre > span{background:var(--sc)}
+  .tb-r .tb-barre > i{position:absolute;top:-3px;width:2px;height:11px;border-radius:1px;background:var(--text);opacity:.55;transform:translateX(-1px)}
   /* Stats : une diapo par stat ou graphique */
   .tb-s3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex:1;align-items:center;text-align:center}
   .tb-s3 b{display:block;font-family:var(--display);font-size:26px;font-weight:800;line-height:1.1;white-space:nowrap}
   .tb-s3 span{font-size:11.5px;font-weight:600;color:var(--text-dim)}
   .tb-graph{flex:1;min-height:0;width:100%;overflow:visible}
   .tb-graph text{font-family:var(--body);font-size:9px;font-weight:600;fill:var(--text-dim)}
+  .tb-graph text.tb-g-n{font-family:var(--display);font-size:11px;font-weight:800;fill:var(--text)}
   .tb-hb{display:flex;flex-direction:column;gap:7px;flex:1;justify-content:center}
   .tb-hb > div{display:grid;grid-template-columns:minmax(0,6.5em) minmax(0,1fr) 2.2em;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
   .tb-hb > div > span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1315,11 +1322,11 @@
   .tb-mois.ouvert .tb-c i{display:block}
   .tb-m-prec{display:none}
   .tb-mois.ouvert .tb-m-prec{display:inline}
-  .tb-qual-prec{display:none}
-  .tb-mois.ouvert .tb-qual-prec{display:flex}
+  .tb-qual.tb-qual-prec{display:none}
+  .tb-mois.ouvert .tb-qual.tb-qual-prec{display:flex}
   .tb-qual-prec > span{background:none !important;color:var(--accent) !important;box-shadow:inset 0 0 0 1.5px var(--accent)}
   .tb-qual{display:flex;gap:5px}
-  .tb-qual > span{flex:1;border-radius:7px;font-size:11.5px;font-weight:800;text-align:center;padding:3px 0;color:var(--on-s)}
+  .tb-qual > span{flex:1;border-radius:9px;font-family:var(--display);font-size:14px;font-weight:800;text-align:center;padding:4px 0;color:var(--sc);background:color-mix(in srgb,var(--sc) 22%,var(--bg))}
   /* La rotation */
   .tb-rot{gap:8px}
   .tb-txts{display:flex;flex-direction:column;gap:2px}
@@ -1385,7 +1392,7 @@
     <div class="topbar-flex">
       <div class="topbar-left">
         <h1 onclick="toggleBackupModal()" style="cursor:pointer;">Back<span>stage</span></h1>
-        <div class="rating-stars-btn" onclick="toggleCollapse('rating-detail')">
+        <div class="rating-stars-btn" hidden onclick="toggleCollapse('rating-detail')">
           <div class="rating-stars" id="rating-stars"></div>
         </div>
       </div>
@@ -1414,10 +1421,10 @@
       <div class="tb">
         <div id="home-week-summary"></div>
         <div class="tb-duo">
-          <button type="button" class="tb-tuile tb-spec" onclick="goto('tests')" aria-label="Date estimée du spectacle">
-            <span class="tb-spec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M8.5 21h7"/></svg>Spectacle</span>
+          <button type="button" class="tb-tuile tb-spec" onclick="goto('tests')" aria-label="Ta note et la date estimée du spectacle">
+            <span class="rating-stars tb-etoiles" id="tb-etoiles" aria-hidden="true"></span>
             <span class="tb-spec-d" id="spectacle-date"></span>
-            <span class="tb-spec-p"><span class="tb-sous" id="spectacle-sous"></span><span class="tb-spec-b"><span id="spectacle-barre"></span></span></span>
+            <span class="tb-spec-p"><span class="tb-spec-b"><span id="spectacle-barre"></span></span><span class="tb-sous" id="spectacle-sous"></span></span>
           </button>
           <div id="home-acompleter"></div>
         </div>
@@ -4826,6 +4833,7 @@ function renderStarsRow(containerId, stars){
 function renderHomeRating(){
   const r = computeStarRating();
   renderStarsRow('rating-stars', r.stars);
+  if(document.getElementById('tb-etoiles')) renderStarsRow('tb-etoiles', r.stars);   // les étoiles vivent maintenant dans la carte du spectacle
 
   document.getElementById('rd-beaux-val').textContent = `${r.beauxPerMonth.toFixed(1)}/9`;
   document.getElementById('rd-note-val').textContent = `${r.avgNote.toFixed(1)}/15`;
@@ -4900,9 +4908,9 @@ function renderHomeWeekSummary(){
         ${c(validated, validated > 1 ? 'validées' : 'validée', prevValidated)}
       </div>
       <div class="tb-qual" aria-label="Nulles, sympas, belles">
-        <span style="background:var(--s0);">${nulles}</span>
-        <span style="background:var(--s1);color:var(--on-s1);">${sympas}</span>
-        <span style="background:var(--s2);">${belles}</span>
+        <span style="--sc:var(--s0)">${nulles}</span>
+        <span style="--sc:var(--s1)">${sympas}</span>
+        <span style="--sc:var(--s2)">${belles}</span>
       </div>
       <div class="tb-qual tb-qual-prec" aria-label="${prevMonthName} : nulles, sympas, belles">
         <span>${prevQuality.nulles}</span><span>${prevQuality.sympas}</span><span>${prevQuality.belles}</span>
@@ -4928,20 +4936,28 @@ function renderHomeRotation(){
   if(!wrap) return;
   const {data, core, bonus, minActiveCount, maxRemainingAtMin} = computeRotationStatus();
   const cpt = data.totalScenes !== null ? `${data.scenesUsed}/${data.totalScenes} scènes` : '';
-  const titre = '';
   if(!core.length && !bonus.length){
     wrap.innerHTML = `<div class="tb-bloc"><button type="button" class="tb-tuile" onclick="goto('tests')"><p class="tb-vide">Pas encore de texte en rotation. Touche pour en choisir.</p></button></div>`;
     return;
   }
+  // Où tu en es : à ce stade de la rotation (scènes jouées / prévues), chaque texte devrait avoir
+  // validé la même part de ses 12 blagues. Dans les temps ou en avance → vert ; un peu en retard → orange ; très en retard → rouge.
+  const part = data.totalScenes ? Math.min(1, data.scenesUsed / data.totalScenes) : null;
+  const etat = x => {
+    if(x.done) return {cls:'t2', txt:'Fini ✓'};
+    if(part === null) return {cls:'', txt:''};
+    const attendu = TEXT_TARGET * part, manque = attendu - x.validated;
+    if(manque <= 0) return {cls:'t2', txt:'Dans les temps'};
+    if(manque <= Math.max(1, TEXT_TARGET * .15)) return {cls:'t1', txt:'Un peu en retard'};
+    return {cls:'t0', txt:'En retard'};
+  };
   const diapo = (x, bonusRow) => {
-    const prio = !bonusRow && !x.done && minActiveCount !== null && x.sessionsCount === minActiveCount && x.remaining === maxRemainingAtMin;
-    const tag = x.done ? '<span class="tb-r-tag doux">Fini ✓</span>' : bonusRow ? '<span class="tb-r-tag doux">⭐ Bonus</span>' : prio ? '<span class="tb-r-tag">À tester en priorité</span>' : '';
-    const vise = !x.done && !bonusRow && x.rate ? `<b>≈ ${x.rate} tests</b> la prochaine fois` : '';
-    return `<button type="button" class="tb-tuile tb-r${x.done ? ' fini' : ''}" onclick="goto('tests'); openTextDetail(${x.text.id})">
-      <span class="tb-r-h">${tag || '<span></span>'}${cpt ? `<span class="tb-r-c">Rotation · ${cpt}</span>` : ''}</span><span class="tb-r-n">${escapeHtml(x.text.name)}</span>
-      <span class="tb-r-v"><b>${x.validated}</b><span>/ ${TEXT_TARGET} validées</span></span>
-      <span class="tb-barre"><span style="width:${Math.min(100, x.validated / TEXT_TARGET * 100)}%"></span></span>
-      <span class="tb-r-m"><span>${x.sessionsCount} ${x.sessionsCount > 1 ? 'sessions' : 'session'}</span><span>${vise}</span></span>
+    const e = bonusRow ? {cls:'', txt:'⭐ Bonus'} : etat(x);
+    const vise = !x.done && !bonusRow && x.rate ? `≈ ${x.rate} tests` : '';
+    return `<button type="button" class="tb-tuile tb-r ${e.cls}" onclick="goto('tests'); openTextDetail(${x.text.id})">
+      <span class="tb-r-h"><span class="tb-r-n">${escapeHtml(x.text.name)}</span>${cpt ? `<span class="tb-r-c">${cpt}</span>` : ''}</span>
+      <span class="tb-r-v"><b>${x.validated}/${TEXT_TARGET}</b><span>${e.txt}</span>${vise ? `<em>${vise}</em>` : ''}</span>
+      <span class="tb-barre"><span style="width:${Math.min(100, x.validated / TEXT_TARGET * 100)}%"></span>${part !== null && !bonusRow ? `<i style="left:${(part * 100).toFixed(1)}%"></i>` : ''}</span>
     </button>`;
   };
   const d = [...core.map(x => diapo(x, false)), ...bonus.map(x => diapo(x, true))];
@@ -4955,11 +4971,11 @@ function renderHomeACompleter(){
   if(!wrap) return;
   const l = loadPlateaux().filter(p => !isPlateauComplete(p)).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr'));
   if(!l.length){
-    wrap.innerHTML = `<button type="button" class="tb-tuile tb-ac" onclick="goto('plateaux')"><span class="tb-spec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/></svg>À compléter</span><span class="tb-ac-ok">Tous tes plateaux sont complets ✓</span></button>`;
+    wrap.innerHTML = `<button type="button" class="tb-tuile tb-ac" onclick="goto('plateaux')"><span class="tb-titre"><b>À compléter</b></span><span class="tb-ac-ok">Tous tes plateaux sont complets ✓</span></button>`;
     return;
   }
   wrap.innerHTML = `<div class="tb-tuile tb-ac" role="button" onclick="goto('plateaux')">
-    <span class="tb-ac-h"><span class="tb-spec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/></svg>À compléter</span><b>${l.length}</b></span>
+    <span class="tb-titre"><b>À compléter</b><span>${l.length}</span></span>
     <div class="tb-ac-l">${l.map(p => `<button type="button" onclick="event.stopPropagation(); goto('plateaux'); openPlateauDetail(${p.id})"><span>${escapeHtml(p.name || 'Sans nom')}</span><i>${!(p.days && p.days.length) ? 'jour' : 'heure'}</i></button>`).join('')}</div>
   </div>`;
 }
@@ -4977,16 +4993,17 @@ function renderHomeStats(){
     <div><b>${list.length}</b><span>${list.length > 1 ? 'scènes' : 'scène'}</span></div>
     <div><b>${avg.toFixed(1).replace('.', ',')}</b><span>moyenne /20</span></div>
     <div><b style="color:${net >= 0 ? 'var(--s2)' : 'var(--s0)'}">${fmtEuro(net)}</b><span>solde</span></div></div></button>`);
-  // 2) évolution du score (les 20 dernières scènes)
-  const der = list.slice(-20);
+  // 2) évolution du score : les 10 dernières scènes, avec leur note au-dessus de chaque point
+  const der = list.slice(-10);
   if(der.length > 1){
-    const W = 300, H = 92, x = i => 6 + i * (W - 12) / (der.length - 1), y = v => 8 + (1 - Math.min(20, Math.max(0, v)) / 20) * (H - 16);
+    const W = 300, H = 100, x = i => 12 + i * (W - 24) / (der.length - 1), y = v => 22 + (1 - Math.min(20, Math.max(0, v)) / 20) * (H - 34);
     const pts = der.map((s, i) => `${x(i).toFixed(1)},${y(s.total || 0).toFixed(1)}`).join(' ');
     const ym = y(avg).toFixed(1);
-    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Évolution du score</b><span>${der.length} dernières</span></div>
-      <svg class="tb-graph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
-        <line x1="0" x2="${W}" y1="${ym}" y2="${ym}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
-        <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    const notes = der.map((s, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(s.total || 0).toFixed(1)}" r="3.2" fill="var(--accent)"/><text class="tb-g-n" x="${x(i).toFixed(1)}" y="${(y(s.total || 0) - 8).toFixed(1)}" text-anchor="middle">${Math.round((s.total || 0) * 10) / 10}</text><text x="${x(i).toFixed(1)}" y="${H + 2}" text-anchor="middle">${+s.date.slice(8, 10)}/${+s.date.slice(5, 7)}</text>`).join('');
+    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Évolution du score</b><span>moyenne ${avg.toFixed(1).replace('.', ',')}</span></div>
+      <svg class="tb-graph" viewBox="0 0 ${W} ${H + 4}" aria-label="Notes des ${der.length} dernières scènes">
+        <line x1="0" x2="${W}" y1="${ym}" y2="${ym}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4"/>
+        <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${notes}
       </svg></button>`);
   }
   // 3) l'argent, mois par mois (les 6 derniers)
@@ -5100,16 +5117,16 @@ function renderSpectacleCard(){
   const r = computeSpectacleEstimate();
 
   const sous = document.getElementById('spectacle-sous'), barre = document.getElementById('spectacle-barre');
-  if(sous) sous.innerHTML = `<b>${r.totalValidated}</b> / ${r.target} blagues`;
+  if(sous) sous.textContent = `${r.totalValidated} / ${r.target} blagues`;
   if(barre) barre.style.width = Math.min(100, r.totalValidated / r.target * 100) + '%';
   if(r.totalValidated >= r.target){
-    dateEl.innerHTML = '<em>Complet ! 🎉</em>';
+    dateEl.innerHTML = '<small class="tb-spec-l">Spectacle</small><b>Complet 🎉</b>';
   } else if(r.ratePerDay <= 0){
-    dateEl.innerHTML = '<em>Pas assez de rythme récent</em>';
+    dateEl.innerHTML = '<small class="tb-spec-l">Spectacle</small><b>—</b><small>pas assez de rythme récent</small>';
   } else {
     const d = r.projectedDate;
     const mois = Math.round((d - new Date()) / (864e5 * 30.44)), dans = mois >= 24 ? `dans ${Math.round(mois / 12)} ans` : mois >= 2 ? `dans ${mois} mois` : 'bientôt';
-    dateEl.innerHTML = `<b>${d.getDate()} ${escapeHtml(d.toLocaleDateString('fr-FR', {month:'short'}))}</b><small>${d.getFullYear()} · ${dans}</small>`;
+    dateEl.innerHTML = `<small class="tb-spec-l">Spectacle</small><b>${d.getDate()} ${escapeHtml(d.toLocaleDateString('fr-FR', {month:'short'}))}</b><small>${d.getFullYear()} · ${dans}</small>`;
   }
 }
 

@@ -1387,7 +1387,7 @@ function soonItems() {
   for (let i = 1; i <= 30; i++) {
     const d = addDays(t0, i), day = [];
     S.tasks.forEach(x => {
-      if (x.free || !occursOn(x, d) || isDone(x, d)) return;
+      if (x.free || x.bsRappel || !occursOn(x, d) || isDone(x, d)) return; // les « Recontacter » de Backstage restent des tâches, pas dans Bientôt
       if (isPinned(themeOf(x)) || isEvent(x) || (x.rep && gapAfter(x, d) >= 14)) day.push({ t: x, d });
     });
     day.sort((a, b) => (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);

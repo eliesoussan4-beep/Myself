@@ -1439,7 +1439,7 @@ $('#accueil').addEventListener('click', e => {
   if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule]')){
     const x = go.dataset, params = {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null};
     if(x.action === 'mois'){ ouvrirMois(); return; }
-    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(x.action)) || (x.aller === 'backstage' && x.action === 'ajouterPlateau');
+    const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(x.action)) || (x.aller === 'backstage' && ['ajouterPlateau', 'noter'].includes(x.action));
     if(dessus) superposer(x.aller, params).then(ok => { if(!ok) window.quotidien.ouvrir(x.aller, params); });
     else window.quotidien.ouvrir(x.aller, params);
     return;

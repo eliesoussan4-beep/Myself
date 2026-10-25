@@ -1351,6 +1351,22 @@
   .tb-stats .tb-toutes{color:var(--accent)}
   .tb-stats .tb-toutes svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .tb-stats .tb-toutes span{color:var(--accent);font-weight:700}
+  /* ---------- Volet du bas : « Noter » s'ouvre par-dessus, depuis le bas ---------- */
+  #volet-fond{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.45);opacity:0;transition:opacity .28s}
+  #volet-fond.on{opacity:1}
+  .volet-poignee,.volet-x{display:none}
+  #view-notation.volet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:640px;margin:0 auto;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;
+    background:var(--bg);border-radius:22px 22px 0 0;padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.25);
+    transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);animation:none}
+  #view-notation.volet.volet-in{transform:translateY(0)}
+  #view-notation.volet .bs-back{display:none}
+  #view-notation.volet .volet-poignee{display:block;position:sticky;top:0;z-index:2;height:22px;margin:0 -16px;background:var(--bg);touch-action:none;cursor:grab}
+  #view-notation.volet .volet-poignee::before{content:"";position:absolute;left:50%;top:9px;width:40px;height:5px;border-radius:3px;background:var(--border);transform:translateX(-50%)}
+  #view-notation.volet .volet-tete{display:flex;align-items:center;justify-content:space-between;margin-top:2px}
+  #view-notation.volet .volet-x{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:0;background:var(--surface-2);color:var(--text-dim);font-size:16px;cursor:pointer}
+  html.volet-ouvert,html.volet-ouvert body{overflow:hidden}
+  html.qd-superpose #view-notation.volet,html.qd-superpose #volet-fond{visibility:visible}
+  .toast{z-index:120}
   .bs-back{border:0;background:none;color:var(--accent);font-weight:600;font-size:15px;padding:14px 0 0;cursor:pointer}
   .page-head{margin:14px 0 4px}
   .page-head h1{font-family:var(--display);font-size:28px;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1.15}
@@ -1407,6 +1423,7 @@
 
   <main>
 
+    <div id="volet-fond" hidden onclick="fermerVoletNoter()"></div>
     <!-- ACCUEIL -->
     <section class="view active" id="view-home">
 
@@ -1502,9 +1519,10 @@
     </section>
 
     <!-- NOTATION -->
-    <section class="view" id="view-notation">
+    <section class="view" id="view-notation" aria-label="Noter une scène">
+      <div class="volet-poignee" aria-hidden="true"></div>
       <button type="button" class="bs-back" onclick="goto('home')">← Backstage</button>
-      <div class="page-head"><h1>Noter</h1></div>
+      <div class="page-head volet-tete"><h1>Noter</h1><button type="button" class="volet-x" onclick="fermerVoletNoter()" aria-label="Fermer">✕</button></div>
       <div id="agenda-a-noter"></div>
 
       <div class="field" style="margin-top:20px;">
@@ -2140,7 +2158,11 @@ function saveScenes(list){
 }
 
 /* ---------- Navigation ---------- */
+var voletNoter = false, voletHistorique = false, voletSauterRetour = false;   // volet « Noter » (voir ouvrirVoletNoter)
 function goto(view, depuisRetour){
+  // « Noter » s'ouvre en volet du bas, par-dessus la page en cours
+  if(view === 'notation'){ ouvrirVoletNoter(); return; }
+  if(voletNoter) fermerVoletNoter(true);
   document.querySelector('.app').classList.toggle('on-home', view === 'home');
   window.scrollTo(0, 0);
   // Bouton « retour » (Android) : depuis une section, il ramène à l'accueil de Backstage
@@ -2294,6 +2316,12 @@ function closeQuickAddPlateauModal(){
 }
 // Mon quotidien : la petite fenêtre « Ajouter un plateau » par-dessus l'accueil (sans changer d'onglet)
 window.quotidienSuperpose = function(p){
+  if(p && p.action === 'noter'){
+    window.__superpose = true; document.documentElement.classList.add('qd-superpose');
+    ouvrirVoletNoter();
+    if(p.nom || p.date) prefillNotation(p.nom || '', p.date || '');
+    return true;
+  }
   if(!p || p.action !== 'ajouterPlateau') return false;
   window.__superpose = true; document.documentElement.classList.add('qd-superpose');
   openQuickAddPlateauModal();   // le clavier ne s'ouvre que quand tu touches le champ
@@ -3644,6 +3672,8 @@ function saveScene(){
 
   renderHomeRating();
   showToast('Scène enregistrée ✓');
+  if(window.__superpose){ try{ window.parent.toast('Scène enregistrée ✓'); }catch(e){} fermerVoletNoter(); return; }
+  if(voletNoter){ fermerVoletNoter(); return; }
   goto('home');
 }
 
@@ -6189,9 +6219,52 @@ window.quotidienAction = function(p){
     p = {...p, action:'noter'};   // scène de l'agenda sans fiche de plateau : on propose de la noter
   }
   if(p.action !== 'noter') return;
-  goto('notation');
+  goto('home', true); ouvrirVoletNoter();
   prefillNotation(p.nom || '', p.date || '');
 };
+/* ---------- Volet « Noter » ---------- */
+function ouvrirVoletNoter(){
+  const v = document.getElementById('view-notation'), fond = document.getElementById('volet-fond');
+  resetForm(); afficherAgendaANoter();
+  if(voletNoter) return;
+  voletNoter = true;
+  v.classList.add('active', 'volet'); v.scrollTop = 0;
+  fond.hidden = false; document.documentElement.classList.add('volet-ouvert');
+  requestAnimationFrame(() => requestAnimationFrame(() => { v.classList.add('volet-in'); fond.classList.add('on'); }));
+  // Retour (Android) : ferme le volet
+  voletHistorique = false;
+  try{ history.pushState({bs:(history.state && history.state.bs) || 'home', volet:1}, ''); voletHistorique = true; }catch(e){}
+}
+function fermerVoletNoter(viaRetour){
+  if(!voletNoter) return;
+  voletNoter = false;
+  const v = document.getElementById('view-notation'), fond = document.getElementById('volet-fond');
+  v.classList.remove('volet-in'); fond.classList.remove('on');
+  v.style.transform = '';
+  setTimeout(() => { if(voletNoter) return; v.classList.remove('active', 'volet'); fond.hidden = true; document.documentElement.classList.remove('volet-ouvert'); }, 300);
+  if(voletHistorique && !viaRetour){ voletSauterRetour = true; try{ history.back(); }catch(e){ voletSauterRetour = false; } }
+  voletHistorique = false;
+  if(window.__superpose){
+    setTimeout(() => {
+      window.__superpose = false; document.documentElement.classList.remove('qd-superpose');
+      try{ window.parent.quotidien.finSuperpose('backstage'); }catch(e){}
+    }, 300);
+  }
+}
+// Glisser la poignée vers le bas pour fermer
+document.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.volet-poignee'); if(!g || !voletNoter) return;
+  const v = document.getElementById('view-notation'), y0 = e.clientY; let dy = 0;
+  v.style.transition = 'none'; try{ g.setPointerCapture(e.pointerId); }catch(_){}
+  const move = ev => { dy = Math.max(0, ev.clientY - y0); v.style.transform = `translateY(${dy}px)`; };
+  const fin = () => {
+    g.removeEventListener('pointermove', move); g.removeEventListener('pointerup', fin); g.removeEventListener('pointercancel', fin);
+    v.style.transition = '';
+    if(dy > 90) fermerVoletNoter(); else v.style.transform = '';
+  };
+  g.addEventListener('pointermove', move); g.addEventListener('pointerup', fin); g.addEventListener('pointercancel', fin);
+});
+
 // En haut de « Noter » : les scènes de l'agenda des 7 derniers jours pas encore notées
 async function afficherAgendaANoter(){
   const box = document.getElementById('agenda-a-noter'); if(!box) return;
@@ -6212,6 +6285,8 @@ async function afficherAgendaANoter(){
 
 // Retour (Android) : ferme d'abord une fiche ouverte (texte, plateau), sinon revient à l'accueil
 window.addEventListener('popstate', e => {
+  if(voletSauterRetour){ voletSauterRetour = false; return; }   // le volet vient d'être fermé par son bouton
+  if(voletNoter){ fermerVoletNoter(true); return; }
   const v = (e.state && e.state.bs) || 'home';
   const actif = document.querySelector('.view.active');
   const ouvert = id => { const el = document.getElementById(id); return el && el.style.display !== 'none'; };

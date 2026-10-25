@@ -1229,6 +1229,58 @@
   .q-ico{width:48px;height:48px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
   .q-ico svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .q-l{font-size:10.5px;font-weight:600;color:var(--text-dim);letter-spacing:-.02em;line-height:1.15;text-align:center}
+  /* ---------- Tableau de bord de l'accueil (même esprit que l'accueil de Mon quotidien) ---------- */
+  .gen-row[hidden]{display:none !important}
+  .tb{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+  .tb-duo{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px;align-items:stretch}
+  .tb-tuile{background:var(--surface-2);border:0;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0;color:var(--text);text-align:left;font-family:var(--body);cursor:pointer;transition:transform .12s}
+  .tb-tuile:active{transform:scale(.985)}
+  .tb-lab{font-size:11.5px;font-weight:700;color:var(--violet)}
+  .tb-titre{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .tb-titre b{font-family:var(--display);font-size:16px;font-weight:800}
+  .tb-titre span{font-size:11.5px;font-weight:700;color:var(--violet);white-space:nowrap}
+  .tb-sous{font-size:11.5px;font-weight:600;color:var(--text-dim)}
+  .tb-spec{justify-content:space-between}
+  .tb-spec-d{display:flex;flex-direction:column;font-family:var(--display);line-height:1.05}
+  .tb-spec-d b{font-size:26px;font-weight:800}
+  .tb-spec-d small{font-size:15px;font-weight:700;color:var(--text-dim)}
+  .tb-spec-d em{font-style:normal;font-size:15px;font-weight:700}
+  /* Le mois */
+  .tb-mois{height:100%;box-sizing:border-box}
+  .tb-chiffres{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px;flex:1;align-content:center}
+  .tb-c{display:flex;flex-direction:column;min-width:0}
+  .tb-c b{font-family:var(--display);font-size:20px;font-weight:800;line-height:1.1;white-space:nowrap}
+  .tb-c span{font-size:11px;font-weight:600;color:var(--text-dim)}
+  .tb-c i{font-style:normal;font-size:11px;font-weight:700;color:var(--text-dim);display:none}
+  .tb-mois.ouvert .tb-c i{display:inline}
+  .tb-qual{display:flex;gap:5px}
+  .tb-qual > span{flex:1;border-radius:7px;font-size:11.5px;font-weight:800;text-align:center;padding:3px 0;color:var(--on-s)}
+  .tb-qual > span i{font-style:normal;font-weight:700;opacity:.75;display:none}
+  .tb-mois.ouvert .tb-qual > span i{display:inline}
+  /* La rotation */
+  .tb-rot{gap:8px}
+  .tb-txts{display:flex;flex-direction:column;gap:2px}
+  .tb-txt{display:flex;flex-direction:column;gap:4px;border:0;background:none;color:var(--text);text-align:left;font-family:var(--body);padding:7px 0;border-top:1px solid color-mix(in srgb,var(--violet) 22%,transparent);cursor:pointer;min-width:0}
+  .tb-txt:first-child{border-top:0}
+  .tb-txt-h{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .tb-txt-n{flex:1;min-width:0;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-txt-v{font-size:12.5px;font-weight:700;color:var(--text-dim);white-space:nowrap}
+  .tb-txt-a{font-size:11.5px;font-weight:700;color:var(--violet);white-space:nowrap}
+  .tb-barre{height:5px;border-radius:3px;background:color-mix(in srgb,var(--violet) 18%,transparent);overflow:hidden}
+  .tb-barre > span{display:block;height:100%;border-radius:3px;background:var(--violet)}
+  .tb-txt.fini .tb-txt-n{color:var(--text-dim);text-decoration:line-through}
+  .tb-txt.bonus .tb-txt-n{color:var(--text-dim)}
+  .tb-txt.bonus .tb-barre > span{background:var(--text-dim)}
+  .tb-txt.prio .tb-txt-n::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--violet);margin-right:7px;vertical-align:2px}
+  .tb-vide{margin:0;font-size:14px;color:var(--text-dim)}
+  /* Les stats */
+  .tb-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .tb-stats .tb-tuile{align-items:center;justify-content:center;text-align:center;gap:2px;padding:12px 4px;min-height:74px}
+  .tb-stats b{font-family:var(--display);font-size:20px;font-weight:800;line-height:1.1;white-space:nowrap}
+  .tb-stats span{font-size:11px;font-weight:600;color:var(--text-dim);line-height:1.2}
+  .tb-stats .tb-toutes{color:var(--violet)}
+  .tb-stats .tb-toutes svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tb-stats .tb-toutes span{color:var(--violet);font-weight:700}
   .bs-back{border:0;background:none;color:var(--accent);font-weight:600;font-size:15px;padding:14px 0 0;cursor:pointer}
   .page-head{margin:14px 0 4px}
   .page-head h1{font-family:var(--display);font-size:28px;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1.15}
@@ -1295,11 +1347,20 @@
         <button type="button" class="q" onclick="goto('stats')"><span class="q-ico"><svg viewBox="0 0 24 24"><path d="M3 21V3"/><path d="M3 21h18"/><rect x="7" y="13" width="3" height="8"/><rect x="12.5" y="9" width="3" height="12"/><rect x="18" y="5" width="3" height="16"/></svg></span><span class="q-l">Stats</span></button>
       </nav>
 
-      <div class="stat-card" id="spectacle-card" style="margin-top:20px;text-align:center;">
-        <div class="big-num" id="spectacle-date" style="font-size:20px;"></div>
+      <!-- Tableau de bord : des cartes, comme l'accueil de Mon quotidien -->
+      <div class="tb">
+        <div class="tb-duo">
+          <button type="button" class="tb-tuile tb-spec" onclick="goto('tests')" aria-label="Date estimée du spectacle">
+            <span class="tb-lab">Spectacle</span>
+            <span class="tb-spec-d" id="spectacle-date"></span>
+            <span class="tb-sous" id="spectacle-sous"></span>
+          </button>
+          <div id="home-week-summary"></div>
+        </div>
+        <div id="home-rotation"></div>
+        <div id="home-stats"></div>
       </div>
-
-      <div class="gen-row" style="margin-top:12px;">
+      <div class="gen-row" hidden><!-- mot au hasard et liste d’écriture : retirés de l’accueil, toujours utilisés par la session d’écriture du minuteur -->
         <div class="stat-card gen-card" id="word-gen-card" onclick="generateRandomWord()" style="cursor:pointer;">
           <div class="big-num" id="random-word-display" style="font-size:22px;">—</div>
         </div>
@@ -1309,7 +1370,6 @@
         </div>
       </div>
 
-      <div id="home-week-summary" style="margin-top:20px;"></div>
 
 
       <!-- Liens Notion cachés ici : ils sont sur l'accueil de Mon quotidien, qui les lit dans ce bloc. Objectifs : depuis l'accueil de Mon quotidien -->
@@ -4710,6 +4770,8 @@ function renderHomeRating(){
 
   renderSpectacleCard();
   renderHomeWeekSummary();
+  renderHomeRotation();
+  renderHomeStats();
   renderHomeTodayPlateaux();
 }
 
@@ -4761,46 +4823,68 @@ function renderHomeWeekSummary(){
 
   const sign = netMoney >= 0 ? '+' : '';
   const moneyColor = netMoney >= 0 ? 'var(--s2)' : 'var(--s0)';
+  // Touchez la carte : on voit à côté les chiffres du mois précédent au même stade
+  const c = (val, lab, prev, style) => `<div class="tb-c"><b${style ? ` style="${style}"` : ''}>${val}</b><span>${lab} <i>· ${prev}</i></span></div>`;
   wrap.innerHTML = `
-    <div class="section-label">${monthName}</div>
-    <div class="stat-card week-summary-card" id="week-summary-card" onclick="toggleMonthComparison()">
-      <div class="week-stat">
-        <span class="big-num">${sceneCount}</span><span class="label">scène(s)</span>
-        <span class="week-stat-compare">${prevScenes.length}</span>
+    <div class="tb-tuile tb-mois" id="week-summary-card" role="button" onclick="toggleMonthComparison()" aria-label="${monthName} : toucher pour comparer avec ${prevMonthName}">
+      <div class="tb-titre"><b>${monthName}</b><span>vs ${prevMonthName.slice(0,3).toLowerCase()}.</span></div>
+      <div class="tb-chiffres">
+        ${c(sceneCount, sceneCount > 1 ? 'scènes' : 'scène', prevScenes.length)}
+        ${c(sign + Math.round(netMoney) + '€', 'bénéfice', prevSign + Math.round(prevNet) + '€', 'color:' + moneyColor)}
+        ${c(tested, tested > 1 ? 'testées' : 'testée', prevTested)}
+        ${c(validated, validated > 1 ? 'validées' : 'validée', prevValidated)}
       </div>
-      <div class="week-stat">
-        <span class="big-num" style="color:${moneyColor};">${sign}${Math.round(netMoney)}€</span><span class="label">bénéfice</span>
-        <span class="week-stat-compare">${prevSign}${Math.round(prevNet)}€</span>
-      </div>
-      <div class="week-stat">
-        <span class="big-num">${tested}</span><span class="label">testée(s)</span>
-        <span class="week-stat-compare">${prevTested}</span>
-      </div>
-      <div class="week-stat">
-        <span class="big-num">${validated}</span><span class="label">validée(s)</span>
-        <span class="week-stat-compare">${prevValidated}</span>
-      </div>
-      <div class="week-stat">
-        <div style="display:flex;gap:4px;">
-          <div>
-            <div class="quality-pill" style="background:var(--s0);">${nulles}</div>
-            <div class="quality-pill" style="background:var(--s1);">${sympas}</div>
-            <div class="quality-pill" style="background:var(--s2);">${belles}</div>
-          </div>
-          <div class="quality-compare-col">
-            <div class="quality-pill quality-pill-muted">${prevQuality.nulles}</div>
-            <div class="quality-pill quality-pill-muted">${prevQuality.sympas}</div>
-            <div class="quality-pill quality-pill-muted">${prevQuality.belles}</div>
-          </div>
-        </div>
+      <div class="tb-qual" aria-label="Nulles, sympas, belles">
+        <span style="background:var(--s0);">${nulles}<i> · ${prevQuality.nulles}</i></span>
+        <span style="background:var(--s1);color:var(--on-s1);">${sympas}<i> · ${prevQuality.sympas}</i></span>
+        <span style="background:var(--s2);">${belles}<i> · ${prevQuality.belles}</i></span>
       </div>
     </div>
   `;
 }
 
+// Carte « Rotation » : les textes de la rotation en cours, du plus urgent au moins urgent
+function renderHomeRotation(){
+  const wrap = document.getElementById('home-rotation');
+  if(!wrap) return;
+  const {data, core, bonus, minActiveCount, maxRemainingAtMin} = computeRotationStatus();
+  const cpt = data.totalScenes !== null ? `${data.scenesUsed}/${data.totalScenes} scènes` : '';
+  if(!core.length && !bonus.length){
+    wrap.innerHTML = `<button type="button" class="tb-tuile tb-rot" onclick="goto('tests')"><div class="tb-titre"><b>Rotation</b><span>${cpt}</span></div><p class="tb-vide">Pas encore de texte en rotation. Touche pour en choisir.</p></button>`;
+    return;
+  }
+  const ligne = (x, bonusRow) => {
+    const prio = !bonusRow && !x.done && minActiveCount !== null && x.sessionsCount === minActiveCount && x.remaining === maxRemainingAtMin;
+    const a = x.done ? 'fini ✓' : (!bonusRow && x.rate) ? `≈ ${x.rate} tests` : '';
+    return `<button type="button" class="tb-txt${x.done ? ' fini' : ''}${bonusRow ? ' bonus' : ''}${prio ? ' prio' : ''}" onclick="event.stopPropagation(); goto('tests'); openTextDetail(${x.text.id})">
+      <span class="tb-txt-h"><span class="tb-txt-n">${bonusRow ? '⭐ ' : ''}${escapeHtml(x.text.name)}</span>${a ? `<span class="tb-txt-a">${a}</span>` : ''}<span class="tb-txt-v">${x.validated}/${TEXT_TARGET}</span></span>
+      <span class="tb-barre"><span style="width:${Math.min(100, x.validated / TEXT_TARGET * 100)}%"></span></span>
+    </button>`;
+  };
+  wrap.innerHTML = `<div class="tb-tuile tb-rot" role="button" onclick="goto('tests')">
+    <div class="tb-titre"><b>Rotation</b><span>${cpt}</span></div>
+    <div class="tb-txts">${core.map(x => ligne(x, false)).join('')}${bonus.map(x => ligne(x, true)).join('')}</div>
+  </div>`;
+}
+
+// Carte « Stats » : 3 chiffres de toujours, et la 4e case ouvre toutes les stats
+function renderHomeStats(){
+  const wrap = document.getElementById('home-stats');
+  if(!wrap) return;
+  const list = loadScenes();
+  const avg = list.length ? list.reduce((a, s) => a + (s.total || 0), 0) / list.length : 0;
+  const net = list.reduce((a, s) => a + (s.gains || 0) - (s.depenses || 0), 0);
+  wrap.innerHTML = `<div class="tb-titre" style="padding:0 2px 8px"><b>Depuis le début</b></div><div class="tb-stats">
+    <button type="button" class="tb-tuile" onclick="goto('stats')"><b>${list.length}</b><span>${list.length > 1 ? 'scènes' : 'scène'}</span></button>
+    <button type="button" class="tb-tuile" onclick="goto('stats')"><b>${avg.toFixed(1).replace('.', ',')}</b><span>moyenne /20</span></button>
+    <button type="button" class="tb-tuile" onclick="goto('stats')"><b style="color:${net >= 0 ? 'var(--s2)' : 'var(--s0)'}">${fmtEuro(net)}</b><span>solde</span></button>
+    <button type="button" class="tb-tuile tb-toutes" onclick="goto('stats')" aria-label="Toutes les stats"><svg viewBox="0 0 24 24"><path d="M3 21V3"/><path d="M3 21h18"/><rect x="7" y="13" width="3" height="8"/><rect x="12.5" y="9" width="3" height="12"/><rect x="18" y="5" width="3" height="16"/></svg><span>Toutes les stats</span></button>
+  </div>`;
+}
+
 function toggleMonthComparison(){
   const el = document.getElementById('week-summary-card');
-  if(el) el.classList.toggle('expanded');
+  if(el) el.classList.toggle('ouvert');
 }
 
 function renderHomeTodayPlateaux(){
@@ -4875,13 +4959,15 @@ function renderSpectacleCard(){
 
   const r = computeSpectacleEstimate();
 
+  const sous = document.getElementById('spectacle-sous');
+  if(sous) sous.textContent = `${r.totalValidated}/${r.target} blagues`;
   if(r.totalValidated >= r.target){
-    dateEl.textContent = 'Spectacle complet ! 🎉';
+    dateEl.innerHTML = '<em>Complet ! 🎉</em>';
   } else if(r.ratePerDay <= 0){
-    dateEl.textContent = 'Pas assez de rythme récent pour estimer';
+    dateEl.innerHTML = '<em>Pas assez de rythme récent</em>';
   } else {
-    const dateStr = r.projectedDate.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
-    dateEl.textContent = dateStr;
+    const d = r.projectedDate;
+    dateEl.innerHTML = `<b>${d.getDate()}</b><em>${escapeHtml(d.toLocaleDateString('fr-FR', {month:'short'}))}</em><small>${d.getFullYear()}</small>`;
   }
 }
 

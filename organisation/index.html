@@ -128,6 +128,51 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 [data-drag-l] + [data-drag-l]{margin-top:10px}
 [data-drag-l].drag{transition:none;position:relative;z-index:2;box-shadow:0 8px 22px rgba(0,0,0,.3)}
 .task.simple{padding-left:10px}
+/* ---------- Tableau de bord ---------- */
+.ob{display:flex;flex-direction:column;gap:12px;margin:0 0 16px}
+.ob-t{background:var(--sunk);border:0;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;color:var(--ink);text-align:left;font-family:inherit;position:relative}
+button.ob-t{width:100%}
+.ob-titre{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}
+.ob-titre b{font-family:var(--display);font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-titre > span{font-size:12px;font-weight:700;color:var(--muted)}
+.ob-vide{margin:0;font-size:14px;color:var(--muted)}
+.ob-sous{font-size:12.5px;font-weight:600;color:var(--muted)}
+.ob-bande{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,4fr);gap:8px;align-items:start}
+.ob-btns{display:flex;flex-direction:column;gap:8px;height:132px}
+.ob-bbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:0;border-radius:14px;background:var(--sunk);color:var(--ink);font-size:11px;font-weight:600;line-height:1.15;padding:6px 2px;text-align:center}
+.ob-bbtn svg{color:var(--denim)}
+.ob-bloc{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ob-car{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;margin:0 -16px 0 0;padding:0 16px 0 0}
+.ob-car.pleine{margin:0 -16px;padding:0 16px;scroll-padding:0 16px}
+.ob-car::-webkit-scrollbar{display:none}
+.ob-car > .ob-t{flex:0 0 100%;scroll-snap-align:start}
+.ob-points{display:flex;justify-content:center;gap:6px}
+.ob-points span{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
+.ob-points span.on{background:var(--denim);width:16px;border-radius:3px}
+.ob-rout{height:132px;background:color-mix(in srgb,var(--c,var(--denim)) 18%,var(--sunk));cursor:pointer}
+.ob-rout .ob-titre b{color:var(--c,var(--ink))}
+.ob-steps{display:flex;flex-wrap:wrap;gap:4px;overflow:hidden;max-height:50px}
+.ob-steps span{font-size:12px;font-weight:600;background:color-mix(in srgb,var(--surface) 70%,transparent);border-radius:8px;padding:3px 8px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-play{position:absolute;right:12px;top:10px;display:flex;align-items:center;gap:5px;border:0;border-radius:99px;background:var(--c,var(--denim));color:var(--surface);font-size:12.5px;font-weight:700;padding:6px 11px}
+.ob-rout .ob-titre{padding-right:84px}
+.ob-cat{height:190px;background:color-mix(in srgb,var(--c,var(--denim)) 16%,var(--sunk))}
+.ob-cat .ob-titre b{color:var(--c,var(--ink))}
+.ob-liste{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none;display:flex;flex-direction:column;gap:4px}
+.ob-liste::-webkit-scrollbar{display:none}
+.ob-l{display:flex;align-items:center;gap:8px;border:0;border-radius:10px;background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--ink);padding:8px 10px;text-align:left;flex:none;min-width:0;font-family:inherit}
+.ob-l span{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-l small{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.ob-l.fait span{text-decoration:line-through;color:var(--muted)}
+.ob-prio{font-style:normal;flex:none;width:16px;height:16px;border-radius:50%;background:var(--today);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.ob-evs{height:230px}
+.ob-lien{border:0;background:none;color:var(--denim);font-size:12.5px;font-weight:700;padding:0}
+.ob-ev{display:flex;align-items:center;gap:10px;border:0;border-radius:12px;background:color-mix(in srgb,var(--c) 14%,var(--surface));color:var(--ink);padding:7px 10px;text-align:left;flex:none;min-width:0;font-family:inherit}
+.ob-ev-d{flex:none;width:38px;display:flex;flex-direction:column;align-items:center;line-height:1}
+.ob-ev-d b{font-family:var(--display);font-size:18px;font-weight:800;color:var(--c)}
+.ob-ev-d small{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:2px}
+.ob-ev-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ob-ev-t b{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-ev-t small{font-size:12px;color:var(--muted)}
 .task-body{flex:1;min-width:0;min-height:48px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px}
 .t-title{font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task.done .t-title{color:var(--muted);text-decoration:line-through}
@@ -1441,15 +1486,9 @@ function renderHome() {
         ${tips.length > 1 ? `<div class="tip-dots" aria-hidden="true">${tips.map((_, i) => `<span class="${i ? '' : 'on'}"></span>`).join('')}</div>` : ''}</div>` : ''}
     </div>
     ${tasksE.length ? `<div class="hero-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement du jour"><span style="width:${pct}%"></span></div>` : ''}
-    ${(() => {
-      const hols = []; for (let i = 1; i <= 30; i++) { const d = addDays(t, i), n = holiday(d); if (n) hols.push({ d, n }); }
-      const all = [...evs.map(e => ({ d: e.d, html: (() => { const th = themeOf(e.t); return `<button type="button" class="chip catc c-${th ? th.color || 'slate' : 'slate'}" data-a="edit" data-id="${e.t.id}" data-d="${e.d}"><span class="ell">${th ? h(th.emoji) + ' ' : ''}${h(e.t.title)}</span><span class="when">${h(whenEv(e))}</span></button>`; })() })),
-        ...hols.map(x => ({ d: x.d, html: `<span class="chip catc hol-chip"><span class="ell">🇫🇷 ${h(x.n)}</span><span class="when">${h(dayMonth(x.d))}</span></span>` }))]
-        .sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
-      return all.length ? `<div class="hero-sec hero-row"><span class="late-label">Bientôt</span>${all.map(x => x.html).join('')}</div>` : '';
-    })()}
   </section>`;
 
+  html += dashboardHTML();
   html += `<nav class="shortcuts" aria-label="Raccourcis">
     <button type="button" class="sc" data-a="open-todo"><span class="sc-ico">${ic(P.todo, 20, 1.5)}${remaining ? `<span class="badge">${remaining}</span>` : ''}</span><span class="sc-lbl">Planning</span></button>
     <button type="button" class="sc" data-a="open-lists"><span class="sc-ico">${ic(P.bookmark, 20, 1.5)}</span><span class="sc-lbl">Listes</span></button>
@@ -1481,11 +1520,65 @@ function renderHome() {
       requestAnimationFrame(() => requestAnimationFrame(() => { wk.style.transition = 'transform .18s ease, opacity .18s'; wk.style.transform = ''; wk.style.opacity = ''; }));
     }
   }
+  brancherOb();
   const track = $('.tips-track', app);
   if (track) track.addEventListener('scroll', () => {
     const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
     app.querySelectorAll('.tip-dots span').forEach((x, j) => x.classList.toggle('on', i === j));
   }, { passive: true });
+}
+
+/* ---------- Tableau de bord : routines, tâches par catégorie, événements (même esprit que l'accueil) ---------- */
+function dashboardHTML() {
+  const t0 = today();
+  const pts = n => n > 1 ? `<div class="ob-points" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
+  // Routines : une diapo par routine ; à gauche (1/5), « Nouvelle routine »
+  const rs = S.routines.slice().sort(byOrder);
+  const rDiapos = rs.map(r => {
+    const th = S.themes.find(x => x.id === r.themeId), col = th ? th.color || 'slate' : 'slate';
+    const steps = routineSteps(r), live = steps.filter(x => !x.info.done), tot = routineTotal(r);
+    return `<div class="ob-t ob-rout c-${col}" data-a="routine-edit" data-id="${r.id}" role="button">
+      <div class="ob-titre"><b>${h(r.emoji)} ${h(r.name)}</b></div>
+      <span class="ob-sous">${plural(live.length, 'étape', 'étapes')}${tot ? ' · ' + fmtMin(tot) : ''}${steps.length > live.length ? ' · ' + (steps.length - live.length) + ' faite' + (steps.length - live.length > 1 ? 's' : '') : ''}</span>
+      <div class="ob-steps">${live.slice(0, 3).map(({ info }) => `<span>${h(info.title)}</span>`).join('')}${live.length > 3 ? `<span class="muted">+ ${live.length - 3}</span>` : ''}</div>
+      <button type="button" class="ob-play" data-a="routine-launch" data-id="${r.id}" aria-label="Lancer ${h(r.name)}">${PLAY}Lancer</button>
+    </div>`;
+  });
+  const routines = `<div class="ob-bande"><div class="ob-btns"><button type="button" class="ob-bbtn" data-a="new-routine">${ic(P.plus, 20, 2)}<span>Nouvelle routine</span></button></div>
+    <div class="ob-bloc">${rDiapos.length ? `<div class="ob-car" data-car="routines">${rDiapos.join('')}</div>${pts(rDiapos.length)}` : `<button type="button" class="ob-t ob-rout" data-a="new-routine"><p class="ob-vide">Pas encore de routine. Touche pour en créer une.</p></button>`}</div></div>`;
+  // Tâches par catégorie : une diapo par catégorie (avec ses sous-catégories)
+  const estTache = t => !t.srcId && !t.info && t.kind !== 'event';
+  const cats = topThemes().map(th => {
+    const ids = [th.id, ...childrenOf(th.id).map(c => c.id)];
+    const ts = S.tasks.filter(t => estTache(t) && ids.includes(t.themeId)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
+    return { th, ts };
+  }).filter(g => g.ts.length);
+  const orph = S.tasks.filter(t => estTache(t) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
+  if (orph.length) cats.push({ th: { emoji: '📌', name: 'Sans catégorie', color: 'slate' }, ts: orph });
+  const quand = t => { const n = t.rep ? nextOcc(t, t0) : t.date; return t.rep ? repShort(t) : n ? (n < t0 ? 'en retard' : dayMonth(n)) : 'sans date'; };
+  const cDiapos = cats.map(({ th, ts }) => `<div class="ob-t ob-cat c-${th.color || 'slate'}">
+      <div class="ob-titre"><b>${h(th.emoji + ' ' + th.name)}</b><span>${ts.length}</span></div>
+      <div class="ob-liste">${ts.map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}" data-a="edit" data-id="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('')}</div>
+    </div>`);
+  const taches = `<div class="ob-bloc">${cDiapos.length ? `<div class="ob-car pleine" data-car="cats">${cDiapos.join('')}</div>${pts(cDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore de tâche.</p></div>`}</div>`;
+  // Événements : tout ce qui arrive (4 mois)
+  const up = [];
+  for (let i = 0; i <= 120; i++) { const d = addDays(t0, i); S.tasks.forEach(x => { if (isEvent(x) && occursOn(x, d)) up.push({ t: x, d }); }); }
+  up.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
+  const evs = `<div class="ob-t ob-evs"><div class="ob-titre"><b>Événements</b><button type="button" class="ob-lien" data-a="open-events">${up.length ? up.length + ' à venir' : 'Tous'} ›</button></div>
+    <div class="ob-liste">${up.map(({ t, d }) => { const th = themeOf(t); return `<button type="button" class="ob-ev c-${th ? th.color || 'slate' : 'slate'}" data-a="edit" data-id="${t.id}" data-d="${d}"><span class="ob-ev-d"><b>${parse(d).getDate()}</b><small>${MC[parse(d).getMonth()]}</small></span><span class="ob-ev-t"><b>${th ? h(th.emoji) + ' ' : ''}${h(t.title)}</b><small>${h(JOURS[dow(d)])}${t.time ? ' · ' + h(evWhen(t)) : ''}</small></span></button>`; }).join('') || '<p class="ob-vide">Rien de prévu ces 4 prochains mois.</p>'}</div>
+  </div>`;
+  return `<div class="ob">${routines}${taches}${evs}</div>`;
+}
+// Carrousels du tableau de bord : les points suivent, et on garde la position
+const obPos = {};
+function brancherOb() {
+  document.querySelectorAll('.ob-car').forEach(car => {
+    const k = car.dataset.car; if (obPos[k]) car.scrollLeft = obPos[k];
+    const p = car.parentNode.querySelectorAll('.ob-points span');
+    const maj = () => { obPos[k] = car.scrollLeft; const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth + 10)); p.forEach((x, j) => x.classList.toggle('on', i === j)); };
+    car.addEventListener('scroll', maj, { passive: true }); maj();
+  });
 }
 
 /* ---------- Fenêtres du bas ---------- */
@@ -3234,6 +3327,7 @@ const A = {
     renderHome();
     const el = document.getElementById('day-' + tom); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
+  'open-events': () => { U.todoView = 'events'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-lists': () => openSheet({ render: renderLists, label: 'Listes' }),
   'open-backup': () => openBackup(),

@@ -519,6 +519,7 @@ dialog h2:focus{outline:none}
 .retour div{flex:1;min-width:0}
 .retour p{margin:0;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
 .retour small{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+.ac-nouveau{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:1.5px dashed var(--line);border-radius:12px;background:none;color:var(--denim);font:700 14px/1 var(--body);padding:12px;margin:-2px 0 2px}
 .ac-res{display:flex;flex-direction:column;max-height:50dvh;overflow-y:auto}
 .ac-p{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:500 16px/1.3 var(--body);padding:12px 4px;text-align:left}
 .ac-p .ac-e{color:var(--denim);font-weight:700;font-size:15px;white-space:nowrap}
@@ -1503,6 +1504,7 @@ async function ouvrirAjoutCourse(){
   const dlg = $('#ajout-course');
   dlg.innerHTML = `<div class="feuille"><h2 tabindex="-1" autofocus>Ajouter aux courses</h2>
     <label class="champ"><input id="ac-q" type="search" placeholder="Chercher un produit…" autocomplete="off" enterkeyhint="search"></label>
+    <button type="button" class="ac-nouveau" data-ac="creer">${svg('<path d="M12 5v14M5 12h14"/>', 16)}Nouveau produit</button>
     <div id="ac-res" class="ac-res"><p class="hint">Chargement…</p></div>
     <button type="button" class="btn" data-ac="fermer">Fermer</button></div>`;
   dlg.showModal();
@@ -1518,7 +1520,7 @@ function majAjoutCourse(){
   const liste = produitsCO.filter(p => !q || sansAccent(p.nom).includes(q)).slice(0, 30);
   const exact = q && produitsCO.some(p => sansAccent(p.nom) === q);
   box.innerHTML = liste.map(p => `<button type="button" class="ac-p${p.dans ? ' dans' : ''}" data-ac="ajouter" data-id="${esc(p.id)}"${p.dans ? ' disabled' : ''}><span>${esc(p.emoji)} ${esc(p.nom)}</span><span class="ac-e">${p.dans ? 'dans la liste' : '＋'}</span></button>`).join('')
-    + (q && !exact ? `<button type="button" class="ac-p nouveau" data-ac="creer"><span>＋ Nouveau produit « ${esc($('#ac-q').value.trim())} »</span><span class="ac-e">dans Courses</span></button>` : '')
+    + (q && !exact ? `<button type="button" class="ac-p nouveau" data-ac="creer"><span>＋ Nouveau produit « ${esc($('#ac-q').value.trim())} »</span><span class="ac-e">créer</span></button>` : '')
     + (!liste.length && !q ? '<p class="hint">Aucun produit pour l’instant.</p>' : '');
 }
 $('#ajout-course').addEventListener('input', e => { if(e.target.id === 'ac-q') majAjoutCourse(); });
@@ -1535,8 +1537,9 @@ $('#ajout-course').addEventListener('click', async e => {
     toast(`${p ? p.nom : 'Produit'} ajouté 🛒`); planifierAccueil(300);
   }
   else if(b.dataset.ac === 'creer'){
+    // On ferme ce volet et on ouvre la fiche « Nouveau produit » des Courses par-dessus l'accueil
     const nom = $('#ac-q').value.trim(); dlg.close();
-    window.quotidien.ouvrir('courses', {action:'ajouter', nom});
+    superposer('courses', {action:'nouveauProduit', nom}).then(ok => { if(!ok) window.quotidien.ouvrir('courses', {action:'ajouter', nom}); });
   }
 });
 

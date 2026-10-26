@@ -47,6 +47,64 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--denim);outline-offset:2px}
 h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+/* ---------- Tableau de bord (même esprit que Backstage et l'accueil) ---------- */
+.cb{display:flex;flex-direction:column;gap:12px}
+.cb-t{background:var(--sunk);border:0;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;color:var(--ink);text-align:left;font-family:var(--body)}
+button.cb-t{cursor:pointer;width:100%}
+.cb-titre{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cb-titre b{font-family:var(--display);font-size:16px;font-weight:800}
+.cb-titre span{font-size:11.5px;font-weight:700;color:var(--denim);white-space:nowrap}
+.cb-vide{margin:0;font-size:13.5px;color:var(--muted)}
+.cb-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch}
+.cb-rl{display:flex;flex-direction:column;gap:4px}
+.cb-rl > div{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;min-width:0}
+.cb-rl i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c)}
+.cb-rl span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-rl b{font-family:var(--display);font-weight:800;color:var(--c)}
+.cb-dep{justify-content:space-between}
+.cb-dep-l{display:flex;flex-direction:column}
+.cb-dep-l span{font-size:11.5px;font-weight:600;color:var(--muted)}
+.cb-dep-l b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1.1}
+.cb-dep-l b.prec{font-size:16px;color:var(--muted)}
+.cb-dep-l b.moy{font-size:16px;color:var(--denim)}
+.cb-low{flex-direction:row;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 12px}
+.cb-low-t{flex:none;font-size:12.5px;font-weight:700;color:var(--warn)}
+.cb-low-l{display:flex;gap:6px}
+.cb-bande{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,4fr);gap:8px;align-items:start}
+.cb-btns{display:flex;flex-direction:column;gap:8px;height:170px}
+.cb-bbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:14px;background:var(--sunk);color:var(--ink);font:600 11px/1.15 var(--body);padding:6px 2px;text-align:center;min-height:0}
+.cb-bbtn svg{width:19px;height:19px;color:var(--denim)}
+.cb-bloc{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cb-car{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;margin:0 -16px 0 0;padding:0 16px 0 0}
+.cb-car::-webkit-scrollbar{display:none}
+.cb-ray{flex:0 0 100%;scroll-snap-align:start;height:170px;background:color-mix(in srgb,var(--c) 16%,var(--sunk))}
+.cb-ray .cb-titre b{color:var(--c)}
+.cb-ray .cb-titre span{color:var(--muted)}
+.cb-pl{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none;display:flex;flex-direction:column;gap:3px}
+.cb-pl::-webkit-scrollbar{display:none}
+.cb-p{position:relative;display:flex;align-items:center;gap:6px;border:0;border-radius:10px;background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--ink);font:600 14px/1.2 var(--body);padding:8px 10px;text-align:left;flex:none;overflow:hidden}
+.cb-p > span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-p small{font-size:12px}
+.cb-p .sbar{position:absolute;left:10px;right:10px;bottom:3px;height:2px}
+.cb-points{display:flex;justify-content:center;gap:6px}
+.cb-points span{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
+.cb-points span.on{background:var(--denim);width:16px;border-radius:3px}
+.cb-hist{gap:2px}
+.cb-h{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.cb-titre + .cb-h{border-top:0}
+.cb-h span{flex:1;font-weight:600}
+.cb-h small{font-size:12px;color:var(--muted)}
+.cb-h b{font-family:var(--display);font-weight:800;min-width:64px;text-align:right}
+.cb-gl{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.cb-gl > div{display:grid;grid-template-columns:5.6em minmax(0,1fr) 2.6em 4.6em;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
+.cb-gl span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-gl i{display:block;height:9px;border-radius:5px;background:color-mix(in srgb,var(--c) 18%,transparent);overflow:hidden}
+.cb-gl i em{display:block;height:100%;border-radius:5px;background:var(--c)}
+.cb-gl b{font-family:var(--display);font-weight:800;color:var(--c);text-align:right}
+.cb-gl small{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.cb-note{margin:4px 0 0;font-size:11px;color:var(--muted)}
+html.qd-superpose,html.qd-superpose body{background:transparent!important}
+html.qd-superpose #app{visibility:hidden}
 main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
 .muted{color:var(--muted)}
 .t-today{color:var(--today)}.t-tomorrow{color:var(--tomorrow)}
@@ -827,6 +885,20 @@ async function boot(){
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') rangerCoches(); });
   // Toucher l'onglet Courses : toujours la liste (on ferme les fiches ouvertes)
   window.quotidienAccueil = () => { document.querySelectorAll('dialog[open]').forEach(d => { try{ d.close(); }catch(e){} }); window.scrollTo(0, 0); };
+  // Mon quotidien : la fiche « Nouveau produit » par-dessus l'accueil (sans changer d'onglet) ; le produit va dans la liste
+  window.quotidienSuperpose = q => {
+    if(!q || q.action !== 'nouveauProduit') return false;
+    window.__superpose = true; document.documentElement.classList.add('qd-superpose');
+    openProduct(null, {name: cap(String(q.nom || '').trim()), onSaved: p => { if(p){ addToList(p); render(); toast(`${p.name} ajouté à la liste 🛒`); } }});
+    const fin = () => setTimeout(() => {
+      if(document.querySelector('dialog[open]')) return;
+      window.__superpose = false; document.documentElement.classList.remove('qd-superpose');
+      try{ window.parent.quotidien.finSuperpose('courses'); }catch(e){}
+    }, 250);
+    const obs = new MutationObserver(() => { if(!document.querySelector('dialog[open]')){ obs.disconnect(); fin(); } });
+    setTimeout(() => obs.observe(document.body, {subtree:true, attributes:true, attributeFilter:['open'], childList:true}), 50);
+    return true;
+  };
   window.quotidienAction = q => {
     if(q && q.action === 'ajouter'){
       // Produit inconnu tapé sur l'accueil : on ouvre « Ajouter » des Courses avec ce nom déjà écrit
@@ -912,27 +984,44 @@ function render(){
     if(!wide){ halfSeen++; if(half % 2 && halfSeen === half) wide = true; }
     return `<section class="bento-card rc-${c.r}${wide ? ' wide' : ''}${c.n >= 4 ? ' cols' : ''}">${c.html}</section>`;
   }).join('');
-  const leftN = items.length - checkedN;
+  // ---- Tableau de bord (la liste elle-même est sur l'accueil de Mon quotidien) ----
+  const tk = [...S.tickets.values()].sort((a, b) => b.date - a.date);
+  // 1) Ce mois, par rayon  ·  2) Dépenses
+  const tuileMois = `<div class="cb-t cb-mois"><div class="cb-titre"><b>${cap(new Date().toLocaleDateString('fr-FR', {month:'long'}))}</b><span>par rayon</span></div>
+    ${mTot > 0 ? `<div class="cb-rl">${rs.slice(0, 5).map(([r, v]) => `<div class="rc-${r}"><i></i><span>${SH[r]}</span><b>${Math.round(v / mTot * 100)}%</b></div>`).join('')}</div>` : '<p class="cb-vide">Pas encore de courses ce mois-ci.</p>'}</div>`;
+  const tuileDep = `<div class="cb-t cb-dep"><div class="cb-titre"><b>Dépenses</b></div>
+    <div class="cb-dep-l"><span>${months[0].long}</span><b>${Math.round(months[0].sum)} €</b></div>
+    <div class="cb-dep-l"><span>${months[1].long}</span><b class="prec">${Math.round(months[1].sum)} €</b></div>
+    ${avg != null ? `<div class="cb-dep-l"><span>Par course</span><b class="moy">≈ ${Math.round(avg)} €</b></div>` : ''}</div>`;
+  const tuileBas = low.length ? `<div class="cb-t cb-low"><span class="cb-low-t">🪫 Presque vide</span><div class="cb-low-l">${low.map(p => `<button type="button" class="lowchip" data-act="pfiche" data-id="${p.id}">${emojiOf(p)} ${esc(p.name)}</button>`).join('')}</div></div>` : '';
+  // 3) Tous les produits : une diapo par rayon ; à gauche (1/5), le bouton pour en créer un
+  const prods = [...S.products.values()];
+  const diapos = RAYONS.map(([r, label]) => {
+    const arr = prods.filter(p => (p.rayon || 'autre') === r).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    if(!arr.length) return '';
+    return `<div class="cb-t cb-ray rc-${r}"><div class="cb-titre"><b>${label}</b><span>${arr.length}</span></div>
+      <div class="cb-pl">${arr.map(p => { const pc = stockPct(p); return `<button type="button" class="cb-p" data-act="pfiche" data-id="${p.id}"><span>${nameE(p)}</span>${inList(p.id) ? '<small>🛒</small>' : ''}${pc != null ? `<em class="sbar"><i style="width:${Math.max(3, pc)}%"></i></em>` : ''}</button>`; }).join('')}</div></div>`;
+  }).filter(Boolean);
+  const produits = `<div class="cb-bande"><div class="cb-btns"><button type="button" class="cb-bbtn" data-act="newp">${SVG.tag}<span>Nouveau produit</span></button></div>
+    <div class="cb-bloc">${diapos.length ? `<div class="cb-car" data-car="produits">${diapos.join('')}</div><div class="cb-points">${diapos.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : '<button type="button" class="cb-t cb-ray" data-act="newp"><p class="cb-vide">Pas encore de produit. Touche pour en créer un.</p></button>'}</div></div>`;
+  // 4) Les 5 dernières courses
+  const hist = `<button type="button" class="cb-t cb-hist" data-act="tickets"><div class="cb-titre"><b>Dernières courses</b><span>Tout l’historique ›</span></div>
+    ${tk.length ? tk.slice(0, 5).map(t => `<div class="cb-h"><span>${cap(new Date(t.date).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}))}</span><small>${(t.lines || []).length} produit${(t.lines || []).length > 1 ? 's' : ''}</small><b>${t.total != null ? fmt2(t.total) + ' €' : '—'}</b></div>`).join('') : '<p class="cb-vide">Pas encore de courses notées.</p>'}</button>`;
+  // 5) Ce que tu achètes, depuis le début : part de chaque rayon et moyenne par course
+  const totR = new Map(); let totAll = 0; const nbT = tk.filter(t => (t.lines || []).some(l => l.price != null)).length;
+  for(const t of tk) for(const l of t.lines || []){ if(l.price == null) continue; const pr = S.products.get(l.pid), r = pr ? (pr.rayon || 'autre') : 'autre'; totR.set(r, (totR.get(r) || 0) + l.price); totAll += l.price; }
+  const rsT = [...totR.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const maxR = rsT.length ? rsT[0][1] : 1;
+  const graph = `<div class="cb-t cb-graph"><div class="cb-titre"><b>Ce que j’achète</b><span>depuis le début · ${nbT} course${nbT > 1 ? 's' : ''}</span></div>
+    ${rsT.length ? `<div class="cb-gl">${rsT.map(([r, v]) => `<div class="rc-${r}"><span>${SH[r]}</span><i><em style="width:${Math.max(3, v / maxR * 100)}%"></em></i><b>${Math.round(v / totAll * 100)}%</b><small>≈ ${fmt2(nbT ? v / nbT : 0)} €</small></div>`).join('')}</div><p class="cb-note">% de tes dépenses · ≈ moyenne par course</p>` : '<p class="cb-vide">Il faut des courses avec des prix pour voir la répartition.</p>'}</div>`;
   $('#app').innerHTML = `
-    <div class="wx">
-      <button type="button" class="wx-open" data-act="tickets" aria-label="Historique des tickets">
-        <span class="wx-day">Ma liste</span>
-        <span class="wx-main"><span class="wx-temp">${Math.round(ns.sum)} €</span></span>
-        <span class="wx-sub">${ns.n} produit${ns.n > 1 ? 's' : ''}</span>
-      </button>
-      ${monthStats}
-      <div class="wx-days wx-pills" aria-label="Dépenses">${months.map(m => `<span class="chip-btn stat">${m.short} · ${Math.round(m.sum)} €</span>`).join('')}${avg != null ? `<span class="chip-btn stat">${Math.round(avg)} € / course</span>` : ''}</div>
-      ${lowStrip}
+    <div class="cb">
+      <div class="cb-duo">${tuileMois}${tuileDep}</div>
+      ${tuileBas}
+      ${produits}
+      ${hist}
+      ${graph}
     </div>
-    <nav class="quick" aria-label="Raccourcis">
-      <button type="button" class="q" data-act="newp"><span class="q-ico">${SVG.tag}</span><span class="q-l">Nouveau produit</span></button>
-      <button type="button" class="q" data-act="products"><span class="q-ico">${SVG.box}</span><span class="q-l">Produits</span></button>
-      <button type="button" class="q" data-act="tickets"><span class="q-ico">${SVG.clock}</span><span class="q-l">Historique</span></button>
-    </nav>
-    <div class="group-title"><span>Ma liste${leftN ? ' · ' + leftN : ''}</span>${PLAN.fridayN ? (PLAN.soon ? `<span class="best">🗓️ courses ${PLAN.toF < 0.5 ? "aujourd'hui" : 'vendredi'}</span>` : `<button type="button" class="peek" data-act="fri" aria-pressed="${PLAN.show}" aria-label="${PLAN.show ? 'Masquer' : 'Afficher'} les ${PLAN.fridayN} produits prévus vendredi" title="Prévus vendredi">${PLAN.show ? SVG.eye : SVG.eyeoff}<span>${PLAN.fridayN}</span></button>`) : ''}</div>
-    <button type="button" class="addline addtop" data-act="add">＋ Ajouter un produit</button>
-    ${items.length ? `<div class="bento">${bento}</div>` : ''}
-    ${checkedN ? `<button type="button" class="btn primary wide checkout" data-act="checkout">Acheté · ${checkedN} coché${checkedN > 1 ? 's' : ''} ✔️</button>` : ''}
     <button type="button" class="linkish foot-link" data-act="backup">Sauvegarde · version ${APP_VERSION}</button>`;
 }
 $('#app').addEventListener('click', e => {
@@ -957,6 +1046,15 @@ $('#app').addEventListener('click', e => {
   else if(a === 'tickets') openTickets();
   else if(a === 'backup') openBackup();
 });
+// Carrousel « Tous les produits » : les points suivent la diapo visible, et on garde la position
+let posProduits = 0;
+new MutationObserver(() => {
+  const car = document.querySelector('.cb-car[data-car="produits"]'); if(!car || car.__branche) return;
+  car.__branche = true; if(posProduits) car.scrollLeft = posProduits;
+  const pts = car.parentNode.querySelectorAll('.cb-points span');
+  const maj = () => { posProduits = car.scrollLeft; const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth + 10)); pts.forEach((p, k) => p.classList.toggle('on', k === i)); };
+  car.addEventListener('scroll', maj, {passive:true}); maj();
+}).observe(document.getElementById('app'), {childList:true});
 $('#app').addEventListener('change', e => {
   const c = e.target.closest('[data-act="check"]'); if(!c) return;
   const it = S.list.get(c.dataset.id); if(!it) return;

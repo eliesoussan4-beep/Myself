@@ -1302,15 +1302,15 @@
   .tb-note .tb-hb > div{grid-template-columns:4.9em minmax(0,1fr);font-size:11.5px}
   .tb-note .tb-hb i{height:7px}
   /* À compléter */
-  .tb-ac{height:100%;gap:6px;min-height:150px;background:color-mix(in srgb,var(--star) 15%,var(--surface-2)) !important}
-  .tb-ac .tb-titre b{color:var(--star)}
-  .tb-ac-n{min-width:24px;height:24px;border-radius:12px;background:var(--star);color:var(--bg) !important;font-family:var(--display);font-size:13px !important;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
-  .tb-ac-l span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--star);margin-right:8px;vertical-align:2px}
+  .tb-ac{height:100%;gap:6px;min-height:150px;background:color-mix(in srgb,var(--accent) 16%,var(--surface-2)) !important}
+  .tb-ac .tb-titre b{color:var(--accent)}
+  .tb-ac-n{min-width:24px;height:24px;border-radius:12px;background:var(--accent);color:var(--bg) !important;font-family:var(--display);font-size:13px !important;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
+  .tb-ac-l span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:2px}
   .tb-ac-h{display:flex;justify-content:space-between;align-items:baseline}
   .tb-ac-h b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1}
   .tb-ac-l{display:flex;flex-direction:column;gap:2px;overflow-y:auto;max-height:104px;scrollbar-width:none;overscroll-behavior-y:contain}
   .tb-ac-l::-webkit-scrollbar{display:none}
-  .tb-ac-l button{display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--text);font:600 14px/1.2 var(--body);padding:5px 0;text-align:left;border-top:1px solid color-mix(in srgb,var(--star) 28%,transparent);cursor:pointer;min-width:0}
+  .tb-ac-l button{display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--text);font:600 14px/1.2 var(--body);padding:5px 0;text-align:left;border-top:1px solid color-mix(in srgb,var(--accent) 26%,transparent);cursor:pointer;min-width:0}
   .tb-ac-l button:first-child{border-top:0}
   .tb-ac-l span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-ac-l i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--star)}
@@ -1328,16 +1328,16 @@
   .tb-bbtn svg{width:19px;height:19px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .tb-bbtn:active{transform:scale(.97)}
   /* Plateaux : la ville, puis un jour par diapo (chaque jour sa couleur), filtres à droite comme sur l'accueil */
-  #home-semaine .tb-car > .tb-tuile{height:118px;padding:10px 12px;gap:6px;cursor:default}
+  #home-semaine .tb-car > .tb-tuile{height:146px;padding:10px 12px;gap:6px;cursor:pointer}
   .tb-bande-d{grid-template-columns:minmax(0,1fr) auto;column-gap:10px}
   .tb-bande-d .tb-car{margin:0;padding:0}
-  .tb-filtres{height:118px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+  .tb-filtres{height:146px;display:flex;flex-direction:column;justify-content:center;gap:12px}
   .tb-f{--sc:var(--text-dim);width:20px;height:20px;border-radius:50%;border:2px solid var(--sc);background:transparent;padding:0;cursor:pointer;opacity:.75;transition:transform .15s}
   .tb-f.t0{--sc:var(--s0)} .tb-f.t1{--sc:var(--s1)} .tb-f.t2{--sc:var(--s2)}
   .tb-f.on{background:var(--sc);opacity:1;transform:scale(1.15)}
-  .tb-ville{justify-content:space-between;gap:8px !important}
-  .tb-ville-n{display:flex;align-items:baseline;gap:6px;border:0;background:none;color:var(--text);padding:0;cursor:pointer;text-align:left;min-width:0}
-  .tb-ville-n b{font-family:var(--display);font-size:24px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-ville{justify-content:space-between;gap:8px !important;cursor:default !important}
+  .tb-ville-n{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:none;color:var(--text);padding:0;cursor:pointer;text-align:center;min-width:0}
+  .tb-ville-n b{font-family:var(--display);font-size:32px;letter-spacing:-.02em;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-ville-n span{font-size:14px;color:var(--accent)}
   .tb-ville-b{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .tb-ville-b button{display:flex;align-items:baseline;justify-content:center;gap:6px;border:0;border-radius:12px;background:var(--surface);color:var(--text);font:600 13px/1 var(--body);padding:11px 6px;cursor:pointer}
@@ -1379,6 +1379,59 @@
   .tb-pl-l span{flex:1;min-width:0;font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-pl-l b{font-size:13.5px;font-weight:700;color:var(--sc);white-space:nowrap}
   .tb-pl-l.tx b{color:var(--text-dim)}
+  /* Spectacle : 2 tuiles (le spectacle, puis ta note) */
+  .tb-spec-car{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:16px;min-width:0}
+  .tb-spec-car::-webkit-scrollbar{display:none}
+  .tb-spec-car > .tb-tuile{flex:0 0 100%;scroll-snap-align:start}
+  .tb-etoiles{cursor:pointer;padding:4px 6px;margin:-4px -6px 0;border-radius:10px}
+  .tb-note2{gap:5px;padding:10px 12px;cursor:pointer}
+  .tb-n2{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:6px;row-gap:2px}
+  .tb-n2 > span{font-size:10.5px;font-weight:600;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-n2 > b{font-family:var(--display);font-size:13px;font-weight:800;white-space:nowrap}
+  .tb-n2 > b small{font-size:10px;color:var(--text-dim);font-weight:700}
+  .tb-n2 > i{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--star) 20%,transparent);overflow:hidden}
+  .tb-n2 > i em{display:block;height:100%;border-radius:2px;background:var(--star)}
+  /* Période des stats (en haut à droite) */
+  .tb-per{font-size:11.5px;font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);border-radius:99px;padding:4px 9px;white-space:nowrap;cursor:pointer}
+  .tb-graph text.petit{font-size:7.5px}
+  /* Le rotation : 🎤 3/36 se touche */
+  .tb-r-c[role="button"]{cursor:pointer;border-radius:99px;padding:3px 7px;margin:-3px -7px -3px 0;background:color-mix(in srgb,var(--text) 8%,transparent)}
+  /* Vidéos */
+  .tb-btns-v{height:96px}
+  #home-videos .tb-car > .tb-tuile{height:96px}
+  .tb-video{flex-direction:row !important;align-items:stretch;gap:10px !important;padding:8px !important}
+  .tb-video-vide{height:96px;align-items:center;padding:12px 14px !important}
+  .tb-v-img{position:relative;flex:none;width:136px;border-radius:10px;overflow:hidden;background:var(--surface);display:block}
+  .tb-v-img img{width:100%;height:100%;object-fit:cover;display:block}
+  .tb-v-img span{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.78);color:#fff;font-size:11px;font-weight:700;border-radius:5px;padding:2px 5px}
+  .tb-v-t{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+  .tb-v-t b{font-size:13.5px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tb-v-b{display:flex;gap:6px}
+  .tb-v-copier{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);font:700 12.5px/1 var(--body);padding:8px 6px;cursor:pointer}
+  .tb-v-copier svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tb-v-x{flex:none;width:32px;border:0;border-radius:10px;background:var(--surface);color:var(--text-dim);font-size:13px;cursor:pointer}
+  /* Un jour en grand */
+  .jour-overlay{opacity:0;transition:opacity .2s}
+  .jour-overlay.on{opacity:1}
+  #jour-carte{width:min(92vw,420px);aspect-ratio:1;max-height:86dvh;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.35);transform:scale(.94);transition:transform .2s}
+  .jour-overlay.on #jour-carte{transform:none}
+  #jour-carte .tb-titre b{font-size:22px}
+  .jc-liste{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-width:none}
+  .jc-pl{--sc:var(--text-dim);background:color-mix(in srgb,var(--surface) 75%,transparent);border-radius:12px}
+  .jc-pl.t0{--sc:var(--s0)} .jc-pl.t1{--sc:var(--s1)} .jc-pl.t2{--sc:var(--s2)}
+  .jc-h{width:100%;display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--text);padding:12px 14px;font-family:var(--body);text-align:left;cursor:pointer}
+  .jc-h i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--sc)}
+  .jc-pl.tx .jc-h i{background:none;box-shadow:inset 0 0 0 1.5px var(--text-dim)}
+  .jc-h span{flex:1;min-width:0;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .jc-h b{font-size:14px;font-weight:700;color:var(--text-dim)}
+  .jc-d{display:none;padding:0 14px 12px}
+  .jc-pl.ouvert .jc-d{display:block}
+  .jc-d p{margin:0 0 10px;font-size:13.5px;color:var(--text-dim)}
+  .jc-d em{font-style:normal}
+  .jc-b{display:flex;gap:6px}
+  .jc-b a,.jc-b button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;background:var(--surface-2);color:var(--text);font:700 13px/1 var(--body);padding:10px 6px;text-decoration:none;cursor:pointer}
+  .jc-b button{background:var(--accent);color:var(--on-accent)}
+  .jc-b svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   /* Le mois */
   .tb-mois{flex-direction:row !important;align-items:stretch;gap:10px}
   .tb-m-g{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
@@ -1529,24 +1582,24 @@
     <!-- ACCUEIL -->
     <section class="view active" id="view-home">
 
-      <nav class="quick" aria-label="Raccourcis">
-        <button type="button" class="q" onclick="goto('plateaux')"><span class="q-ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg></span><span class="q-l">Agenda</span></button>
-        <button type="button" class="q" onclick="goto('tests')"><span class="q-ico"><svg viewBox="0 0 24 24"><path d="M9 2h6"/><path d="M10 2v6.5L4.5 18a1.2 1.2 0 0 0 1 1.8h13a1.2 1.2 0 0 0 1-1.8L14 8.5V2"/><path d="M7.5 14.5h9"/></svg></span><span class="q-l">Tests</span></button>
-      </nav>
 
       <!-- Tableau de bord : des cartes, comme l'accueil de Mon quotidien -->
       <div class="tb">
         <div class="tb-duo">
-          <button type="button" class="tb-tuile tb-spec" onclick="goto('tests')" aria-label="Ta note et la date estimée du spectacle">
-            <span class="rating-stars tb-etoiles" id="tb-etoiles" aria-hidden="true"></span>
-            <span class="tb-spec-d" id="spectacle-date"></span>
-            <span class="tb-spec-p"><span class="tb-spec-b"><span id="spectacle-barre"></span></span><span class="tb-sous" id="spectacle-sous"></span></span>
-          </button>
+          <div class="tb-spec-car" id="tb-spec-car">
+            <button type="button" class="tb-tuile tb-spec" onclick="goto('tests')" aria-label="Date estimée du spectacle">
+              <span class="rating-stars tb-etoiles" id="tb-etoiles" role="button" tabindex="0" aria-label="Voir le détail de ta note" onclick="event.stopPropagation(); voirNote()"></span>
+              <span class="tb-spec-d" id="spectacle-date"></span>
+              <span class="tb-spec-p"><span class="tb-spec-b"><span id="spectacle-barre"></span></span><span class="tb-sous" id="spectacle-sous"></span></span>
+            </button>
+            <div class="tb-tuile tb-note2" id="tb-note2" onclick="voirNote(false)"></div>
+          </div>
           <div id="home-acompleter"></div>
         </div>
         <div id="home-rotation"></div>
         <div id="home-stats"></div>
         <div id="home-semaine"></div>
+        <div id="home-videos"></div>
       </div>
       <div class="gen-row" hidden><!-- mot au hasard et liste d’écriture : retirés de l’accueil, toujours utilisés par la session d’écriture du minuteur -->
         <div class="stat-card gen-card" id="word-gen-card" onclick="generateRandomWord()" style="cursor:pointer;">
@@ -1624,6 +1677,19 @@
       <div class="page-head volet-tete"><h1>Tous les textes</h1><button type="button" class="volet-x" onclick="fermerVolet()" aria-label="Fermer">✕</button></div>
       <div id="vt-liste"></div>
       <button type="button" class="vt-ajout" onclick="ouvrirVoletNouveauTexte()">+ Nouveau texte</button>
+    </section>
+
+    <!-- UN JOUR EN GRAND (carte des plateaux de la semaine) -->
+    <div class="modal-overlay jour-overlay" id="jour-overlay" style="display:none;" onclick="if(event.target===this) fermerJour()"><div id="jour-carte"></div></div>
+
+    <!-- VOLET : AJOUTER UNE VIDÉO -->
+    <section class="volet-page" id="volet-video" aria-label="Ajouter une vidéo">
+      <div class="volet-poignee" aria-hidden="true"></div>
+      <div class="page-head volet-tete"><h1>Nouvelle vidéo</h1><button type="button" class="volet-x" onclick="fermerVolet()" aria-label="Fermer">✕</button></div>
+      <div class="field" style="margin-top:14px;"><input type="url" id="vid-lien" placeholder="Lien YouTube (youtu.be/… ou youtube.com/…)" autocomplete="off" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();ajouterVideo();}"></div>
+      <p class="orga-hint" id="vid-msg" style="color:var(--s0);min-height:1em;"></p>
+      <button type="button" class="save-btn" style="width:100%;margin-top:8px;" onclick="ajouterVideo()">Ajouter</button>
+      <p class="orga-hint" style="margin-top:12px;">Les vidéos non répertoriées marchent aussi. La miniature, le titre et la durée s’affichent tout seuls (il faut être connecté).</p>
     </section>
 
     <!-- VOLET : TOUS LES PLATEAUX -->
@@ -2203,8 +2269,12 @@
 
   <div id="rotation-scenes-modal-overlay" class="modal-overlay" style="display:none;" onclick="if(event.target===this) closeRotationScenesModal()">
     <div class="modal-card">
-      <div class="modal-title">Nombre de scènes prévues</div>
-      <input type="number" min="1" id="rotation-scenes-modal-input" style="width:100%;text-align:center;font-size:20px;font-weight:800;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);">
+      <div class="modal-title">Scènes de la rotation</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <label style="flex:1;font-size:12px;color:var(--text-dim);">Déjà jouées<input type="number" min="0" id="rotation-used-modal-input" style="width:100%;margin-top:4px;text-align:center;font-size:20px;font-weight:800;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);"></label>
+        <span style="font-size:22px;font-weight:800;padding-bottom:12px;color:var(--text-dim);">/</span>
+        <label style="flex:1;font-size:12px;color:var(--text-dim);">Prévues<input type="number" min="1" id="rotation-scenes-modal-input" style="width:100%;margin-top:4px;text-align:center;font-size:20px;font-weight:800;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);"></label>
+      </div>
       <button class="save-btn" style="width:100%;margin-top:14px;" onclick="confirmRotationScenes()">Valider</button>
       <button class="backlink" style="width:100%;text-align:center;" onclick="resetRotationScenesCount()">Remettre le compteur à 0</button>
       <button class="modal-close" onclick="closeRotationScenesModal()">Annuler</button>
@@ -5008,9 +5078,11 @@ function renderHomeRating(){
   document.getElementById('rd-money-val').textContent = `${Math.round(r.gainsPerMonth)}/500€`;
 
   renderSpectacleCard();
+  renderNoteDetail(r);
   renderHomeWeekSummary();
   renderHomeACompleter();
   renderHomeSemaine();
+  renderHomeVideos();
   renderHomeRotation();
   renderHomeStats();
   renderHomeTodayPlateaux();
@@ -5129,7 +5201,7 @@ function renderHomeRotation(){
     const e = bonusRow ? {cls:'', txt:'⭐ Bonus'} : etat(x);
     const vise = !x.done && !bonusRow && x.rate ? `≈ ${x.rate} tests` : '';
     return `<button type="button" class="tb-tuile tb-r ${e.cls}" onclick="goto('tests'); openTextDetail(${x.text.id})">
-      <span class="tb-r-h"><span class="tb-r-n">${escapeHtml(x.text.name)}</span>${data.totalScenes !== null ? `<span class="tb-r-c" title="Scènes de la rotation">🎤 ${data.scenesUsed}/${data.totalScenes}</span>` : ''}</span>
+      <span class="tb-r-h"><span class="tb-r-n">${escapeHtml(x.text.name)}</span>${data.totalScenes !== null ? `<span class="tb-r-c" role="button" tabindex="0" title="Modifier le nombre de scènes" onclick="event.stopPropagation(); openRotationScenesModal()">🎤 ${data.scenesUsed}/${data.totalScenes}</span>` : ''}</span>
       <span class="tb-r-v"><b>${x.validated}/${TEXT_TARGET}</b><span>${e.txt}</span>${vise ? `<em>${vise}</em>` : ''}</span>
       <span class="tb-barre"><span style="width:${Math.min(100, x.validated / TEXT_TARGET * 100)}%"></span>${part !== null && !bonusRow ? `<i style="left:${(part * 100).toFixed(1)}%"></i>` : ''}</span>
     </button>`;
@@ -5143,12 +5215,46 @@ function renderHomeRotation(){
 // à droite (1/5), les filtres rouge / orange / vert sur le type de plateau
 const JOURS_COULEUR = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];   // getDay() → classe de couleur
 let filtreSemaine = (() => { try{ return localStorage.getItem('backstage_filtre_semaine_v1') || ''; }catch(e){ return ''; } })();
+// Ouvrir directement la modification d'un plateau (depuis l'accueil) ; Enregistrer ou Annuler ramène à l'accueil
+let editDepuisAccueil = false;
+function modifierPlateau(id){
+  editDepuisAccueil = true;
+  goto('plateaux'); openPlateauDetail(id); enterPlateauEditMode();
+}
+{
+  const annuler = cancelPlateauEdit, enreg = saveEditedPlateau;
+  cancelPlateauEdit = function(){ annuler(); if(editDepuisAccueil){ editDepuisAccueil = false; goto('home'); } };
+  saveEditedPlateau = function(){ enreg(); if(editDepuisAccueil && document.getElementById('plateau-edit-mode').style.display === 'none'){ editDepuisAccueil = false; goto('home'); } };
+}
 function filtrerSemaine(k){
   filtreSemaine = filtreSemaine === k ? '' : k;
   try{ localStorage.setItem('backstage_filtre_semaine_v1', filtreSemaine); }catch(e){}
   renderHomeSemaine();
 }
 const villesPlateaux = () => [...new Set([currentPlateauxCity || 'Paris', ...loadPlateaux().map(p => p.city || 'Paris')])].sort((a, b) => a.localeCompare(b, 'fr'));
+const jourSemaine = [];
+// Un jour en grand, centré par-dessus la page ; toucher un plateau le déplie (adresse, Instagram, Maps, Modifier)
+function ouvrirJour(k, ev){
+  const j = jourSemaine[k]; if(!j) return;
+  const ligne = ev && ev.target.closest('.tb-pl-l'), ouvert = ligne ? +ligne.dataset.i : (j.liste.length === 1 ? 0 : -1);
+  const lienIg = v => { v = String(v || '').trim(); return /^https?:\/\//i.test(v) ? v : 'https://instagram.com/' + v.replace(/^@/, ''); };
+  const box = document.getElementById('jour-carte');
+  box.className = 'jour-carte tb-jour j-' + JOURS_COULEUR[j.dow];
+  box.innerHTML = `<div class="tb-titre"><b>${j.nom}</b><span>${j.date}${j.liste.length ? ' · ' + j.liste.length + (j.liste.length > 1 ? ' plateaux' : ' plateau') : ''}</span></div>
+    <div class="jc-liste">${j.liste.map(({p, slot}, i) => `<div class="jc-pl t${slot.type != null ? slot.type : 'x'}${i === ouvert ? ' ouvert' : ''}">
+      <button type="button" class="jc-h" onclick="this.parentNode.classList.toggle('ouvert')" aria-expanded="${i === ouvert}"><i aria-hidden="true"></i><span>${escapeHtml(p.name)}</span><b>${escapeHtml(formatPlateauTime(slot.time || ''))}</b></button>
+      <div class="jc-d">
+        <p>${p.address ? escapeHtml(p.address) : '<em>Pas d’adresse</em>'}</p>
+        <div class="jc-b">
+          ${p.address ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.address)}&travelmode=transit" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Maps</a>` : ''}
+          ${p.instagram ? `<a href="${escapeHtml(lienIg(p.instagram))}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6"/></svg>Instagram</a>` : ''}
+          <button type="button" onclick="fermerJour(); modifierPlateau(${p.id})"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/></svg>Modifier</button>
+        </div>
+      </div></div>`).join('') || '<p class="tb-vide">Pas de plateau ce jour-là.</p>'}</div>`;
+  const o = document.getElementById('jour-overlay'); o.style.display = 'flex';
+  requestAnimationFrame(() => o.classList.add('on'));
+}
+function fermerJour(){ const o = document.getElementById('jour-overlay'); o.classList.remove('on'); setTimeout(() => { o.style.display = 'none'; }, 200); }
 function renderHomeSemaine(){
   const wrap = document.getElementById('home-semaine');
   if(!wrap) return;
@@ -5170,9 +5276,10 @@ function renderHomeSemaine(){
     const liste = sortByEffectiveTime(pls.filter(p => doesPlateauOccur(p, d)), dow).filter(({slot}) => !filtreSemaine || String(slot.type) === filtreSemaine);
     const nom = k === 0 ? 'Aujourd’hui' : k === 1 ? 'Demain' : d.toLocaleDateString('fr-FR', {weekday:'long'}).replace(/^./, c => c.toUpperCase());
     const date = d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
-    diapos.push(`<div class="tb-tuile tb-jour j-${JOURS_COULEUR[dow]}">
+    jourSemaine[k] = {nom, date, dow, liste};
+    diapos.push(`<div class="tb-tuile tb-jour j-${JOURS_COULEUR[dow]}" role="button" onclick="ouvrirJour(${k}, event)">
       <div class="tb-titre"><b>${nom}</b><span>${date}${liste.length ? ' · ' + liste.length : ''}</span></div>
-      <div class="tb-pl">${liste.map(({p, slot}) => `<button type="button" class="tb-pl-l t${slot.type != null ? slot.type : 'x'}" onclick="goto('plateaux'); openPlateauDetail(${p.id})"><i aria-hidden="true"></i><span>${escapeHtml(p.name)}</span><b>${escapeHtml(formatPlateauTime(slot.time || ''))}</b></button>`).join('') || `<p class="tb-vide">${filtreSemaine ? 'Pas de plateau de cette couleur.' : 'Pas de plateau ce jour-là.'}</p>`}</div>
+      <div class="tb-pl">${liste.map(({p, slot}, i) => `<button type="button" class="tb-pl-l t${slot.type != null ? slot.type : 'x'}" data-i="${i}"><i aria-hidden="true"></i><span>${escapeHtml(p.name)}</span><b>${escapeHtml(formatPlateauTime(slot.time || ''))}</b></button>`).join('') || `<p class="tb-vide">${filtreSemaine ? 'Pas de plateau de cette couleur.' : 'Pas de plateau ce jour-là.'}</p>`}</div>
     </div>`);
   }
   const filtres = `<div class="tb-filtres" role="group" aria-label="Filtrer les plateaux">${[['0', 'rouges'], ['1', 'jaunes'], ['2', 'verts']].map(([k, l]) => `<button type="button" class="tb-f t${k}${filtreSemaine === k ? ' on' : ''}" onclick="filtrerSemaine('${k}')" aria-pressed="${filtreSemaine === k}" aria-label="Seulement les ${l}"></button>`).join('')}</div>`;
@@ -5220,6 +5327,102 @@ function choisirVilleSemaine(v){
   renderHomeSemaine(); fermerVolet();
 }
 
+// 2e tuile de la carte Spectacle : ce qui justifie ta note (sur les 2 derniers mois)
+function renderNoteDetail(r){
+  const el = document.getElementById('tb-note2'); if(!el) return;
+  r = r || computeStarRating();
+  const f = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
+  const l = (lab, val, max, ratio) => `<div class="tb-n2"><span>${lab}</span><b>${val}<small>/${max}</small></b><i><em style="width:${Math.max(3, Math.round(ratio * 100))}%"></em></i></div>`;
+  el.innerHTML = `<div class="tb-titre"><b>Ta note</b><span>${f(r.stars)} ★ · par mois</span></div>
+    ${l('Plateaux', f(r.beauxPerMonth), 9, r.ratioBeaux)}${l('Note', f(r.avgNote), 15, r.ratioNote)}${l('Scènes', f(r.scenesPerMonth), 15, r.ratioFreq)}${l('Argent', Math.round(r.gainsPerMonth) + '€', '500€', r.ratioMoney)}`;
+}
+function voirNote(versNote = true){
+  const c = document.getElementById('tb-spec-car'); if(!c) return;
+  c.scrollTo({left:versNote ? c.scrollWidth : 0, behavior:'smooth'});
+}
+
+/* ---------- Carte « Vidéos » : les liens YouTube (non répertoriés) à envoyer aux plateaux ----------
+   On garde le lien ; la miniature vient de YouTube, le titre et la durée sont lus une fois avec le lecteur YouTube. */
+const VIDEOS_KEY = 'backstage_videos_v1';
+const lireVideos = () => { try{ const l = JSON.parse(localStorage.getItem(VIDEOS_KEY) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; } };
+const ecrireVideos = l => { try{ localStorage.setItem(VIDEOS_KEY, JSON.stringify(l)); }catch(e){} };
+function idYoutube(u){
+  const m = String(u || '').trim().match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(String(u || '').trim()) ? String(u).trim() : null);
+}
+const dureeVideo = s => { if(!s && s !== 0) return ''; s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+function renderHomeVideos(){
+  const wrap = document.getElementById('home-videos'); if(!wrap) return;
+  const l = lireVideos();
+  const bouton = `<div class="tb-btns tb-btns-v"><button type="button" class="tb-bbtn" onclick="ouvrirVoletVideo()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Vidéo</button></div>`;
+  const diapos = l.map(v => `<div class="tb-tuile tb-video">
+      <a class="tb-v-img" href="https://youtu.be/${v.id}" target="_blank" rel="noopener" aria-label="Ouvrir la vidéo"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">${v.duree ? `<span>${dureeVideo(v.duree)}</span>` : ''}</a>
+      <div class="tb-v-t">
+        <b>${escapeHtml(v.titre || 'Vidéo YouTube')}</b>
+        <div class="tb-v-b"><button type="button" class="tb-v-copier" onclick="copierVideo('${v.id}')"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Copier le lien</button><button type="button" class="tb-v-x" onclick="supprimerVideo('${v.id}')" aria-label="Retirer cette vidéo">✕</button></div>
+      </div>
+    </div>`);
+  wrap.innerHTML = `<div class="tb-bande">${bouton}<div class="tb-bloc">${diapos.length ? `<div class="tb-car">${diapos.join('')}</div>${tbPoints(diapos.length)}` : `<button type="button" class="tb-tuile tb-video tb-video-vide" onclick="ouvrirVoletVideo()"><p class="tb-vide">Ajoute le lien d’une vidéo YouTube (même non répertoriée) pour l’envoyer vite aux plateaux.</p></button>`}</div></div>`;
+  if(diapos.length) brancherCarrousel('home-videos');
+  l.filter(v => !v.titre || !v.duree).forEach(v => infosVideo(v.id));
+}
+async function copierVideo(id){
+  const url = 'https://youtu.be/' + id;
+  try{ await navigator.clipboard.writeText(url); showToast('Lien copié ✓'); }
+  catch(e){ const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); try{ document.execCommand('copy'); showToast('Lien copié ✓'); }catch(_){ showToast(url); } t.remove(); }
+}
+function supprimerVideo(id){
+  if(!confirm('Retirer cette vidéo de la liste ?')) return;
+  ecrireVideos(lireVideos().filter(v => v.id !== id)); renderHomeVideos();
+}
+function ouvrirVoletVideo(){ document.getElementById('vid-lien').value = ''; document.getElementById('vid-msg').textContent = ''; ouvrirVolet('volet-video'); }
+function ajouterVideo(){
+  const inp = document.getElementById('vid-lien'), id = idYoutube(inp.value), msg = document.getElementById('vid-msg');
+  if(!id){ msg.textContent = 'Ce n’est pas un lien YouTube reconnu.'; inp.focus(); return; }
+  const l = lireVideos();
+  if(l.some(v => v.id === id)){ msg.textContent = 'Cette vidéo est déjà dans la liste.'; return; }
+  l.unshift({id, titre:'', duree:0, ajout:Date.now()}); ecrireVideos(l);
+  window.__tbPos && (window.__tbPos['home-videos'] = 0);
+  fermerVolet(); renderHomeVideos(); showToast('Vidéo ajoutée ✓');
+}
+// Titre et durée : lus une seule fois avec le lecteur YouTube (caché), puis gardés
+let ytApi = null;
+function chargerYtApi(){
+  if(ytApi) return ytApi;
+  ytApi = new Promise(res => {
+    if(window.YT && window.YT.Player) return res(window.YT);
+    const avant = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if(avant) try{ avant(); }catch(e){} res(window.YT); };
+    const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api'; sc.onerror = () => res(null); document.head.appendChild(sc);
+    setTimeout(() => res(window.YT && window.YT.Player ? window.YT : null), 15000);
+  });
+  return ytApi;
+}
+const infosEnCours = new Set();
+async function infosVideo(id){
+  if(infosEnCours.has(id)) return; infosEnCours.add(id);
+  const YT = await chargerYtApi(); if(!YT){ infosEnCours.delete(id); return; }
+  const boite = document.createElement('div'); boite.style.cssText = 'position:fixed;left:-9999px;top:0;width:200px;height:120px;'; document.body.appendChild(boite);
+  const zone = document.createElement('div'); boite.appendChild(zone);
+  let fini = false;
+  const finir = (titre, duree) => {
+    if(fini) return; fini = true;
+    try{ joueur.destroy(); }catch(e){} boite.remove(); infosEnCours.delete(id);
+    if(!titre && !duree) return;
+    const l = lireVideos(), v = l.find(x => x.id === id); if(!v) return;
+    if(titre) v.titre = titre; if(duree) v.duree = duree;
+    ecrireVideos(l); renderHomeVideos();
+  };
+  const joueur = new YT.Player(zone, {videoId:id, width:200, height:120, playerVars:{autoplay:0, controls:0},
+    events:{onReady:e => {
+      let n = 0;
+      const lire = () => { let t = '', d = 0; try{ t = (e.target.getVideoData() || {}).title || ''; d = e.target.getDuration() || 0; }catch(_){}
+        if((t && d) || ++n > 20) finir(t, d); else setTimeout(lire, 300); };
+      lire();
+    }, onError:() => finir('', 0)}});
+  setTimeout(() => finir('', 0), 20000);
+}
+
 // Carte « À compléter » : les plateaux dont il manque le jour, la fréquence ou l'heure
 function renderHomeACompleter(){
   const wrap = document.getElementById('home-acompleter');
@@ -5231,11 +5434,29 @@ function renderHomeACompleter(){
   }
   wrap.innerHTML = `<div class="tb-tuile tb-ac" role="button" onclick="goto('plateaux')">
     <span class="tb-titre"><b>À compléter</b><span class="tb-ac-n">${l.length}</span></span>
-    <div class="tb-ac-l">${l.map(p => `<button type="button" onclick="event.stopPropagation(); goto('plateaux'); openPlateauDetail(${p.id})"><span>${escapeHtml(p.name || 'Sans nom')}</span></button>`).join('')}</div>
+    <div class="tb-ac-l">${l.map(p => `<button type="button" onclick="event.stopPropagation(); modifierPlateau(${p.id})"><span>${escapeHtml(p.name || 'Sans nom')}</span></button>`).join('')}</div>
   </div>`;
 }
 
 // Carte « Stats » : on fait glisser de stat en stat ; la dernière ouvre toutes les stats
+// Périodes des stats de l'accueil : on touche le libellé en haut à droite pour passer à la suivante
+const PERIODES = {
+  score:  [[5, '5 dernières'], [10, '10 dernières'], [20, '20 dernières'], [30, '30 dernières']],
+  argent: [[3, '3 mois'], [6, '6 mois'], [12, '12 mois']],
+  qualite:[['m1', 'Ce mois'], ['m3', '3 mois'], ['m6', '6 mois'], ['m12', '1 an'], ['tout', 'Depuis le début']],
+  top:    [['m1', 'Ce mois'], ['m3', '3 mois'], ['m6', '6 mois'], ['m12', '1 an'], ['tout', 'Depuis le début']]
+};
+const PERIODE_DEF = {score:10, argent:6, qualite:'tout', top:'tout'};
+function periode(k){ let v; try{ v = (JSON.parse(localStorage.getItem('backstage_periodes_v1') || '{}') || {})[k]; }catch(e){} return PERIODES[k].some(o => o[0] === v) ? v : PERIODE_DEF[k]; }
+function changerPeriode(k){
+  const o = PERIODES[k], i = o.findIndex(x => x[0] === periode(k)), v = o[(i + 1) % o.length][0];
+  let all = {}; try{ all = JSON.parse(localStorage.getItem('backstage_periodes_v1') || '{}') || {}; }catch(e){}
+  all[k] = v; try{ localStorage.setItem('backstage_periodes_v1', JSON.stringify(all)); }catch(e){}
+  renderHomeStats();
+}
+const libPeriode = k => (PERIODES[k].find(x => x[0] === periode(k)) || [0, ''])[1];
+const btnPeriode = k => `<span class="tb-per" role="button" tabindex="0" onclick="event.stopPropagation(); changerPeriode('${k}')">${libPeriode(k)} ▾</span>`;
+function depuisPeriode(v){ if(v === 'tout') return ''; const d = new Date(); d.setMonth(d.getMonth() - (+String(v).slice(1)) + 1, 1); return d.toISOString().slice(0, 7); }
 function renderHomeStats(){
   const wrap = document.getElementById('home-stats');
   if(!wrap) return;
@@ -5244,13 +5465,13 @@ function renderHomeStats(){
   const net = list.reduce((a, s) => a + (s.gains || 0) - (s.depenses || 0), 0);
   const diapos = [renderHomeWeekSummary()];
   // 2) évolution du score : les 10 dernières scènes, avec leur note au-dessus de chaque point
-  const der = list.slice(-10);
+  const der = list.slice(-periode('score'));
   if(der.length > 1){
     const W = 340, H = 64, x = i => 12 + i * (W - 24) / (der.length - 1), y = v => 18 + (1 - Math.min(20, Math.max(0, v)) / 20) * (H - 26);
     const pts = der.map((s, i) => `${x(i).toFixed(1)},${y(s.total || 0).toFixed(1)}`).join(' ');
     const ym = y(avg).toFixed(1);
     const notes = der.map((s, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(s.total || 0).toFixed(1)}" r="3.2" fill="var(--accent)"/><text class="tb-g-n" x="${x(i).toFixed(1)}" y="${(y(s.total || 0) - 8).toFixed(1)}" text-anchor="middle">${Math.round((s.total || 0) * 10) / 10}</text><text x="${x(i).toFixed(1)}" y="${H + 2}" text-anchor="middle">${+s.date.slice(8, 10)}/${+s.date.slice(5, 7)}</text>`).join('');
-    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Évolution du score</b><span>moyenne ${avg.toFixed(1).replace('.', ',')}</span></div>
+    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Évolution du score</b>${btnPeriode('score')}</div>
       <svg class="tb-graph" viewBox="0 0 ${W} ${H + 4}" aria-label="Notes des ${der.length} dernières scènes">
         <line x1="0" x2="${W}" y1="${ym}" y2="${ym}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4"/>
         <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${notes}
@@ -5258,30 +5479,31 @@ function renderHomeStats(){
   }
   // 3) l'argent, mois par mois (les 6 derniers)
   const mois = [], now = new Date();
-  for(let k = 5; k >= 0; k--){ const d = new Date(now.getFullYear(), now.getMonth() - k, 1); mois.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')); }
+  for(let k = periode('argent') - 1; k >= 0; k--){ const d = new Date(now.getFullYear(), now.getMonth() - k, 1); mois.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')); }
   const nets = mois.map(m => list.filter(s => s.date.slice(0, 7) === m).reduce((a, s) => a + (s.gains || 0) - (s.depenses || 0), 0));
   if(nets.some(v => v)){
     const W = 340, H = 62, max = Math.max(1, ...nets.map(Math.abs)), bw = W / mois.length, haut = nets.some(v => v < 0) ? 26 : 50, zero = 4 + haut;
     const barres = nets.map((v, i) => { const h = Math.abs(v) / max * haut; return `<rect x="${(i * bw + bw * .2).toFixed(1)}" y="${(v >= 0 ? zero - h : zero).toFixed(1)}" width="${(bw * .6).toFixed(1)}" height="${Math.max(1.5, h).toFixed(1)}" rx="3" fill="${v >= 0 ? 'var(--s2)' : 'var(--s0)'}"/>`; }).join('');
-    const noms = mois.map((m, i) => `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H + 2}" text-anchor="middle">${['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc'][+m.slice(5) - 1]}</text>`).join('');
-    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Argent par mois</b><span>${fmtEuro(nets[5])} ce mois</span></div>
+    const noms = mois.map((m, i) => `<text class="${mois.length > 6 ? 'petit' : ''}" x=""${(i * bw + bw / 2).toFixed(1)}" y="${H + 2}" text-anchor="middle">${['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc'][+m.slice(5) - 1]}</text>`).join('');
+    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Argent par mois</b>${btnPeriode('argent')}</div>
       <svg class="tb-graph" viewBox="0 0 ${W} ${H + 4}" aria-hidden="true"><line x1="0" x2="${W}" y1="${zero}" y2="${zero}" stroke="var(--border)" stroke-width="1"/>${barres}${noms}</svg></button>`);
   }
   // 4) la qualité des scènes
+  const depQ = depuisPeriode(periode('qualite')), listQ = list.filter(s => !depQ || s.date.slice(0, 7) >= depQ);
   if(list.length){
-    const q = computeTypeCounts(list), mq = Math.max(1, q.belles, q.sympas, q.nulles);
+    const q = computeTypeCounts(listQ), mq = Math.max(1, q.belles, q.sympas, q.nulles);
     const b = (lab, n, col) => `<div><span>${lab}</span><i style="width:${Math.max(3, n / mq * 100)}%;background:${col}"></i><b>${n}</b></div>`;
-    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Qualité des scènes</b><span>depuis le début</span></div>
+    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Qualité des scènes</b>${btnPeriode('qualite')}</div>
       <div class="tb-hb">${b('Belles', q.belles, 'var(--s2)')}${b('Sympas', q.sympas, 'var(--s1)')}${b('Nulles', q.nulles, 'var(--s0)')}</div></button>`);
   }
   // 5) les plateaux où tu joues le plus
-  const parNom = {};
-  list.forEach(s => { const n = (s.nom || '').trim(); if(n) parNom[n] = (parNom[n] || 0) + 1; });
+  const parNom = {}, depT = depuisPeriode(periode('top'));
+  list.filter(s => !depT || s.date.slice(0, 7) >= depT).forEach(s => { const n = (s.nom || '').trim(); if(n) parNom[n] = (parNom[n] || 0) + 1; });
   const top = Object.entries(parNom).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  if(top.length){
-    const mt = top[0][1];
-    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Où tu joues le plus</b><span>scènes</span></div>
-      <div class="tb-hb">${top.map(([n, c]) => `<div><span>${escapeHtml(n)}</span><i style="width:${Math.max(3, c / mt * 100)}%"></i><b>${c}</b></div>`).join('')}</div></button>`);
+  if(list.length){
+    const mt = top.length ? top[0][1] : 1;
+    diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><div class="tb-titre"><b>Où tu joues le plus</b>${btnPeriode('top')}</div>
+      <div class="tb-hb">${top.map(([n, c]) => `<div><span>${escapeHtml(n)}</span><i style="width:${Math.max(3, c / mt * 100)}%"></i><b>${c}</b></div>`).join('') || '<p class="tb-vide">Pas de scène sur cette période.</p>'}</div></button>`);
   }
   // 6) toutes les stats
   diapos.push(`<button type="button" class="tb-tuile tb-toutes-s" onclick="goto('stats')"><svg viewBox="0 0 24 24"><path d="M3 21V3"/><path d="M3 21h18"/><rect x="7" y="13" width="3" height="8"/><rect x="12.5" y="9" width="3" height="12"/><rect x="18" y="5" width="3" height="16"/></svg><span>Toutes les stats ›</span></button>`);
@@ -5510,6 +5732,7 @@ function resolveRemoval(reason){
 function openRotationScenesModal(){
   const data = loadRotation2();
   document.getElementById('rotation-scenes-modal-input').value = data.totalScenes || '';
+  const u = document.getElementById('rotation-used-modal-input'); if(u) u.value = data.scenesUsed || 0;
   document.getElementById('rotation-scenes-modal-overlay').style.display = 'flex';
 }
 function closeRotationScenesModal(){
@@ -5521,6 +5744,8 @@ function confirmRotationScenes(){
   const data = loadRotation2();
   const isFirstSetup = data.totalScenes === null;
   data.totalScenes = v;
+  const u = parseInt((document.getElementById('rotation-used-modal-input') || {}).value, 10);
+  if(!isNaN(u) && u >= 0) data.scenesUsed = u;
   if(isFirstSetup) data.startedAt = new Date().toISOString().slice(0,10);
   saveRotation2(data);
   closeRotationScenesModal();

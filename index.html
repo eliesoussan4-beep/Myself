@@ -1729,8 +1729,11 @@ async function importerFichiers(files){
 $('#fichier').addEventListener('change', e => { const fs = [...e.target.files]; e.target.value = ''; if(fs.length) importerFichiers(fs); });
 
 /* ---------- Sauvegarde automatique sur Google Drive (via un script Google Apps Script) ----------
-   Dès que l'app est ouverte et que la dernière sauvegarde a plus de 12 h, chaque app est envoyée
-   dans un fichier séparé. Chaque fichier est une sauvegarde complète de son app : « Tout importer » le relit. */
+   Dès que l'app est ouverte et que la dernière sauvegarde a plus de 12 h, toutes les apps partent
+   dans UN SEUL fichier (« tout »), le même que « Tout exporter » : « Tout importer » le relit.
+   Les apps masquées (cache: true, ex. la Garde-robe et ses photos) n'y sont pas : elles ne changent plus,
+   et leurs dernières sauvegardes restent sur le Drive. Si le script refuse le fichier unique (ancienne
+   version du script), on revient à un fichier par app. */
 const CLE_DRIVE = 'quotidien-drive';
 const INTERVALLE_DRIVE = 12 * 3600e3, PAUSE_APRES_ECHEC = 30 * 60e3;
 function lireDrive(){ try{ return JSON.parse(localStorage.getItem(CLE_DRIVE) || '{}') || {}; }catch(e){ return {}; } }
@@ -1763,7 +1766,20 @@ async function sauvegarderDrive(manuel){
   ecrireDrive({essai:Date.now()});
   try{
     const {bases, locaux, retours} = await collecter(), date = new Date().toISOString(), envois = [];
-    for(const app of APPS){
+    // 1) Un seul fichier avec toutes les apps visibles
+    const visibles = APPS.filter(a => !a.cache), tout = {app:'mon-quotidien-tout', version:2, date, bases:{}, locaux:{}, retours};
+    visibles.forEach(a => { if(a.base && bases[a.base]) tout.bases[a.base] = bases[a.base]; else if(estLocale(a) && locaux[a.id]) tout.locaux[a.id] = locaux[a.id]; });
+    if(!Object.keys(tout.bases).length && !Object.keys(tout.locaux).length) throw new Error('aucune donnée sur ce téléphone');
+    let unique = true;
+    try{ await envoyerDrive(d, {app:'tout', contenu:JSON.stringify(tout)}); }
+    catch(err){ if(/délai|connexion|illisible/.test(err.message)) throw err; unique = false; }   // refusé par le script : on essaie l'ancienne façon
+    if(unique){
+      ecrireDrive({derniere:Date.now(), echecs:0, erreur:'', unique:true});
+      if(manuel) majEtatDrive('Sauvegarde envoyée sur Drive ✓ (un seul fichier)');
+      return;
+    }
+    // 2) Ancienne façon : un fichier par app
+    for(const app of APPS.filter(a => !a.cache)){
       if(app.base && bases[app.base]) envois.push({app:app.id, data:{app:'mon-quotidien-tout', version:2, date, bases:{[app.base]:bases[app.base]}}});
       else if(estLocale(app) && locaux[app.id]) envois.push({app:app.id, data:{app:'mon-quotidien-tout', version:2, date, locaux:{[app.id]:locaux[app.id]}}});
     }
@@ -1773,8 +1789,8 @@ async function sauvegarderDrive(manuel){
       try{ await envoyerDrive(d, {app:e.app, contenu:JSON.stringify(e.data)}); }
       catch(err){ throw new Error(`${(APPS.find(a => a.id === e.app) || {nom:'Notes'}).nom} : ${err.message}`); }
     }
-    ecrireDrive({derniere:Date.now(), echecs:0, erreur:''});
-    if(manuel) majEtatDrive('Sauvegarde envoyée sur Drive ✓');
+    ecrireDrive({derniere:Date.now(), echecs:0, erreur:'', unique:false});
+    if(manuel) majEtatDrive('Sauvegarde envoyée sur Drive ✓ (un fichier par app : ton script n’accepte pas encore le fichier unique)');
   }catch(err){
     const n = (lireDrive().echecs || 0) + 1;
     ecrireDrive({echecs:n, erreur:err.message});
@@ -1832,7 +1848,7 @@ function ouvrirReglages(){
     <div class="ligne2"><button type="button" class="btn primaire" data-act="exporter">Tout exporter</button><button type="button" class="btn" data-act="importer">Tout importer</button></div>
     <p class="hint">« Tout importer » accepte aussi les sauvegardes faites dans chaque app (plusieurs fichiers à la fois).</p>
     <h3>Sauvegarde automatique sur Drive</h3>
-    <p class="hint">Toutes les 12 h environ, dès que l’app est ouverte. Les 30 dernières sauvegardes de chaque app sont gardées dans ton Drive.</p>
+    <p class="hint">Toutes les 12 h environ, dès que l’app est ouverte, dans un seul fichier avec toutes les apps (comme « Tout exporter »). La Garde-robe, masquée, n’y est plus : ses dernières sauvegardes restent sur ton Drive.</p>
     <p class="msg" id="drive-etat" style="white-space:pre-line"></p>
     <label class="champ">Adresse du script<input id="drive-url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(lireDrive().url || '')}"></label>
     <label class="champ">Code secret<input id="drive-code" autocomplete="off" placeholder="le même que dans le script" value="${esc(lireDrive().code || '')}"></label>

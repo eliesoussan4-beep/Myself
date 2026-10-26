@@ -428,6 +428,10 @@ main{gap:22px}
 .slide-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .slide-h b{font-size:16px;font-weight:700;color:var(--sc)}
 .slide-tag{font-size:12px;font-weight:600;color:var(--muted)}
+.slide:has(.pl-acts){position:relative;padding-right:56px}
+.pl-acts{position:absolute;top:50%;right:10px;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px}
+.pl-act{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--sc);background:color-mix(in srgb,var(--surface) 75%,transparent);text-decoration:none}
+.pl-act svg{display:block}
 .slide-type{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface);border-radius:99px;padding:3px 10px;white-space:nowrap}
 .slide-n{font-family:var(--display);font-size:24px;font-weight:800;line-height:1.1;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slide-a{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1218,10 +1222,12 @@ async function lireBackstage(){
   const toutes = w.loadScenes(), plateaux = w.loadPlateaux();
   if(!toutes.length && !plateaux.length && !(await lireScenesAgenda(1, 0)).length) return null;
   const jour = new Date(); jour.setHours(0, 0, 0, 0);
-  let plats = [];
+  let plats = [], fiches = [];
   try{
     plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === 'Paris' && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
-      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:slot && slot.type != null ? slot.type : null, adresse:p.address || ''}));
+      .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:slot && slot.type != null ? slot.type : null, adresse:p.address || '', instagram:p.instagram || ''}));
+    // pour les scènes de l'agenda : l'adresse et l'Instagram du plateau du même nom (même s'il ne joue pas ce jour-là)
+    fiches = plateaux.map(p => ({nom:p.name || '', adresse:p.address || '', instagram:p.instagram || '', type:null}));
   }catch(e){ console.warn(e); }
   const mois = new Date().toISOString().slice(0, 7);
   const scenes = toutes.filter(s => s.date && s.date.slice(0, 7) === mois);
@@ -1229,7 +1235,7 @@ async function lireBackstage(){
   let etoiles = null; try{ etoiles = w.computeStarRating().stars; }catch(e){}
   let agenda = []; try{ agenda = await lireScenesAgenda(1, 0); }catch(e){}
   let notion = []; try{ notion = typeof w.quotidienNotion === 'function' ? w.quotidienNotion() : []; }catch(e){}
-  return {plats, agenda, nb:scenes.length, net, etoiles, notion};
+  return {plats, fiches, agenda, nb:scenes.length, net, etoiles, notion};
 }
 // Scènes prévues dans l'Organisation (catégorie « Scène » ou 🎤), sur une période
 const SCENE_RE = /sc[eè]ne/i;   // pas « Stand-up » (écriture…) : seulement les scènes
@@ -1250,6 +1256,13 @@ async function lireScenesAgenda(avant, apres){
 }
 let filtrePl = (() => { try{ return localStorage.getItem('quotidien-filtre-plateaux') || ''; }catch(e){ return ''; } })();
 let dernierBS = null;
+// Boutons Maps et Instagram d'un plateau (s'ouvrent dans l'app correspondante)
+function lienInsta(v){ v = String(v || '').trim(); if(!v) return ''; if(/^https?:\/\//i.test(v)) return v; return 'https://instagram.com/' + v.replace(/^@/, '').replace(/^(www\.)?instagram\.com\//i, ''); }
+function liensPlateau(s){
+  const maps = s.adresse ? `<a class="pl-act" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.adresse)}&travelmode=transit" target="_blank" rel="noopener" aria-label="Itinéraire vers ${esc(s.nom)} dans Google Maps">${svg('<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>', 17)}</a>` : '';
+  const ig = s.instagram ? `<a class="pl-act" href="${esc(lienInsta(s.instagram))}" target="_blank" rel="noopener" aria-label="Instagram de ${esc(s.nom)}">${svg('<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6"/>', 17)}</a>` : '';
+  return maps || ig ? `<div class="pl-acts">${maps}${ig}</div>` : '';
+}
 function blocBackstage(d){
   dernierBS = d;
   const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="backstage" data-action="ajouterPlateau">${svg('<path d="M12 5v14M5 12h14"/>', 20)}Plateau</button><button type="button" class="bbtn" data-aller="backstage" data-action="noter">${svg('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/>', 20)}Noter</button></div>`;
@@ -1257,12 +1270,12 @@ function blocBackstage(d){
   // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
   const memes = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
   const slides = [
-    ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : null, adresse:p ? p.adresse : '', prevu:true}; }),
+    ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)) || (d.fiches || []).find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : null, adresse:p ? p.adresse : '', instagram:p ? p.instagram : '', prevu:true}; }),
     ...d.plats.filter(p => !d.agenda.some(a => memes(a.titre, p.nom)))
   ].filter(s => filtrePl === '' || String(s.type) === filtrePl);   // filtre par couleur (rouge, jaune, vert)
   const filtres = `<div class="filtres-pl" role="group" aria-label="Filtrer les plateaux">${['0', '1', '2'].map(k => `<button type="button" class="fpl t${k}${filtrePl === k ? ' on' : ''}" data-filtre-pl="${k}" aria-pressed="${filtrePl === k}" aria-label="${['Seulement les rouges', 'Seulement les jaunes', 'Seulement les verts'][+k]}"></button>`).join('')}</div>`;
   const pl = slides.length
-    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
+    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}${liensPlateau(s)}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
     : `<div class="slides"><div class="slide nav-jour"><p class="vide">${filtrePl ? 'Aucun plateau de cette couleur aujourd’hui.' : 'Pas de plateau prévu aujourd’hui.'}</p></div></div>`;
   // Toutes les pages Notion de Backstage : Textes, Vrac, Sujets, Notes, Impros d'abord, puis les autres (on fait glisser)
   const voulus = ['texte', 'vrac', 'sujet', 'note', 'impro'];
@@ -1436,7 +1449,7 @@ $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
   const go = e.target.closest('[data-aller]');
-  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule]')){
+  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule], a.pl-act')){
     const x = go.dataset, params = {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null};
     if(x.action === 'mois'){ ouvrirMois(); return; }
     const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(x.action)) || (x.aller === 'backstage' && ['ajouterPlateau', 'noter'].includes(x.action));
@@ -1444,7 +1457,7 @@ $('#accueil').addEventListener('click', e => {
     else window.quotidien.ouvrir(x.aller, params);
     return;
   }
-  if(e.target.closest('a.n4')) return;   // lien Notion : s'ouvre tout seul
+  if(e.target.closest('a.n4, a.pl-act')) return;   // lien Notion, Maps ou Instagram : s'ouvre tout seul
   const dpc = e.target.closest('[data-dp-cren]');
   if(dpc){   // choisir matin / après-midi / soirée directement dans le carré
     const c = critDispos(), s = new Set(c.cren), v = dpc.dataset.dpCren;

@@ -1415,6 +1415,7 @@
   /* Vidéos */
   .tb-btns-v{height:96px}
   #home-videos .tb-car > .tb-tuile{height:96px}
+  #home-videos .tb-car{margin:0 -16px;padding:0 16px;scroll-padding:0 16px}
   .tb-video{flex-direction:row !important;align-items:stretch;gap:10px !important;padding:8px !important}
   .tb-video-vide{height:96px;align-items:center;padding:12px 14px !important}
   .tb-v-img{position:relative;flex:none;width:136px;border-radius:10px;overflow:hidden;background:var(--surface);display:block}
@@ -1425,7 +1426,9 @@
   .tb-v-b{display:flex;gap:6px}
   .tb-v-copier{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);font:700 12.5px/1 var(--body);padding:8px 6px;cursor:pointer}
   .tb-v-copier svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .tb-v-x{flex:none;width:32px;border:0;border-radius:10px;background:var(--surface);color:var(--text-dim);font-size:13px;cursor:pointer}
+  .tb-v-plus{flex:none;width:32px;border:0;border-radius:10px;background:var(--surface);color:var(--accent);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+  .tb-v-plus svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+  .tb-video{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   /* Un jour en grand */
   .jour-overlay{opacity:0;transition:opacity .2s}
   .jour-overlay.on{opacity:1}
@@ -1450,7 +1453,9 @@
   .jc-b svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   /* Le mois */
   .tb-mois{flex-direction:row !important;align-items:stretch;gap:10px}
-  .tb-m-g{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .tb-m-g{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .tb-mois .tb-c{align-items:center;text-align:center}
+  .tb-mois .tb-c > span{order:-1;font-size:11.5px !important;font-weight:800 !important;color:var(--text) !important;margin-bottom:3px}
   .tb-qual-v{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;padding:0 4px 0 12px;min-width:34px;border-left:1px solid var(--border)}
   .tb-qual-v > span{font-family:var(--display);font-size:17px;font-weight:800;line-height:1.1;text-align:center;white-space:nowrap}
   .tb-qual-v i{font-style:normal;color:var(--accent);margin-left:6px;display:none}
@@ -1498,6 +1503,18 @@
   #volet-fond.on{opacity:1}
   .volet-poignee,.volet-x{display:none}
   .volet-page{display:none}
+  /* Noter, étape 1 : choisir le plateau */
+  #view-notation.noter-choix-on > *:not(.volet-poignee):not(.volet-tete):not(#noter-choix):not(.bs-back){display:none !important}
+  #noter-choix{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  #view-notation:not(.noter-choix-on) #noter-choix{display:none}
+  .nc-t{font-size:12.5px;font-weight:700;color:var(--text-dim);margin:6px 2px 0}
+  .nc-l{display:flex;flex-direction:column;gap:6px}
+  .nc-b{display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;border-radius:14px;background:var(--surface-2);color:var(--text);padding:14px;font:600 15px/1.2 var(--body);text-align:left;cursor:pointer}
+  .nc-b span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nc-b small{font-size:12.5px;color:var(--text-dim);white-space:nowrap}
+  .nc-b.prio{background:color-mix(in srgb,var(--accent) 18%,var(--surface-2))}
+  .nc-q{width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);padding:13px 14px;font:500 16px var(--body)}
+  .nc-nouveau{border:1.5px dashed var(--border);border-radius:14px;background:none;color:var(--accent);padding:13px;font:700 15px/1 var(--body);cursor:pointer}
   .volet{display:block !important;position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:640px;margin:0 auto;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;
     background:var(--bg);border-radius:22px 22px 0 0;padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.25);
     transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);animation:none}
@@ -1740,7 +1757,8 @@
       <div class="volet-poignee" aria-hidden="true"></div>
       <button type="button" class="bs-back" onclick="goto('home')">← Backstage</button>
       <div class="page-head volet-tete"><h1>Noter</h1><button type="button" class="volet-x" onclick="fermerVolet()" aria-label="Fermer">✕</button></div>
-      <div id="agenda-a-noter"></div>
+      <div id="noter-choix"></div>
+      <div id="agenda-a-noter" hidden></div>
 
       <div class="field" style="margin-top:20px;">
         <label for="f-nom">Nom du plateau</label>
@@ -2540,7 +2558,7 @@ window.quotidienSuperpose = function(p){
   if(p && p.action === 'noter'){
     window.__superpose = true; document.documentElement.classList.add('qd-superpose');
     ouvrirVoletNoter();
-    if(p.nom || p.date) prefillNotation(p.nom || '', p.date || '');
+    if(p.nom || p.date) choisirPlateauNoter(p.nom || '', p.date || '');
     return true;
   }
   if(!p || p.action !== 'ajouterPlateau') return false;
@@ -5156,12 +5174,11 @@ function renderHomeWeekSummary(){
   // Couleur du chiffre du mois : mieux que le mois précédent au même stade → vert ; à peu près pareil → orange ; moins bien → rouge
   // (« à peu près » : moins de 10 % d'écart, et au moins 1)
   const allure = (cur, prev) => { const ecart = cur - prev, marge = Math.max(1, Math.abs(prev) * .1); return ecart >= marge ? 'var(--s2)' : ecart <= -marge ? 'var(--s0)' : 'var(--s1)'; };
-  const c = (val, lab, prev, cur, pv) => `<div class="tb-c"><b style="color:${allure(cur, pv)}">${val}</b><i>${prev}</i><span>${lab}</span></div>`;
+  const c = (val, lab, prev, cur, pv) => `<div class="tb-c"><span>${lab}</span><b style="color:${allure(cur, pv)}">${val}</b><i>${prev}</i></div>`;
   const q = (n, p, col) => `<span style="color:${col}">${n}<i>${p}</i></span>`;
   wrap.innerHTML = `
     <div class="tb-tuile tb-mois" id="week-summary-card" role="button" onclick="toggleMonthComparison()" aria-label="${monthName} : toucher pour comparer avec ${prevMonthName}">
       <div class="tb-m-g">
-        <div class="tb-titre"><b>${monthName}</b><span class="tb-m-prec">${prevMonthName}</span></div>
         <div class="tb-chiffres">
           ${c(sceneCount, sceneCount > 1 ? 'scènes' : 'scène', prevScenes.length, sceneCount, prevScenes.length)}
           ${c(sign + Math.round(netMoney) + '€', 'bénéfice', prevSign + Math.round(prevNet) + '€', netMoney, prevNet)}
@@ -5349,8 +5366,7 @@ function renderNoteDetail(r){
   r = r || computeStarRating();
   const f = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
   const l = (lab, val, max, ratio) => `<div class="tb-n2"><span>${lab}</span><b>${val}<small>/${max}</small></b><i><em style="width:${Math.max(3, Math.round(ratio * 100))}%"></em></i></div>`;
-  el.innerHTML = `<div class="tb-titre"><b>Ta note</b><span>${f(r.stars)} ★</span></div>
-    <div class="tb-n2g">${l('Plateaux', f(r.beauxPerMonth), 9, r.ratioBeaux)}${l('Note', f(r.avgNote), 15, r.ratioNote)}${l('Scènes', f(r.scenesPerMonth), 15, r.ratioFreq)}${l('Argent', Math.round(r.gainsPerMonth) + '€', '500', r.ratioMoney)}</div>`;
+  el.innerHTML = `<div class="tb-n2g">${l('Plateaux', f(r.beauxPerMonth), 9, r.ratioBeaux)}${l('Note', f(r.avgNote), 15, r.ratioNote)}${l('Scènes', f(r.scenesPerMonth), 15, r.ratioFreq)}${l('Argent', Math.round(r.gainsPerMonth) + '€', '500', r.ratioMoney)}</div>`;
 }
 function voirNote(versNote = true){
   const c = document.getElementById('tb-spec-car'); if(!c) return;
@@ -5370,15 +5386,15 @@ const dureeVideo = s => { if(!s && s !== 0) return ''; s = Math.round(s); const 
 function renderHomeVideos(){
   const wrap = document.getElementById('home-videos'); if(!wrap) return;
   const l = lireVideos();
-  const bouton = `<div class="tb-btns tb-btns-v"><button type="button" class="tb-bbtn" onclick="ouvrirVoletVideo()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Vidéo</button></div>`;
-  const diapos = l.map(v => `<div class="tb-tuile tb-video">
+  const plus = `<button type="button" class="tb-v-plus" onclick="ouvrirVoletVideo()" aria-label="Ajouter une vidéo"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>`;
+  const diapos = l.map(v => `<div class="tb-tuile tb-video" data-video="${v.id}" title="Garder le doigt appuyé pour supprimer">
       <a class="tb-v-img" href="https://youtu.be/${v.id}" target="_blank" rel="noopener" aria-label="Ouvrir la vidéo"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">${v.duree ? `<span>${dureeVideo(v.duree)}</span>` : ''}</a>
       <div class="tb-v-t">
         <b>${escapeHtml(v.titre || 'Vidéo YouTube')}</b>
-        <div class="tb-v-b"><button type="button" class="tb-v-copier" onclick="copierVideo('${v.id}')"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Copier le lien</button><button type="button" class="tb-v-x" onclick="supprimerVideo('${v.id}')" aria-label="Retirer cette vidéo">✕</button></div>
+        <div class="tb-v-b"><button type="button" class="tb-v-copier" onclick="copierVideo('${v.id}')"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Copier le lien</button>${plus}</div>
       </div>
     </div>`);
-  wrap.innerHTML = `<div class="tb-bande">${bouton}<div class="tb-bloc">${diapos.length ? `<div class="tb-car">${diapos.join('')}</div>${tbPoints(diapos.length)}` : `<button type="button" class="tb-tuile tb-video tb-video-vide" onclick="ouvrirVoletVideo()"><p class="tb-vide">Ajoute le lien d’une vidéo YouTube (même non répertoriée) pour l’envoyer vite aux plateaux.</p></button>`}</div></div>`;
+  wrap.innerHTML = `<div class="tb-bloc">${diapos.length ? `<div class="tb-car">${diapos.join('')}</div>${tbPoints(diapos.length)}` : `<button type="button" class="tb-tuile tb-video tb-video-vide" onclick="ouvrirVoletVideo()"><p class="tb-vide">＋ Ajoute le lien d’une vidéo YouTube (même non répertoriée) pour l’envoyer vite aux plateaux.</p></button>`}</div>`;
   if(diapos.length) brancherCarrousel('home-videos');
   l.filter(v => !v.titre || !v.duree).forEach(v => infosVideo(v.id));
 }
@@ -5386,6 +5402,18 @@ async function copierVideo(id){
   const url = 'https://youtu.be/' + id;
   try{ await navigator.clipboard.writeText(url); showToast('Lien copié ✓'); }
   catch(e){ const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); try{ document.execCommand('copy'); showToast('Lien copié ✓'); }catch(_){ showToast(url); } t.remove(); }
+}
+// Garder le doigt appuyé sur une vidéo : on propose de la supprimer
+{
+  let t = null, x0 = 0, y0 = 0;
+  document.addEventListener('pointerdown', e => {
+    const v = e.target.closest('.tb-video[data-video]'); if(!v || e.target.closest('button, a')) return;
+    x0 = e.clientX; y0 = e.clientY; clearTimeout(t);
+    t = setTimeout(() => { t = null; if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){} supprimerVideo(v.dataset.video); }, 600);
+  });
+  document.addEventListener('pointermove', e => { if(t && Math.hypot(e.clientX - x0, e.clientY - y0) > 10){ clearTimeout(t); t = null; } });
+  ['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, () => { clearTimeout(t); t = null; }));
+  document.addEventListener('contextmenu', e => { if(e.target.closest('.tb-video[data-video]')) e.preventDefault(); });
 }
 function supprimerVideo(id){
   if(!confirm('Retirer cette vidéo de la liste ?')) return;
@@ -6688,7 +6716,7 @@ window.quotidienAction = function(p){
   }
   if(p.action !== 'noter') return;
   goto('home', true); ouvrirVoletNoter();
-  prefillNotation(p.nom || '', p.date || '');
+  choisirPlateauNoter(p.nom || '', p.date || '');
 };
 /* ---------- Volets du bas : une page qui monte par-dessus (Noter, Tous les textes, Nouveau texte) ---------- */
 function ouvrirVolet(id){
@@ -6722,7 +6750,58 @@ function fermerVolet(viaRetour, enchaine){
     }, 300);
   }
 }
-function ouvrirVoletNoter(){ resetForm(); afficherAgendaANoter(); ouvrirVolet('view-notation'); }
+function ouvrirVoletNoter(){ resetForm(); ouvrirVolet('view-notation'); noterEtape1(); }
+/* Noter, étape 1 : choisir le plateau. Plateau prévu aujourd'hui dans l'agenda et pas encore noté → on va directement à la note.
+   Sinon, en premier : les plateaux de l'agenda des jours précédents pas encore notés ; puis la recherche, et « Nouveau plateau ». */
+let noterSeq = 0, noterAgenda = [];
+const isoAuj = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+async function noterEtape1(){
+  const seq = ++noterSeq, sec = document.getElementById('view-notation'), box = document.getElementById('noter-choix');
+  sec.classList.add('noter-choix-on');
+  box.innerHTML = '<p class="tb-vide" style="margin:14px 2px">Chargement…</p>';
+  let items = [];
+  const q = quotidienParent();
+  if(q && q.scenesAgenda){ try{ items = await q.scenesAgenda(7); }catch(e){} }
+  if(seq !== noterSeq) return;   // entre-temps, un plateau a été choisi
+  const notees = loadScenes();
+  items = items.filter(it => !notees.some(s => s.date === it.date && (s.nom || '').trim().toLowerCase() === it.titre.trim().toLowerCase()));
+  const auj = items.find(it => it.date === isoAuj());
+  if(auj){ choisirPlateauNoter(auj.titre, auj.date); return; }
+  noterAgenda = items.sort((a, b) => a.date < b.date ? 1 : -1);
+  dessinerChoixNoter('');
+}
+function dessinerChoixNoter(qtxt){
+  const box = document.getElementById('noter-choix'); if(!box) return;
+  const jour = d => { const t = new Date(); t.setHours(0,0,0,0); const x = new Date(d + 'T00:00:00'); const n = Math.round((t - x) / 864e5); return n === 1 ? 'Hier' : x.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric'}).replace(/^./, c => c.toUpperCase()); };
+  const ville = currentPlateauxCity || 'Paris', norm = x => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const noms = [...new Set([...loadPlateaux().sort((a, b) => ((a.city || 'Paris') === ville ? 0 : 1) - ((b.city || 'Paris') === ville ? 0 : 1) || (a.name || '').localeCompare(b.name || '', 'fr')).map(p => p.name), ...loadScenes().map(s => s.nom)].filter(Boolean).map(x => x.trim()))];
+  const f = norm(qtxt), liste = noms.filter(n => !f || norm(n).includes(f)).slice(0, 40);
+  const exact = f && noms.some(n => norm(n) === f);
+  box.innerHTML = `${!f && noterAgenda.length ? `<div class="nc-t">Pas encore notés</div><div class="nc-l">${noterAgenda.map((it, i) => `<button type="button" class="nc-b prio" data-nc-a="${i}"><span>🎤 <b>${escapeHtml(it.titre)}</b></span><small>${escapeHtml(jour(it.date))}${it.heure ? ' · ' + escapeHtml(it.heure) : ''}</small></button>`).join('')}</div>` : ''}
+    <div class="nc-t">${!f && noterAgenda.length ? 'Ou un autre plateau' : 'Quel plateau ?'}</div>
+    <input type="search" id="nc-q" class="nc-q" placeholder="Chercher un plateau…" autocomplete="off" enterkeyhint="search" value="${escapeHtml(qtxt)}">
+    <button type="button" class="nc-nouveau" data-nc-new>＋ ${f && !exact ? `Nouveau plateau « ${escapeHtml(qtxt.trim())} »` : 'Nouveau plateau'}</button>
+    <div class="nc-l">${liste.map(n => `<button type="button" class="nc-b" data-nc-n="${escapeHtml(n)}"><span>${escapeHtml(n)}</span><small>›</small></button>`).join('') || '<p class="tb-vide">Aucun plateau trouvé.</p>'}</div>`;
+  const i = document.getElementById('nc-q');
+  i.addEventListener('input', () => { const pos = i.selectionStart; dessinerChoixNoter(i.value); const j = document.getElementById('nc-q'); j.focus(); try{ j.setSelectionRange(pos, pos); }catch(e){} });
+}
+document.addEventListener('click', e => {
+  const box = document.getElementById('noter-choix'); if(!box || !box.contains(e.target)) return;
+  const a = e.target.closest('[data-nc-a]'); if(a){ const it = noterAgenda[+a.dataset.ncA]; if(it) choisirPlateauNoter(it.titre, it.date); return; }
+  const n = e.target.closest('[data-nc-n]'); if(n){ choisirPlateauNoter(n.dataset.ncN, isoAuj()); return; }
+  if(e.target.closest('[data-nc-new]')){
+    const v = (document.getElementById('nc-q').value || '').trim();
+    if(!v){ const i = document.getElementById('nc-q'); i.placeholder = 'Écris le nom du nouveau plateau'; i.focus(); return; }
+    choisirPlateauNoter(v.charAt(0).toUpperCase() + v.slice(1), isoAuj());
+  }
+});
+function choisirPlateauNoter(nom, date){
+  noterSeq++;
+  document.getElementById('view-notation').classList.remove('noter-choix-on');
+  document.getElementById('noter-choix').innerHTML = '';
+  prefillNotation(nom || '', date || isoAuj());
+  const v = document.getElementById('view-notation'); if(v) v.scrollTop = 0;
+}
 const fermerVoletNoter = viaRetour => fermerVolet(viaRetour);
 // Glisser la poignée vers le bas pour fermer
 document.addEventListener('pointerdown', e => {

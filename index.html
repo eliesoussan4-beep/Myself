@@ -175,6 +175,29 @@ main{gap:22px}
 .dp-partager{border:0;border-radius:10px;background:var(--denim);color:var(--on-denim);font:700 13px/1 var(--body);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:6px}
 .dliste small{display:block;font-size:11.5px;font-weight:600;color:var(--today);margin-top:2px}
 .dp-h{display:flex;flex-direction:column}
+/* 1re carte de l'agenda : combien à faire + les catégories */
+.slide.resume-j{justify-content:center;align-items:center;gap:6px;text-align:center}
+.rj-n{display:flex;flex-direction:column;align-items:center;border:0;background:none;color:var(--ink);padding:0;cursor:pointer}
+.rj-n b{font-family:var(--display);font-size:40px;font-weight:800;line-height:1;color:var(--sc,var(--ink))}
+.rj-n span{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.rj-c{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;font-size:18px;line-height:1}
+.rj-l{display:flex;flex-direction:column;gap:5px}
+.rj-i{display:flex;align-items:center;gap:10px;border:0;border-left:3px solid var(--sc);border-radius:0 12px 12px 0;background:color-mix(in srgb,var(--sc) 12%,var(--sunk));color:var(--ink);padding:10px 12px;text-align:left;font:600 15px/1.25 var(--body)}
+.rj-i b{flex:none;min-width:42px;font-size:12.5px;color:var(--sc)}
+.rj-i span{flex:1;min-width:0}
+.rj-i em{font-style:normal;font-size:12px;color:var(--muted)}
+.feuille h3 small{font-size:12px;color:var(--muted);font-family:var(--body)}
+/* Vue de la semaine de l'agenda */
+.vue-sw{margin-left:6px}
+.sem{display:flex;flex-direction:column;gap:8px;max-height:64dvh;overflow-y:auto;overscroll-behavior:contain}
+.sem-j{background:var(--sunk);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+.sem-j.auj{box-shadow:inset 0 0 0 2px var(--today)}
+.sem-j.passe{opacity:.6}
+.sem-h{display:flex;align-items:center;justify-content:space-between}
+.sem-h b{font-family:var(--display);font-size:15px}
+.sem-plus{width:28px;height:28px;border-radius:50%;border:0;background:var(--surface);color:var(--denim);display:flex;align-items:center;justify-content:center;padding:0}
+.sem-j .hint{margin:0}
+/* Carré Courses + Dispos : même hauteur que la carte des plateaux du jour */
 /* Listes dans la carte du haut (à la place de la météo) */
 .slides.mini .slide.lm,.slide.lm{background:color-mix(in srgb,var(--sc) 18%,var(--sunk));padding:8px 8px 8px 10px;gap:4px;justify-content:flex-start;align-items:stretch;text-align:left}
 .lm-h{display:flex;align-items:center;gap:6px;min-width:0}
@@ -542,6 +565,18 @@ dialog h2:focus{outline:none}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:30;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);pointer-events:none;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+/* Carré Courses + Dispos : même hauteur que la carte des plateaux du jour */
+[data-bloc="duo"]{--gr-h:106px}
+[data-bloc="duo"] .dp-slides .slide{padding:7px 8px;gap:4px}
+[data-bloc="duo"] .dp-btns{gap:3px}
+[data-bloc="duo"] .dp-b{padding:3px 0;font-size:12px;line-height:1.1;border-radius:8px}
+[data-bloc="duo"] .dp-mois b{font-size:14px}
+[data-bloc="duo"] .dp-m{width:24px;height:24px;border-radius:7px}
+[data-bloc="duo"] .dp-jours{gap:3px}
+[data-bloc="duo"] .dp-jours .dp-b{padding:5px 0}
+[data-bloc="duo"] .dp-partager{padding:5px 0;font-size:12px}
+[data-bloc="duo"] .dp-h b{font-size:14px}
+[data-bloc="duo"] .co-slides .slide.resume{padding:8px}
 </style>
 <script src="apps.js"></script>
 </head>
@@ -553,7 +588,8 @@ dialog h2:focus{outline:none}
 <dialog id="reglages" aria-label="Sauvegarde et réglages"></dialog>
 <dialog id="retours" aria-label="Noter une modif"></dialog>
 <dialog id="ajout-course" aria-label="Ajouter aux courses"></dialog>
-<dialog id="mois" aria-label="Le mois"></dialog>
+<dialog id="mois" aria-label="L’agenda"></dialog>
+<dialog id="recap-jour" aria-label="À faire"></dialog>
 <dialog id="dispos" aria-label="Mes disponibilités"></dialog>
 <button type="button" id="retour-btn" aria-label="Noter une modif" hidden></button>
 <input type="file" id="fichier" accept="application/json,.json" multiple hidden>
@@ -897,7 +933,7 @@ let dernierOrga = null;
 function blocOrganisation(d0){
   dernierOrga = d0;
   const d = d0 && jourOrga === 1 ? {...d0, ...d0.demain} : d0;
-  const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 20)}Ajouter</button><button type="button" class="bbtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 20)}Mois</button></div>`;
+  const btns = `<div class="bande-btns"><button type="button" class="bbtn" data-aller="organisation" data-action="ajouter"${d ? ` data-d="${esc(d.d)}"` : ''}>${svg('<path d="M12 5v14M5 12h14"/>', 20)}Ajouter</button><button type="button" class="bbtn" data-aller="organisation" data-action="mois">${svg('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', 20)}Agenda</button></div>`;
   if(!d) return `<div class="bande">${btns}<div class="bande-car"><p class="vide">Pas encore d’organisation sur ce téléphone.</p></div></div>`;
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
   // Aperçu de l'autre jour : ses premiers éléments et combien il y en a ; toucher la carte pour y passer
@@ -911,8 +947,16 @@ function blocOrganisation(d0){
       <div class="ap-pied"><span>${resume}</span>${j ? `<span class="ap-fl">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</span>` : ''}</div></div>`;
   };
   const coul = th => th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : '';
-  // 1re carte : tous les événements du jour, dans l'ordre de l'heure
+  // 1re carte : combien il reste à faire, et les catégories concernées ; toucher le chiffre ouvre le récap du jour
   const diapos = [];
+  {
+    const cats = [], vus = new Set();
+    d.restantes.forEach(e => { const th = d.themes.get(e.t.themeId), k = th ? th.id : '_'; if(vus.has(k)) return; vus.add(k); cats.push(th); });
+    const n = d.restantes.length;
+    diapos.push(`<div class="slide resume-j"><button type="button" class="rj-n" data-recap="${jourOrga}" aria-label="Voir tout ce qu’il y a à faire ${jourOrga ? 'demain' : 'aujourd’hui'}"><b>${n}</b><span>${n ? (n > 1 ? 'choses à faire' : 'chose à faire') : 'tout est fait 🎉'}${d.evts.length ? ' · ' + plur(d.evts.length, 'événement', 'événements') : ''}</span></button>
+      ${cats.length ? `<div class="rj-c">${cats.map(th => `<span title="${esc(th ? th.name : 'Sans catégorie')}">${th && th.emoji ? esc(th.emoji) : '📌'}</span>`).join('')}</div>` : ''}</div>`);
+  }
+  // Puis tous les événements du jour, dans l'ordre de l'heure
   if(d.evts.length) diapos.push(`<div class="slide groupe" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste" style="height:${Math.min(d.evts.length, 2) * 44}px">${d.evts.map(e => { const th = d.themes.get(e.themeId); const sk = ciel(e); return `<div class="ligne ev ${sk.cls}"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}">${sk.deco}<b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
   // Puis une carte par catégorie (ordre des catégories de l'Organisation), tâches seulement
   const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
@@ -1237,7 +1281,8 @@ async function lireBackstage(){
   const jour = new Date(); jour.setHours(0, 0, 0, 0);
   let plats = [], fiches = [];
   try{
-    plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === 'Paris' && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
+    let ville = 'Paris'; try{ ville = localStorage.getItem('backstage_plateaux_city_v1') || 'Paris'; }catch(e){}   // la ville choisie dans Backstage
+    plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === ville && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
       .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:slot && slot.type != null ? slot.type : null, adresse:p.address || '', instagram:p.instagram || ''}));
     // pour les scènes de l'agenda : l'adresse et l'Instagram du plateau du même nom (même s'il ne joue pas ce jour-là)
     fiches = plateaux.map(p => ({nom:p.name || '', adresse:p.address || '', instagram:p.instagram || '', type:null}));
@@ -1459,6 +1504,7 @@ async function choisirTenue(btn){
 }
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
+  const rc = e.target.closest('[data-recap]'); if(rc){ ouvrirRecapJour(+rc.dataset.recap); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
   const go = e.target.closest('[data-aller]');
   if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule], a.pl-act')){
@@ -1554,6 +1600,28 @@ $('#ajout-course').addEventListener('click', async e => {
   }
 });
 
+/* ---------- Récap du jour (aujourd'hui ou demain) : tout ce qu'il y a à faire, par catégorie ---------- */
+function ouvrirRecapJour(j){
+  const d0 = dernierOrga; if(!d0) return;
+  const d = j === 1 ? {...d0, ...d0.demain} : d0, dj = parseD(d.d);
+  const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
+  const groupes = new Map();
+  d.restantes.forEach(e => { const th = d.themes.get(e.t.themeId), k = th ? th.id : '_'; if(!groupes.has(k)) groupes.set(k, {th, l:[]}); groupes.get(k).l.push(e); });
+  const rang = th => th ? (th.order || 0) : 1e9;
+  const dlg = $('#recap-jour');
+  dlg.innerHTML = `<div class="feuille"><h2 tabindex="-1">${j ? 'Demain' : 'Aujourd’hui'} · ${esc(cap(dj.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h2>
+    ${d.evts.length ? `<h3>Événements</h3><div class="rj-l">${d.evts.map(e => { const th = d.themes.get(e.themeId); return `<button type="button" class="rj-i" data-rt="${esc(e.id)}" style="--sc:var(--c-${esc(th ? th.color || 'slate' : 'slate')})"><b>${esc(heure(e)) || '—'}</b><span>${esc(e.title)}</span></button>`; }).join('')}</div>` : ''}
+    ${[...groupes.values()].sort((a, b) => rang(a.th) - rang(b.th)).map(g => `<h3 style="color:var(--c-${esc(g.th ? g.th.color || 'slate' : 'slate')})">${g.th ? esc((g.th.emoji ? g.th.emoji + ' ' : '') + g.th.name) : '📌 Sans catégorie'} <small>${g.l.length}</small></h3>
+      <div class="rj-l">${g.l.map(e => `<button type="button" class="rj-i" data-rt="${esc(e.t.id)}" data-rd="${esc(e.d)}" style="--sc:var(--c-${esc(g.th ? g.th.color || 'slate' : 'slate')})"><b>${e.retard ? 'retard' : esc(heure(e.t))}</b><span>${esc(e.t.title)}</span>${e.t.duration ? `<em>${e.t.duration} min</em>` : ''}</button>`).join('')}</div>`).join('') || '<p class="hint">Rien à faire. Profite ☀️</p>'}
+    <button type="button" class="btn" data-rf="1">Fermer</button></div>`;
+  dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
+}
+$('#recap-jour').addEventListener('click', e => {
+  const dlg = $('#recap-jour');
+  if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }
+  const it = e.target.closest('[data-rt]'); if(it){ dlg.close(); superposer('organisation', {action:'tache', id:it.dataset.rt, d:it.dataset.rd || (dernierOrga && dernierOrga.d)}); }
+});
+
 /* ---------- Le mois (calendrier de l'Organisation), en fenêtre par-dessus l'accueil ---------- */
 const MOIS_N = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 let moisDecalage = 0, moisJour = null, moisDonnees = null;
@@ -1571,7 +1639,23 @@ function elementsDu(d){
   const retard = lateEntries(moisDonnees.tasks, d).filter(e => !isDone(e.t, e.d) && !els.includes(e.t)).map(e => ({...e.t, __retard:e.d}));
   return [...retard, ...els];
 }
+let agendaVue = (() => { try{ return localStorage.getItem('quotidien-agenda-vue') || 'mois'; }catch(e){ return 'mois'; } })(), semDecalage = 0;
+const btnVue = () => `<button type="button" class="rond petit vue-sw" data-vue aria-label="${agendaVue === 'mois' ? 'Vue de la semaine' : 'Vue du mois'}">${agendaVue === 'mois' ? svg('<path d="M4 6h16M4 12h16M4 18h16"/>', 18) : svg('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 10v10M15 10v10M4 15h16"/>', 18)}</button>`;
+function dessinerSemaine(){
+  const dlg = $('#mois'), t0 = iso(new Date());
+  const lun = new Date(); lun.setHours(0, 0, 0, 0); lun.setDate(lun.getDate() - (lun.getDay() + 6) % 7 + semDecalage * 7);
+  const jours = Array.from({length:7}, (_, k) => { const x = new Date(lun); x.setDate(lun.getDate() + k); return iso(x); });
+  const coul = x => { const th = moisDonnees && moisDonnees.themes.get(x.themeId); return `var(--c-${th ? th.color || 'slate' : 'slate'})`; };
+  const titre = `${parseD(jours[0]).getDate()} ${MOIS_N[parseD(jours[0]).getMonth()].slice(0, 4)}. – ${parseD(jours[6]).getDate()} ${MOIS_N[parseD(jours[6]).getMonth()].slice(0, 4)}.`;
+  dlg.innerHTML = `<div class="feuille mois-f"><div class="poignee" aria-hidden="true"></div>
+    <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Semaine précédente">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${titre}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Semaine suivante">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button>${btnVue()}</div>
+    <div class="sem">${jours.map(d => { const els = elementsDu(d), dj = parseD(d); return `<div class="sem-j${d === t0 ? ' auj' : ''}${d < t0 ? ' passe' : ''}">
+      <div class="sem-h"><b>${cap(dj.toLocaleDateString('fr-FR', {weekday:'short'}))} ${dj.getDate()}</b><button type="button" class="sem-plus" data-mf="ajouter" data-md="${d}" aria-label="Ajouter le ${dj.getDate()}">${svg('<path d="M12 5v14M5 12h14"/>', 14)}</button></div>
+      ${els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" data-md="${d}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? '<em class="ml-r">en retard</em>' : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') || '<p class="hint">—</p>'}</div>`; }).join('')}</div>
+  </div>`;
+}
 function dessinerMois(){
+  if(agendaVue === 'semaine') return dessinerSemaine();
   const dlg = $('#mois'), t0 = iso(new Date());
   const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + moisDecalage);
   const y = base.getFullYear(), m = base.getMonth(), nb = new Date(y, m + 1, 0).getDate(), dec = (new Date(y, m, 1).getDay() + 6) % 7;
@@ -1585,7 +1669,7 @@ function dessinerMois(){
   }
   const els = elementsDu(moisJour), jd = parseD(moisJour);
   dlg.innerHTML = `<div class="feuille mois-f"><div class="poignee" aria-hidden="true"></div>
-    <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Mois précédent">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${cap(MOIS_N[m])} ${y}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Mois suivant">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button></div>
+    <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Mois précédent">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${cap(MOIS_N[m])} ${y}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Mois suivant">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button>${btnVue()}</div>
     <div class="mgrille">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
     <h3>${cap(jd.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}))}</h3>
     <div class="mliste">${els.length ? els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? `<em class="ml-r">en retard · ${esc(shortDate(x.__retard))}</em>` : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') : '<p class="hint">Rien de prévu ce jour-là.</p>'}</div>
@@ -1593,7 +1677,7 @@ function dessinerMois(){
   </div>`;
 }
 async function ouvrirMois(){
-  moisDecalage = 0; moisJour = iso(new Date());
+  moisDecalage = 0; semDecalage = 0; moisJour = iso(new Date());
   await chargerMois(); dessinerMois();
   const dlg = $('#mois'); dlg.showModal();
 }
@@ -1601,10 +1685,11 @@ function fermerMois(){ const dlg = $('#mois'); if(!dlg.open) return; const f = d
 $('#mois').addEventListener('click', e => {
   const dlg = $('#mois');
   if(e.target === dlg){ fermerMois(); return; }
-  const mn = e.target.closest('[data-mn]'); if(mn){ moisDecalage += +mn.dataset.mn; moisJour = null; dessinerMois(); return; }
+  if(e.target.closest('[data-vue]')){ agendaVue = agendaVue === 'mois' ? 'semaine' : 'mois'; try{ localStorage.setItem('quotidien-agenda-vue', agendaVue); }catch(_){} dessinerMois(); return; }
+  const mn = e.target.closest('[data-mn]'); if(mn){ if(agendaVue === 'semaine') semDecalage += +mn.dataset.mn; else { moisDecalage += +mn.dataset.mn; moisJour = null; } dessinerMois(); return; }
   const mj = e.target.closest('[data-mj]'); if(mj){ moisJour = mj.dataset.mj; dessinerMois(); return; }
-  const mt = e.target.closest('[data-mt]'); if(mt){ const d = moisJour; dlg.close(); superposer('organisation', {action:'tache', id:mt.dataset.mt, d}); return; }
-  if(e.target.closest('[data-mf="ajouter"]')){ const d = moisJour; dlg.close(); superposer('organisation', {action:'ajouter', d}); }
+  const mt = e.target.closest('[data-mt]'); if(mt){ const d = mt.dataset.md || moisJour; dlg.close(); superposer('organisation', {action:'tache', id:mt.dataset.mt, d}); return; }
+  const mf = e.target.closest('[data-mf="ajouter"]'); if(mf){ const d = mf.dataset.md || moisJour; dlg.close(); superposer('organisation', {action:'ajouter', d}); }
 });
 // Glisser vers le bas pour fermer (depuis la poignée, ou quand la fenêtre est tout en haut)
 {

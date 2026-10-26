@@ -1389,13 +1389,13 @@ function openDayAdd(d) {
     const rs = S.routines.slice().sort(byOrder).filter(r => routineSteps(r).some(z => !z.info.done));
     // Ce qui attend déjà : les tâches sans date et les événements gardés pour être remis
     const attente = S.tasks.filter(t => !t.rep && !t.date && !t.done && !t.info && t.kind !== 'event' && !t.srcId).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
-    const evTpl = S.tasks.filter(t => t.info && t.free).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+    // (les plateaux ne comptent pas : ils ont leur propre bouton « Plateau »)
+    const evTpl = S.tasks.filter(t => t.info && t.free && !isSceneTheme(themeOf(t))).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     const ligne = t => { const th = themeOf(t); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="place-on" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${th ? h(th.emoji) + ' ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
     return `<h2 class="sheet-title">${h(name)}</h2>
+      <div class="btn-row trois"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button></div>
       ${attente.length ? `<h3 class="sec-sub">Tâches en attente · ${attente.length}</h3><div class="att">${attente.map(ligne).join('')}</div>` : ''}
       ${evTpl.length ? `<h3 class="sec-sub">Événements à remettre · ${evTpl.length}</h3><div class="att">${evTpl.map(ligne).join('')}</div>` : ''}
-      <h3 class="sec-sub">${attente.length || evTpl.length ? 'Ou un nouveau' : 'Nouveau'}</h3>
-      <div class="btn-row trois"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button></div>
       ${rs.length ? `<h3 class="sec-sub">Routine</h3><div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
       `;
   } });
@@ -1588,7 +1588,7 @@ function dashboardHTML() {
   // Événements à remettre (gardés dans la base) : une diapo chacun, avec combien de fois il est prévu ce mois ;
   // toucher la carte la retourne et montre les dates
   const mois = t0.slice(0, 7);
-  const tpls = S.tasks.filter(x => x.info && x.free).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+  const tpls = S.tasks.filter(x => x.info && x.free && !isSceneTheme(themeOf(x))).sort((a, b) => a.title.localeCompare(b.title, 'fr'));   // les plateaux ont leur place dans Backstage
   const datesDe = tpl => S.tasks.filter(x => x.srcId === tpl.id && x.date && x.date.slice(0, 7) === mois).map(x => ({ d: x.date, t: x })).sort((a, b) => a.d < b.d ? -1 : 1);
   const eDiapos = tpls.map(tpl => {
     const th = themeOf(tpl), col = th ? th.color || 'slate' : 'slate', ds = datesDe(tpl), n = ds.length, verso = U.evVerso && U.evVerso.has(tpl.id);

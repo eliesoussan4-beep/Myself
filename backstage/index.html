@@ -1253,7 +1253,8 @@
   .tb-spec-p{display:flex;flex-direction:column;gap:4px;width:100%}
   .tb-spec-b{height:4px;border-radius:2px;background:color-mix(in srgb,var(--accent) 18%,transparent);overflow:hidden}
   .tb-spec-b > span{display:block;height:100%;border-radius:2px;background:var(--accent)}
-  .tb-spec-d b{font-size:24px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;line-height:1.15}
+  .tb-spec-d b{font-size:18px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;line-height:1.2;margin:2px 0}
+  .tb-spec-d b.long{font-size:15px}
   .tb-spec-d small{font-family:var(--body);font-size:11px;font-weight:700;color:var(--text-dim);margin-top:3px;white-space:nowrap}
   .tb-spec-d em{font-style:normal;font-size:15px;font-weight:700}
   /* Carrousels : une carte sur toute la largeur, on fait glisser */
@@ -1301,12 +1302,15 @@
   .tb-note .tb-hb > div{grid-template-columns:4.9em minmax(0,1fr);font-size:11.5px}
   .tb-note .tb-hb i{height:7px}
   /* À compléter */
-  .tb-ac{height:100%;gap:6px;min-height:150px}
+  .tb-ac{height:100%;gap:6px;min-height:150px;background:color-mix(in srgb,var(--star) 15%,var(--surface-2)) !important}
+  .tb-ac .tb-titre b{color:var(--star)}
+  .tb-ac-n{min-width:24px;height:24px;border-radius:12px;background:var(--star);color:var(--bg) !important;font-family:var(--display);font-size:13px !important;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
+  .tb-ac-l span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--star);margin-right:8px;vertical-align:2px}
   .tb-ac-h{display:flex;justify-content:space-between;align-items:baseline}
   .tb-ac-h b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1}
   .tb-ac-l{display:flex;flex-direction:column;gap:2px;overflow-y:auto;max-height:104px;scrollbar-width:none;overscroll-behavior-y:contain}
   .tb-ac-l::-webkit-scrollbar{display:none}
-  .tb-ac-l button{display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--text);font:600 14px/1.2 var(--body);padding:5px 0;text-align:left;border-top:1px solid color-mix(in srgb,var(--accent) 20%,transparent);cursor:pointer;min-width:0}
+  .tb-ac-l button{display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--text);font:600 14px/1.2 var(--body);padding:5px 0;text-align:left;border-top:1px solid color-mix(in srgb,var(--star) 28%,transparent);cursor:pointer;min-width:0}
   .tb-ac-l button:first-child{border-top:0}
   .tb-ac-l span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-ac-l i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--star)}
@@ -1323,19 +1327,21 @@
   .tb-bbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:14px;background:var(--surface-2);color:var(--text);font:600 11px/1.15 var(--body);padding:6px 2px;text-align:center;cursor:pointer;min-height:0}
   .tb-bbtn svg{width:19px;height:19px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .tb-bbtn:active{transform:scale(.97)}
-  /* Plateaux : la ville, puis un jour par diapo (chaque jour sa couleur), filtres à droite */
-  #home-semaine .tb-car > .tb-tuile{height:150px;padding:12px 14px;gap:8px;cursor:default}
-  .tb-bande-d{grid-template-columns:minmax(0,4fr) minmax(0,1fr)}
+  /* Plateaux : la ville, puis un jour par diapo (chaque jour sa couleur), filtres à droite comme sur l'accueil */
+  #home-semaine .tb-car > .tb-tuile{height:118px;padding:10px 12px;gap:6px;cursor:default}
+  .tb-bande-d{grid-template-columns:minmax(0,1fr) auto;column-gap:10px}
   .tb-bande-d .tb-car{margin:0;padding:0}
-  .tb-filtres{height:150px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;background:var(--surface-2);border-radius:16px}
-  .tb-f{--sc:var(--text-dim);width:26px;height:26px;border-radius:50%;border:2.5px solid var(--sc);background:transparent;padding:0;cursor:pointer;opacity:.8;transition:transform .15s}
+  .tb-filtres{height:118px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+  .tb-f{--sc:var(--text-dim);width:20px;height:20px;border-radius:50%;border:2px solid var(--sc);background:transparent;padding:0;cursor:pointer;opacity:.75;transition:transform .15s}
   .tb-f.t0{--sc:var(--s0)} .tb-f.t1{--sc:var(--s1)} .tb-f.t2{--sc:var(--s2)}
   .tb-f.on{background:var(--sc);opacity:1;transform:scale(1.15)}
-  .tb-ville{cursor:pointer !important;align-items:center;justify-content:center;text-align:center;gap:4px !important}
-  .tb-ville-ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
-  .tb-ville-ic svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .tb-ville b{font-family:var(--display);font-size:22px;font-weight:800}
-  .tb-ville span{font-size:12px;font-weight:600;color:var(--text-dim)}
+  .tb-ville{justify-content:space-between;gap:8px !important}
+  .tb-ville-n{display:flex;align-items:baseline;gap:6px;border:0;background:none;color:var(--text);padding:0;cursor:pointer;text-align:left;min-width:0}
+  .tb-ville-n b{font-family:var(--display);font-size:24px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-ville-n span{font-size:14px;color:var(--accent)}
+  .tb-ville-b{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tb-ville-b button{display:flex;align-items:baseline;justify-content:center;gap:6px;border:0;border-radius:12px;background:var(--surface);color:var(--text);font:600 13px/1 var(--body);padding:11px 6px;cursor:pointer}
+  .tb-ville-b b{font-family:var(--display);font-size:16px;font-weight:800;color:var(--accent)}
   /* Une couleur par jour (même jour = même couleur chaque semaine) */
   .tb-jour{--jc:var(--accent);background:color-mix(in srgb,var(--jc) 16%,var(--surface-2)) !important}
   .tb-jour .tb-titre b{color:var(--jc)}
@@ -1343,7 +1349,23 @@
   .tb-jour.j-ven{--jc:#4B53C9} .tb-jour.j-sam{--jc:#5A6B80} .tb-jour.j-dim{--jc:#8A4A9E}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tb-jour.j-lun{--jc:#8FB0E3}:root:not([data-theme="light"]) .tb-jour.j-mar{--jc:#6FCFCF}:root:not([data-theme="light"]) .tb-jour.j-mer{--jc:#A58CF0}:root:not([data-theme="light"]) .tb-jour.j-jeu{--jc:#E58AB8}:root:not([data-theme="light"]) .tb-jour.j-ven{--jc:#9AA0FF}:root:not([data-theme="light"]) .tb-jour.j-sam{--jc:#A3B1C4}:root:not([data-theme="light"]) .tb-jour.j-dim{--jc:#C99BDB}}
   :root[data-theme="dark"] .tb-jour.j-lun{--jc:#8FB0E3}:root[data-theme="dark"] .tb-jour.j-mar{--jc:#6FCFCF}:root[data-theme="dark"] .tb-jour.j-mer{--jc:#A58CF0}:root[data-theme="dark"] .tb-jour.j-jeu{--jc:#E58AB8}:root[data-theme="dark"] .tb-jour.j-ven{--jc:#9AA0FF}:root[data-theme="dark"] .tb-jour.j-sam{--jc:#A3B1C4}:root[data-theme="dark"] .tb-jour.j-dim{--jc:#C99BDB}
-  .tb-jour .tb-pl-l{background:color-mix(in srgb,var(--sc) 14%,var(--surface-2))}
+  .tb-jour .tb-pl-l{border-left:0;border-radius:10px;background:color-mix(in srgb,var(--surface) 70%,transparent);padding:6px 10px}
+  .tb-jour .tb-pl-l b{color:var(--text-dim)}
+  .tb-pl-l i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--sc)}
+  .tb-pl-l.tx i{background:none;box-shadow:inset 0 0 0 1.5px var(--text-dim)}
+  .vp-btns{display:flex;gap:8px;margin:12px 0 10px}
+  .vp-b{flex:1;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:12px;padding:12px 8px;font:700 14px/1 var(--body);cursor:pointer}
+  .vp-b.on{border-color:var(--accent);color:var(--accent)}
+  .vp-b.plein{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  #vp-liste{display:flex;flex-direction:column;gap:6px}
+  .vp-l{--sc:var(--text-dim);display:flex;align-items:center;gap:12px;border:0;background:var(--surface-2);border-radius:14px;padding:12px 14px;color:var(--text);text-align:left;font-family:var(--body);cursor:pointer}
+  .vp-l.t0{--sc:var(--s0)} .vp-l.t1{--sc:var(--s1)} .vp-l.t2{--sc:var(--s2)}
+  .vp-l i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--sc)}
+  .vp-l.tx i{background:none;box-shadow:inset 0 0 0 1.5px var(--text-dim)}
+  .vp-l span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .vp-l b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vp-l small{font-size:12.5px;font-weight:600;color:var(--text-dim)}
+  .vp-l em{font-style:normal;font-size:20px;color:var(--text-dim)}
   #vv-liste{display:flex;flex-direction:column;gap:6px;margin-top:10px}
   .vv-v{display:flex;align-items:center;gap:10px;border:0;background:var(--surface-2);border-radius:14px;padding:14px;color:var(--text);font-family:var(--body);text-align:left;cursor:pointer}
   .vv-v b{flex:1;font-size:16px;font-weight:700}
@@ -1595,6 +1617,14 @@
       <div class="page-head volet-tete"><h1>Tous les textes</h1><button type="button" class="volet-x" onclick="fermerVolet()" aria-label="Fermer">✕</button></div>
       <div id="vt-liste"></div>
       <button type="button" class="vt-ajout" onclick="ouvrirVoletNouveauTexte()">+ Nouveau texte</button>
+    </section>
+
+    <!-- VOLET : TOUS LES PLATEAUX -->
+    <section class="volet-page" id="volet-plateaux" aria-label="Tous les plateaux">
+      <div class="volet-poignee" aria-hidden="true"></div>
+      <div class="page-head volet-tete"><h1 id="vp-titre">Plateaux</h1><button type="button" class="volet-x" onclick="fermerVolet()" aria-label="Fermer">✕</button></div>
+      <div class="vp-btns"><button type="button" class="vp-b" id="vp-arret" onclick="vpArret=!vpArret; remplirVoletPlateaux()">⏸ À l’arrêt</button><button type="button" class="vp-b plein" onclick="openQuickAddPlateauModal()">+ Ajouter un plateau</button></div>
+      <div id="vp-liste"></div>
     </section>
 
     <!-- VOLET : VILLE DE L'AGENDA -->
@@ -5118,9 +5148,13 @@ function renderHomeSemaine(){
   const pls = tous.filter(isPlateauComplete);
   const t0 = new Date(); t0.setHours(0, 0, 0, 0);
   const nbVilles = villesPlateaux().length;
-  const diapos = [`<button type="button" class="tb-tuile tb-ville" onclick="ouvrirVoletVilles()" aria-label="Ville de l’agenda : ${escapeHtml(ville)}. Toucher pour changer">
-    <span class="tb-ville-ic"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
-    <b>${escapeHtml(ville)}</b><span>${pls.length} ${pls.length > 1 ? 'plateaux' : 'plateau'}${nbVilles > 1 ? ' · touche pour changer de ville' : ''}</span></button>`];
+  const nbActifs = tous.filter(p => !p.paused).length;
+  const diapos = [`<div class="tb-tuile tb-ville">
+    <button type="button" class="tb-ville-n" onclick="ouvrirVoletVilles()" aria-label="Ville de l’agenda : ${escapeHtml(ville)}. Toucher pour changer"><b>${escapeHtml(ville)}</b>${nbVilles > 1 ? '<span>▾</span>' : ''}</button>
+    <div class="tb-ville-b">
+      <button type="button" onclick="ouvrirVoletPlateaux()"><b>${nbActifs}</b>${nbActifs > 1 ? 'plateaux' : 'plateau'}</button>
+      <button type="button" onclick="ouvrirAjoutPlateau()"><b>+</b>Ajouter</button>
+    </div></div>`];
   for(let k = 0; k < 7; k++){
     const d = new Date(t0); d.setDate(t0.getDate() + k);
     const dow = d.getDay();
@@ -5129,13 +5163,41 @@ function renderHomeSemaine(){
     const date = d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     diapos.push(`<div class="tb-tuile tb-jour j-${JOURS_COULEUR[dow]}">
       <div class="tb-titre"><b>${nom}</b><span>${date}${liste.length ? ' · ' + liste.length : ''}</span></div>
-      <div class="tb-pl">${liste.map(({p, slot}) => `<button type="button" class="tb-pl-l t${slot.type != null ? slot.type : 'x'}" onclick="goto('plateaux'); openPlateauDetail(${p.id})"><span>${escapeHtml(p.name)}</span><b>${escapeHtml(formatPlateauTime(slot.time || ''))}</b></button>`).join('') || `<p class="tb-vide">${filtreSemaine ? 'Pas de plateau de cette couleur.' : 'Pas de plateau ce jour-là.'}</p>`}</div>
+      <div class="tb-pl">${liste.map(({p, slot}) => `<button type="button" class="tb-pl-l t${slot.type != null ? slot.type : 'x'}" onclick="goto('plateaux'); openPlateauDetail(${p.id})"><i aria-hidden="true"></i><span>${escapeHtml(p.name)}</span><b>${escapeHtml(formatPlateauTime(slot.time || ''))}</b></button>`).join('') || `<p class="tb-vide">${filtreSemaine ? 'Pas de plateau de cette couleur.' : 'Pas de plateau ce jour-là.'}</p>`}</div>
     </div>`);
   }
-  const filtres = `<div class="tb-filtres" role="group" aria-label="Filtrer par type de plateau">${[['0', 'nuls'], ['1', 'sympas'], ['2', 'beaux']].map(([k, l]) => `<button type="button" class="tb-f t${k}${filtreSemaine === k ? ' on' : ''}" onclick="filtrerSemaine('${k}')" aria-pressed="${filtreSemaine === k}" aria-label="Seulement les plateaux ${l}"></button>`).join('')}</div>`;
+  const filtres = `<div class="tb-filtres" role="group" aria-label="Filtrer les plateaux">${[['0', 'rouges'], ['1', 'jaunes'], ['2', 'verts']].map(([k, l]) => `<button type="button" class="tb-f t${k}${filtreSemaine === k ? ' on' : ''}" onclick="filtrerSemaine('${k}')" aria-pressed="${filtreSemaine === k}" aria-label="Seulement les ${l}"></button>`).join('')}</div>`;
   wrap.innerHTML = `<div class="tb-bande tb-bande-d"><div class="tb-bloc"><div class="tb-car">${diapos.join('')}</div>${tbPoints(diapos.length)}</div>${filtres}</div>`;
   brancherCarrousel('home-semaine');
 }
+// Volet : tous les plateaux de la ville (ou ceux à l'arrêt), et en ajouter un
+let vpArret = false;
+const JOURS_ABR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+function ouvrirVoletPlateaux(){ vpArret = false; remplirVoletPlateaux(); ouvrirVolet('volet-plateaux'); }
+function remplirVoletPlateaux(){
+  const ville = currentPlateauxCity || 'Paris', tous = loadPlateaux().filter(p => (p.city || 'Paris') === ville);
+  const arret = tous.filter(p => p.paused), actifs = tous.filter(p => !p.paused);
+  const l = (vpArret ? arret : actifs).slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr'));
+  document.getElementById('vp-titre').textContent = vpArret ? 'À l’arrêt' : 'Plateaux · ' + ville;
+  const bt = document.getElementById('vp-arret');
+  bt.textContent = vpArret ? '← Tous les plateaux' : `⏸ À l’arrêt${arret.length ? ' · ' + arret.length : ''}`;
+  bt.classList.toggle('on', vpArret);
+  const meilleur = p => { const ts = (p.times || []).map(t => t.type).filter(t => t != null); return ts.length ? Math.max(...ts) : 'x'; };
+  const quand = p => {
+    if(!isPlateauComplete(p)) return 'À compléter';
+    const j = DAY_ORDER_MON_FIRST.filter(d => (p.days || []).includes(d)).map(d => JOURS_ABR[d]).join(' · ');
+    const h = (p.times || []).filter(t => t.time).map(t => formatPlateauTime(t.time)).join(', ');
+    return [j, h, (p.interval || 1) > 1 ? plateauFreqLabel(p.interval) : ''].filter(Boolean).join(' · ');
+  };
+  document.getElementById('vp-liste').innerHTML = l.map(p => `<button type="button" class="vp-l t${meilleur(p)}" onclick="fermerVolet(true); goto('plateaux'); openPlateauDetail(${p.id})"><i aria-hidden="true"></i><span><b>${escapeHtml(p.name || 'Sans nom')}</b><small>${escapeHtml(quand(p))}</small></span><em>›</em></button>`).join('')
+    || `<p class="tb-vide">${vpArret ? 'Aucun plateau à l’arrêt.' : 'Pas encore de plateau dans cette ville.'}</p>`;
+}
+function ouvrirAjoutPlateau(){ openQuickAddPlateauModal(); }
+{
+  const avant = confirmQuickAddPlateau;
+  confirmQuickAddPlateau = function(){ avant(); try{ renderHomeRating(); if(voletActif && voletActif.id === 'volet-plateaux') remplirVoletPlateaux(); }catch(e){} };
+}
+
 // Volet : choisir la ville de l'agenda
 function ouvrirVoletVilles(){
   const box = document.getElementById('vv-liste'), ville = currentPlateauxCity || 'Paris', pls = loadPlateaux();
@@ -5159,7 +5221,7 @@ function renderHomeACompleter(){
     return;
   }
   wrap.innerHTML = `<div class="tb-tuile tb-ac" role="button" onclick="goto('plateaux')">
-    <span class="tb-titre"><b>À compléter</b><span>${l.length}</span></span>
+    <span class="tb-titre"><b>À compléter</b><span class="tb-ac-n">${l.length}</span></span>
     <div class="tb-ac-l">${l.map(p => `<button type="button" onclick="event.stopPropagation(); goto('plateaux'); openPlateauDetail(${p.id})"><span>${escapeHtml(p.name || 'Sans nom')}</span></button>`).join('')}</div>
   </div>`;
 }
@@ -5172,11 +5234,6 @@ function renderHomeStats(){
   const avg = list.length ? list.reduce((a, s) => a + (s.total || 0), 0) / list.length : 0;
   const net = list.reduce((a, s) => a + (s.gains || 0) - (s.depenses || 0), 0);
   const diapos = [renderHomeWeekSummary()];
-  // 1) les 3 chiffres clés
-  diapos.push(`<button type="button" class="tb-tuile" onclick="goto('stats')"><span class="tb-lab">Depuis le début</span><div class="tb-s3">
-    <div><b>${list.length}</b><span>${list.length > 1 ? 'scènes' : 'scène'}</span></div>
-    <div><b>${avg.toFixed(1).replace('.', ',')}</b><span>moyenne /20</span></div>
-    <div><b style="color:${net >= 0 ? 'var(--s2)' : 'var(--s0)'}">${fmtEuro(net)}</b><span>solde</span></div></div></button>`);
   // 2) évolution du score : les 10 dernières scènes, avec leur note au-dessus de chaque point
   const der = list.slice(-10);
   if(der.length > 1){
@@ -5310,7 +5367,8 @@ function renderSpectacleCard(){
   } else {
     const d = r.projectedDate;
     const mois = Math.round((d - new Date()) / (864e5 * 30.44)), dans = mois >= 24 ? `dans ${Math.round(mois / 12)} ans` : mois >= 2 ? `dans ${mois} mois` : 'bientôt';
-    dateEl.innerHTML = `<small class="tb-spec-l">Spectacle</small><b>${d.getDate()} ${escapeHtml(d.toLocaleDateString('fr-FR', {month:'short'}))}</b><small>${d.getFullYear()} · ${dans}</small>`;
+    const txt = `${d.getDate()} ${d.toLocaleDateString('fr-FR', {month:'long'})} ${d.getFullYear()}`;
+    dateEl.innerHTML = `<small class="tb-spec-l">Spectacle</small><b${txt.length > 13 ? ' class="long"' : ''}>${escapeHtml(txt)}</b><small>${dans}</small>`;
   }
 }
 

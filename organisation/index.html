@@ -178,6 +178,31 @@ button.ob-t{width:100%}
 .att-l .cdot{flex:none}
 .att-l .ell{flex:1;min-width:0}
 .att-plus{flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--denim);color:var(--on-denim)}
+.ob-att{margin-bottom:12px}
+.ob-tip{height:138px;background:color-mix(in srgb,var(--c,var(--denim)) 18%,var(--sunk));justify-content:space-between}
+.ob-tip-c{font-size:12px;font-weight:700;color:var(--c,var(--muted))}
+.ob-tip-t{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:2px;border:0;background:none;color:var(--ink);padding:0;text-align:left;font-family:inherit}
+.ob-tip-t b{font-family:var(--display);font-size:19px;font-weight:800;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ob-tip-t span{font-size:12.5px;font-weight:600;color:var(--muted)}
+.ob-tip-b{display:flex;gap:6px}
+.ob-tip-b .chip{flex:1;justify-content:center}
+.ob-tip-b .chip:last-child{flex:none}
+.ob-st{height:178px}
+.ob-bars{flex:1;min-height:0;display:grid;grid-template-columns:repeat(14,1fr);gap:4px;align-items:end}
+.ob-bars.sept{grid-template-columns:repeat(7,1fr);gap:8px}
+.ob-bars > div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;min-width:0}
+.ob-bars b{font-size:10.5px;font-weight:700;color:var(--muted)}
+.ob-bars i{width:80%;border-radius:5px 5px 2px 2px;background:color-mix(in srgb,var(--denim) 40%,transparent)}
+.ob-bars .on i{background:var(--today)}
+.ob-bars span{font-size:10.5px;font-weight:600;color:var(--muted)}
+.ob-hb{flex:1;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.ob-hb > div{display:grid;grid-template-columns:minmax(0,8.5em) minmax(0,1fr) 3.6em;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
+.ob-hb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-hb i{display:block;height:9px;border-radius:5px;background:color-mix(in srgb,var(--c,var(--denim)) 18%,transparent);overflow:hidden}
+.ob-hb i em{display:block;height:100%;border-radius:5px;background:var(--c,var(--denim))}
+.ob-hb b{text-align:right;font-weight:800;color:var(--c,var(--ink));white-space:nowrap}
+.ob-note{margin:0;font-size:11px;color:var(--muted)}
+.ob-l small.vieux{color:var(--warn)}
 .ob-ev2{height:120px;background:color-mix(in srgb,var(--c,var(--denim)) 18%,var(--sunk));cursor:pointer}
 .ob-ev2 .ob-titre b{color:var(--c,var(--ink))}
 .ob-n{display:flex;align-items:baseline;gap:8px;margin-top:auto}
@@ -1500,17 +1525,12 @@ function renderHome() {
   const tips = suggestions();
   const evs = soonItems();
   const whenEv = e => dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : '');
-  let html = `<section class="hero" aria-label="Aujourd'hui">
-    <div class="hero-head"><span class="hero-day">${JOURS[dow(t)]} ${x0.getDate()} ${MOIS[x0.getMonth()]}</span>${tasksE.length ? `<span class="hero-count">${doneN} faite${doneN > 1 ? 's' : ''} sur ${tasksE.length}</span>` : ''}</div>
-    <div class="hero-row2">
-      <div class="hero-left"><span class="hero-num">${remaining}</span><span class="hero-sub2">${sub}</span></div>
-      ${tips.length ? `<div class="tips"><div class="tips-track">${tips.map(x => `<div class="tip-slide cat c-${(themeOf(x.t) || {}).color || 'slate'}">
-          <button type="button" class="tip-txt" data-a="plan" data-id="${x.t.id}"><span class="tip-col"><span class="tip-title">${themeOf(x.t) ? `<span class="tip-cat">${h(themeOf(x.t).emoji + ' ' + themeOf(x.t).name)}</span>` : ''}${h(x.t.title)}</span><span class="tip-why">${h(x.why)}</span></span></button>
-          <div class="tip-btns"><button type="button" class="chip sm" data-a="plan-today" data-id="${x.t.id}">${ic(P.plus, 13, 2.4)}Auj.</button><button type="button" class="chip sm" data-a="plan-tomorrow" data-id="${x.t.id}">${ic(P.plus, 13, 2.4)}Dem.</button><button type="button" class="chip sm" data-a="plan-other" data-id="${x.t.id}" aria-label="Choisir un autre jour">${ic(IC.cal, 14, 1.8)}</button></div></div>`).join('')}</div>
-        ${tips.length > 1 ? `<div class="tip-dots" aria-hidden="true">${tips.map((_, i) => `<span class="${i ? '' : 'on'}"></span>`).join('')}</div>` : ''}</div>` : ''}
-    </div>
-    ${tasksE.length ? `<div class="hero-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement du jour"><span style="width:${pct}%"></span></div>` : ''}
-  </section>`;
+  // En haut : seulement ce qui attend d'être mis dans l'agenda (une carte par chose, pleine largeur)
+  let html = tips.length ? `<div class="ob-bloc ob-att"><div class="ob-car pleine" data-car="attente">${tips.map(x => { const th = themeOf(x.t); return `<div class="ob-t ob-tip c-${th ? th.color || 'slate' : 'slate'}">
+      ${th ? `<span class="ob-tip-c">${h(th.emoji + ' ' + th.name)}</span>` : '<span class="ob-tip-c">En attente</span>'}
+      <button type="button" class="ob-tip-t" data-a="plan" data-id="${x.t.id}"><b>${h(x.t.title)}</b><span>${h(x.why)}</span></button>
+      <div class="ob-tip-b"><button type="button" class="chip sm" data-a="plan-today" data-id="${x.t.id}">${ic(P.plus, 13, 2.4)}Aujourd’hui</button><button type="button" class="chip sm" data-a="plan-tomorrow" data-id="${x.t.id}">${ic(P.plus, 13, 2.4)}Demain</button><button type="button" class="chip sm" data-a="plan-other" data-id="${x.t.id}" aria-label="Choisir un autre jour">${ic(IC.cal, 14, 1.8)}</button></div>
+    </div>`; }).join('')}</div>${tips.length > 1 ? `<div class="ob-points" aria-hidden="true">${tips.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>` : '';
 
   html += dashboardHTML();
   html += `<nav class="shortcuts" aria-label="Raccourcis">
@@ -1602,8 +1622,42 @@ function dashboardHTML() {
     </div>`;
   });
   const evs = `<div class="ob-bloc">${eDiapos.length ? `<div class="ob-car pleine" data-car="evs">${eDiapos.join('')}</div>${pts(eDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore d’événement à remettre. Quand tu crées un événement, coche « à garder » pour le retrouver ici.</p></div>`}</div>`;
-  return `<div class="ob">${routines}${taches}${evs}</div>`;
+  return `<div class="ob">${routines}${taches}${evs}${statsHTML()}</div>`;
 }
+// Carte « Stats » : 5 diapos (ce que tu as fait, régularité, temps par catégorie, ce qui traîne, la semaine qui vient)
+function statsHTML() {
+  const t0 = today(), J = ['L','M','M','J','V','S','D'];
+  const tasks = S.tasks.filter(t => !t.info && t.kind !== 'event' && !t.free);
+  const faitLe = (t, d) => t.rep ? occursOn(t, d) && isDone(t, d) : !!t.done && (t.doneAt ? iso(new Date(t.doneAt)) : t.date) === d;
+  const pts = [], diapos = [];
+  // 1) Tâches faites, 14 derniers jours
+  const j14 = Array.from({ length: 14 }, (_, k) => addDays(t0, k - 13)), n14 = j14.map(d => tasks.filter(t => faitLe(t, d)).length), m14 = Math.max(1, ...n14);
+  const tot14 = n14.reduce((a, b) => a + b, 0);
+  diapos.push(`<div class="ob-t ob-st"><div class="ob-titre"><b>Tâches faites</b><span>${tot14} en 14 jours</span></div>
+    <div class="ob-bars">${j14.map((d, k) => `<div class="${d === t0 ? 'on' : ''}"><b>${n14[k] || ''}</b><i style="height:${Math.max(3, n14[k] / m14 * 100)}%"></i><span>${J[dow(d)]}</span></div>`).join('')}</div></div>`);
+  // 2) Régularité des tâches répétées (30 jours)
+  const reg = tasks.filter(t => t.rep).map(t => { let n = 0, f = 0; for (let k = 0; k < 30; k++) { const d = addDays(t0, -k - 1); if (occursOn(t, d)) { n++; if (isDone(t, d)) f++; } } return { t, n, f }; }).filter(x => x.n >= 2).sort((a, b) => b.f / b.n - a.f / a.n);
+  if (reg.length) {
+    const tous = reg.reduce((a, x) => a + x.n, 0), ok = reg.reduce((a, x) => a + x.f, 0);
+    const lr = x => { const th = themeOf(x.t); return `<div class="c-${th ? th.color || 'slate' : 'slate'}"><span>${h(x.t.title)}</span><i><em style="width:${Math.max(3, x.f / x.n * 100)}%"></em></i><b>${Math.round(x.f / x.n * 100)}%</b></div>`; };
+    diapos.push(`<div class="ob-t ob-st"><div class="ob-titre"><b>Régularité</b><span>${Math.round(ok / tous * 100)}% sur 30 jours</span></div><div class="ob-hb">${[...reg.slice(0, 2), ...reg.slice(2).slice(-2)].map(lr).join('')}</div><p class="ob-note">Tes tâches répétées les mieux et les moins tenues</p></div>`);
+  }
+  // 3) Temps passé par catégorie (30 jours, tâches faites qui ont une durée)
+  const parTh = new Map();
+  for (let k = 0; k < 30; k++) { const d = addDays(t0, -k); tasks.forEach(t => { if (t.duration && faitLe(t, d)) { const th = themeOf(t), top = th && th.parentId ? S.themes.find(x => x.id === th.parentId) || th : th; const key = top ? top.id : '_'; parTh.set(key, (parTh.get(key) || 0) + t.duration); } }); }
+  const tps = [...parTh.entries()].sort((a, b) => b[1] - a[1]), totT = tps.reduce((a, x) => a + x[1], 0);
+  if (tps.length) { const m = tps[0][1];
+    diapos.push(`<div class="ob-t ob-st"><div class="ob-titre"><b>Temps par catégorie</b><span>${fmtMin(totT)} en 30 jours</span></div><div class="ob-hb">${tps.slice(0, 5).map(([k, v]) => { const th = S.themes.find(x => x.id === k); return `<div class="c-${th ? th.color || 'slate' : 'slate'}"><span>${th ? h(th.emoji + ' ' + th.name) : 'Sans catégorie'}</span><i><em style="width:${Math.max(3, v / m * 100)}%"></em></i><b>${fmtMin(v)}</b></div>`; }).join('')}</div></div>`); }
+  // 4) Ce qui traîne : les tâches en attente depuis le plus longtemps
+  const att = tasks.filter(t => !t.rep && !t.date && !t.done && !t.srcId).map(t => ({ t, j: Math.max(0, Math.round((parse(t0) - parse(String(t.created || t0).slice(0, 10))) / 864e5)) })).sort((a, b) => b.j - a.j);
+  if (att.length) diapos.push(`<div class="ob-t ob-st"><div class="ob-titre"><b>Ce qui traîne</b><span>${att.length} en attente</span></div><div class="ob-liste">${att.slice(0, 5).map(x => { const th = themeOf(x.t); return `<button type="button" class="ob-l" data-a="plan" data-id="${x.t.id}"><span>${th ? h(th.emoji) + ' ' : ''}${h(x.t.title)}</span><small class="${x.j > 14 ? 'vieux' : ''}">${x.j ? x.j + ' j' : 'nouveau'}</small></button>`; }).join('')}</div></div>`);
+  // 5) La semaine qui vient : combien de choses chaque jour
+  const j7 = Array.from({ length: 7 }, (_, k) => addDays(t0, k)), c7 = j7.map(d => S.tasks.filter(t => !t.free && occursOn(t, d) && !(t.rep && isDone(t, d))).length), m7 = Math.max(1, ...c7);
+  diapos.push(`<div class="ob-t ob-st"><div class="ob-titre"><b>La semaine qui vient</b><span>${c7.reduce((a, b) => a + b, 0)} choses prévues</span></div>
+    <div class="ob-bars sept">${j7.map((d, k) => `<div class="${k === 0 ? 'on' : ''}"><b>${c7[k] || ''}</b><i style="height:${Math.max(3, c7[k] / m7 * 100)}%"></i><span>${k === 0 ? 'Auj.' : JC[dow(d)]}</span></div>`).join('')}</div></div>`);
+  return `<div class="ob-bloc"><div class="ob-car pleine" data-car="stats">${diapos.join('')}</div>${diapos.length > 1 ? `<div class="ob-points" aria-hidden="true">${diapos.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+}
+
 // Carrousels du tableau de bord : les points suivent, et on garde la position
 const obPos = {};
 function brancherOb() {
@@ -3584,7 +3638,7 @@ async function start() {
 }
 // Pour Mon quotidien : cocher une tâche depuis l'accueil, avec les règles de l'app
 window.toggleTask = (id, d, late) => toggleTask(id, d, late);
-window.quotidienPret = () => !!document.querySelector('#app .hero');
+window.quotidienPret = () => !!document.querySelector('#app .ob');   // l'accueil est dessiné
 // Cocher un élément d'une liste depuis l'accueil (même règle que dans l'app)
 window.quotidienCocherItem = id => { A['item-check'](null, { id }); return true; };
 // Mon quotidien : ouvrir une fenêtre de l'Organisation par-dessus l'accueil (sans changer d'onglet)

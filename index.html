@@ -198,6 +198,18 @@ dialog.popup[open]{animation:popin .18s ease}
 .pop-h h2 small{font-family:var(--body);font-size:13px;font-weight:600;color:var(--muted);margin-top:2px}
 .pop-c{overflow-y:auto;overscroll-behavior:contain;padding:0 16px 16px;display:flex;flex-direction:column;gap:8px}
 .pop-c h3{margin:6px 0 0;font-family:var(--display);font-size:16px}
+/* Liste de courses en fenêtre */
+.re-total{border:0;background:none;color:inherit;font:inherit;padding:0;cursor:pointer}
+.rc-h{--sc:var(--scl);color:var(--sc)}
+.rc-i{--sc:var(--scl);display:flex;align-items:center;gap:10px;border-radius:12px;background:color-mix(in srgb,var(--sc) 12%,var(--sunk));padding:8px 12px;font:600 15px/1.25 var(--body)}
+.rc-i span{flex:1;min-width:0}
+.rc-i em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.rc-i .coche{width:24px;height:24px;border-radius:8px;border:2px solid var(--sc);margin:0;flex:none;color:var(--on-denim);display:flex;align-items:center;justify-content:center;padding:0;background:none}
+.rc-i.achete .coche{background:var(--sc)}
+.rc-i.achete span{text-decoration:line-through;color:var(--muted);font-weight:500}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rc-h,:root:not([data-theme="light"]) .rc-i{--sc:var(--scd)}}
+:root[data-theme="dark"] .rc-h,:root[data-theme="dark"] .rc-i{--sc:var(--scd)}
+.dp-ig{color:inherit;text-decoration:none;flex:1;min-width:0;display:flex}
 /* Dispos : le bouton Copier, petit, en haut à droite */
 .dp-hc{flex-direction:row !important;align-items:center;gap:6px}
 .dp-hc b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -605,6 +617,7 @@ dialog h2:focus{outline:none}
 <dialog id="ajout-course" aria-label="Ajouter aux courses"></dialog>
 <dialog id="mois" aria-label="L’agenda"></dialog>
 <dialog id="recap-jour" class="popup" aria-label="À faire"></dialog>
+<dialog id="recap-co" class="popup" aria-label="Liste de courses"></dialog>
 <dialog id="dispos" aria-label="Mes disponibilités"></dialog>
 <button type="button" id="retour-btn" aria-label="Noter une modif" hidden></button>
 <input type="file" id="fichier" accept="application/json,.json" multiple hidden>
@@ -962,22 +975,17 @@ function blocOrganisation(d0){
       <div class="ap-pied"><span>${resume}</span>${j ? `<span class="ap-fl">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</span>` : ''}</div></div>`;
   };
   const coul = th => th ? ` style="--sc:var(--c-${esc(th.color || 'slate')})"` : '';
-  // 1re carte : combien il reste à faire, et les catégories concernées ; toucher le chiffre ouvre le récap du jour
-  const diapos = [];
-  {
-    const cats = [], vus = new Set();
-    [...d.restantes.map(e => e.t), ...d.evts].forEach(x => { const th = d.themes.get(x.themeId), k = th ? th.id : '_'; if(vus.has(k)) return; vus.add(k); cats.push({th, k, ev:!d.restantes.some(e => (d.themes.get(e.t.themeId) ? e.t.themeId : '_') === k)}); });
-    const n = d.restantes.length + d.evts.length;
-    diapos.push(`<div class="slide resume-j"><button type="button" class="rj-n" data-recap="${jourOrga}" aria-label="Voir tout ce qu’il y a à faire ${jourOrga ? 'demain' : 'aujourd’hui'}"><b>${n}</b><span>${n ? (n > 1 ? 'choses à faire' : 'chose à faire') : 'tout est fait 🎉'}</span></button>
-      ${cats.length ? `<div class="rj-c">${cats.map(c => `<button type="button" data-aller-cat="${c.ev ? '_ev' : esc(c.k)}" aria-label="Voir ${esc(c.th ? c.th.name : 'Sans catégorie')}">${c.th && c.th.emoji ? esc(c.th.emoji) : '📌'}</button>`).join('')}</div>` : ''}</div>`);
-  }
+  const diapos = [], ordreCats = [];
   // Puis tous les événements du jour, dans l'ordre de l'heure
+  if(d.evts.length){ ordreCats.push({k:'_ev', emoji:'📅', nom:'Événements'}); }
   if(d.evts.length) diapos.push(`<div class="slide groupe" data-cat="_ev" style="--sc:var(--tomorrow)"><div class="slide-cat">Événements<span>${d.evts.length}</span></div><div class="liste" style="height:${Math.min(d.evts.length, 2) * 44}px">${d.evts.map(e => { const th = d.themes.get(e.themeId); const sk = ciel(e); return `<div class="ligne ev ${sk.cls}"${coul(th)} data-aller="organisation" data-action="tache" data-id="${esc(e.id)}" data-d="${esc(d.d)}">${sk.deco}<b class="l-h">${esc(heure(e))}</b><span class="l-t">${esc(e.title)}</span></div>`; }).join('')}</div></div>`);
   // Puis une carte par catégorie (ordre des catégories de l'Organisation), tâches seulement
   const rang = th => { if(!th) return 1e9; const par = th.parentId && d.themes.get(th.parentId); return par ? (par.order || 0) * 1000 + 500 + (th.order || 0) : (th.order || 0) * 1000; };
   const groupes = new Map();
+  const thMsg = [...d.themes.values()].find(th => /message/i.test(th.name || ''));
+  const kMsg = thMsg ? thMsg.id : '_msg';
   [...d.restantes, ...d.faitesL].forEach(e => {
-    const x = e.t, k = x.themeId && d.themes.has(x.themeId) ? x.themeId : '_';
+    const x = e.t, k = x.bsRappel ? kMsg : x.themeId && d.themes.has(x.themeId) ? x.themeId : '_';
     const subs = (x.subs || []).length, fait = subs ? ((x.subDone || {})[x.rep ? e.d : 'x'] || []).filter(id => x.subs.some(s => s.id === id)).length : 0;
     const etapes = subs ? `<span class="l-et">${fait}/${subs} étapes</span>` : '';
     const minut = !e.fait && x.duration && x.timer !== false ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(e.d)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 12)}${x.duration} min</button>` : '';
@@ -985,9 +993,16 @@ function blocOrganisation(d0){
     groupes.get(k).push(`<div class="ligne tache${e.fait ? ' faite' : ''}" data-aller="organisation" data-action="tache" data-id="${esc(x.id)}" data-d="${esc(e.d)}"><button type="button" class="coche" data-coche="${esc(x.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="${e.fait ? 'Décocher' : 'Cocher'} ${esc(x.title)}">${e.fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="l-tt"><span class="l-t">${esc(x.title)}</span>${etapes}</span>${e.retard ? `<em class="l-r">en retard</em>` : heure(x) ? `<b class="l-h">${esc(heure(x))}</b>` : ''}${minut}</div>`);
   });
   [...groupes.entries()].sort((a, b) => rang(d.themes.get(a[0])) - rang(d.themes.get(b[0]))).forEach(([k, lignes]) => {
-    const th = d.themes.get(k);
-    diapos.push(`<div class="slide groupe" data-cat="${esc(k)}"${coul(th)}><div class="slide-cat">${th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste" style="height:${Math.min(lignes.length, 2) * 44}px">${lignes.join('')}</div></div>`);
+    const th = d.themes.get(k), msg = k === '_msg';
+    ordreCats.push({k, emoji:msg ? '💬' : th && th.emoji ? th.emoji : '📌', nom:msg ? 'Messages' : th ? th.name : 'Sans catégorie'});
+    diapos.push(`<div class="slide groupe" data-cat="${esc(k)}"${msg ? ' style="--sc:var(--c-blue)"' : coul(th)}><div class="slide-cat">${msg ? '💬 Messages' : th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste" style="height:${Math.min(lignes.length, 2) * 44}px">${lignes.join('')}</div></div>`);
   });
+  if(diapos.length){
+    // 1re carte : combien il reste (tâches et événements ensemble) et les catégories, dans l'ordre des cartes ; toucher le chiffre ouvre le récap
+    const n = d.restantes.length + d.evts.length;
+    diapos.unshift(`<div class="slide resume-j"><button type="button" class="rj-n" data-recap="${jourOrga}" aria-label="Voir tout ce qu’il y a à faire ${jourOrga ? 'demain' : 'aujourd’hui'}"><b>${n}</b><span>${n ? (n > 1 ? 'choses à faire' : 'chose à faire') : 'tout est fait 🎉'}</span></button>
+      <div class="rj-c">${ordreCats.map(c => `<button type="button" data-aller-cat="${esc(c.k)}" aria-label="Voir ${esc(c.nom)}">${esc(c.emoji)}</button>`).join('')}</div></div>`);
+  }
   if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
   const tout = jourOrga ? [vers(0), ...diapos] : [...diapos, vers(1)];
   const car = `<div class="slides" data-ouvrir="organisation" data-jour-orga="${jourOrga}">${tout.join('')}</div>${tout.length > 1 ? `<div class="points" aria-hidden="true">${tout.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
@@ -1059,13 +1074,14 @@ function carreCourses(d){
   const rayons = d.rayons || [];
   const reste = rayons.flatMap(r => r.articles).filter(a => !a.coche);
   const total = reste.reduce((s, a) => s + (a.prix || 0), 0);
+  const parNom = l => l.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));   // ordre fixe : cocher ne déplace rien
   const slides = rayons.map(r => `<div class="slide rc rayon"${coulR(r.rayon)}><div class="slide-cat">${esc(r.nom)}<span>${r.articles.filter(a => !a.coche).length}</span></div>
-    <div class="liste">${r.articles.map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
+    <div class="liste">${parNom(r.articles).map(a => `<div class="art${a.coche ? ' achete' : ''}" data-aller="courses" data-action="produit" data-id="${esc(a.pid)}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="${a.coche ? 'Décocher' : 'Cocher'} ${esc(a.nom)}">${a.coche ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button><span class="art-n">${esc(a.emoji)} ${esc(a.nom)}</span><span class="art-q">${esc(a.qte)}</span></div>`).join('')}</div></div>`);
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
   // 1re carte : le total, combien de produits, le jour des courses, et « + Produit »
   const resume = `<div class="slide rayon resume">${d.bas.length ? `<span class="re-warn" title="${plur(d.bas.length, 'produit presque vide', 'produits presque vides')}">${d.bas.length}</span>` : ''}
     <div class="re-label">Courses</div>
-    <div class="re-total">${Math.round(total)} €</div>
+    <button type="button" class="re-total" data-recap-co aria-label="Voir la liste de courses">${Math.round(total)} €</button>
     <div class="re-sous">${plur(reste.length, 'produit', 'produits')} · ${esc(prochainesCourses().replace(/^courses /, ''))}</div>
     <button type="button" class="re-ajout" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 16)}Ajouter</button></div>`;
   slides.unshift(resume);
@@ -1181,7 +1197,8 @@ function datesPlateau(fiches, mois){
 function slidePlateau(r){
   const res = datesPlateau(r.fiches, r.mois), pause = r.fiches.every(p => p.paused);
   const copier = res.length ? `<button type="button" class="dp-cop" data-dp-pl-copier="${esc(res.map(x => +x.d.slice(8, 10)).join('/'))}" aria-label="Copier les dates pour ${esc(r.p.name)}">${svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', 14)}</button>` : '';
-  return `<div class="slide dp-pl"><div class="dp-h dp-hc"><b>${esc(r.p.name || 'Plateau')}</b>${pause ? '<span>En pause</span>' : ''}${copier}</div>
+  const ig = (r.fiches.find(f => f.instagram) || {}).instagram;
+  return `<div class="slide dp-pl"><div class="dp-h dp-hc">${ig ? `<a class="dp-ig" href="${esc(lienInsta(ig))}" target="_blank" rel="noopener" aria-label="Instagram de ${esc(r.p.name)}"><b>${esc(r.p.name || 'Plateau')}</b></a>` : `<b>${esc(r.p.name || 'Plateau')}</b>`}${pause ? '<span>En pause</span>' : ''}${copier}</div>
     <div class="dp-l">${res.map(x => `<div><span>${esc(cap(dateCourte(x.d)))}</span>${x.heures.length ? `<em class="dp-hl">${esc(x.heures.join(', '))}</em>` : ''}${noteHTML(x)}</div>`).join('') || `<div class="vide">${pause ? 'Ce plateau est en pause' : 'Aucune date libre'}</div>`}</div>
 </div>`;
 }
@@ -1276,10 +1293,11 @@ $('#dispos').addEventListener('close', () => rafraichirDispos());
 }
 // Cocher un produit depuis l'accueil : c'est l'app Courses qui le fait (comme dans sa liste)
 async function cocherCourse(btn){
-  const art = btn.closest('.art'); if(art) art.classList.toggle('achete');
+  const art = btn.closest('.art, .rc-i'), veut = art ? !art.classList.contains('achete') : null;
+  if(art){ art.classList.toggle('achete', veut); const b = art.querySelector('.coche'); if(b) b.innerHTML = veut ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''; }
   const w = await attendreApp('courses', w => !!w.quotidienCO);
-  if(w) w.quotidienCO.cocher(btn.dataset.cocheCo); else if(art) art.classList.toggle('achete');
-  planifierAccueil(300);
+  if(w) w.quotidienCO.cocher(btn.dataset.cocheCo, veut); else if(art) art.classList.toggle('achete');
+  clearTimeout(cocherCourse.t); cocherCourse.t = setTimeout(() => { planifierAccueil(0); if($('#recap-co').open) ouvrirRecapCourses(true); }, 1500);   // on laisse le temps de cocher les suivants
 }
 
 /* ---------- Backstage : plateaux du jour et bilan du mois ----------
@@ -1497,7 +1515,7 @@ async function cocherOrganisation(btn){
     const app = APPS.find(a => a.id === 'organisation'), f = creerFrame(app);
     await f.charge;
     let w = f.contentWindow;
-    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero')); i++){ await pause(150); w = f.contentWindow; }
+    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero, #app .ob')); i++){ await pause(150); w = f.contentWindow; }
     if(typeof w.toggleTask !== 'function') throw new Error('Organisation pas prête');
     w.toggleTask(btn.dataset.coche, btn.dataset.d, !!btn.dataset.late);
   }catch(e){ console.warn(e); ligne.classList.toggle('faite'); toast('Impossible de cocher pour l’instant.'); }
@@ -1520,6 +1538,7 @@ async function choisirTenue(btn){
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
   const rc = e.target.closest('[data-recap]'); if(rc){ ouvrirRecapJour(+rc.dataset.recap); return; }
+  if(e.target.closest('[data-recap-co]')){ ouvrirRecapCourses(); return; }
   const ac = e.target.closest('[data-aller-cat]');
   if(ac){ const sl = ac.closest('.slides'), cible = sl && sl.querySelector(`.slide[data-cat="${CSS.escape(ac.dataset.allerCat)}"]`); if(cible) sl.scrollTo({left:cible.offsetLeft - sl.firstElementChild.offsetLeft, behavior:'smooth'}); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
@@ -1532,7 +1551,7 @@ $('#accueil').addEventListener('click', e => {
     else window.quotidien.ouvrir(x.aller, params);
     return;
   }
-  if(e.target.closest('a.n4, a.pl-act')) return;   // lien Notion, Maps ou Instagram : s'ouvre tout seul
+  if(e.target.closest('a.n4, a.pl-act, a.dp-ig')) return;   // lien Notion, Maps ou Instagram : s'ouvre tout seul
   const dpc = e.target.closest('[data-dp-cren]');
   if(dpc){   // choisir matin / après-midi / soirée directement dans le carré
     const c = critDispos(), s = new Set(c.cren), v = dpc.dataset.dpCren;
@@ -1624,8 +1643,8 @@ function ouvrirRecapJour(j){
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
   // Tout ce qu'il reste, tâches et événements ensemble, rangé par catégorie puis par heure
   const tout = [...d.evts.map(e => ({t:e, d:d.d})), ...d.restantes.map(e => ({t:e.t, d:e.d, retard:e.retard}))];
-  const groupes = new Map();
-  tout.forEach(e => { const th = d.themes.get(e.t.themeId), k = th ? th.id : '_'; if(!groupes.has(k)) groupes.set(k, {th, l:[]}); groupes.get(k).l.push(e); });
+  const groupes = new Map(), thMsg = [...d.themes.values()].find(th => /message/i.test(th.name || ''));
+  tout.forEach(e => { const th = e.t.bsRappel ? (thMsg || {id:'_msg', name:'Messages', emoji:'💬', color:'blue', order:-1}) : d.themes.get(e.t.themeId), k = th ? th.id : '_'; if(!groupes.has(k)) groupes.set(k, {th, l:[]}); groupes.get(k).l.push(e); });
   const rang = th => th ? (th.order || 0) : 1e9;
   const dlg = $('#recap-jour');
   dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2 tabindex="-1">${j ? 'Demain' : 'Aujourd’hui'}<small>${esc(cap(dj.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))} · ${tout.length}</small></h2><button type="button" class="rond petit" data-rf="1" aria-label="Fermer">✕</button></div>
@@ -1637,6 +1656,27 @@ function ouvrirRecapJour(j){
     }).join('') || '<p class="hint">Rien à faire. Profite ☀️</p>'}</div></div>`;
   dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
 }
+/* ---------- La liste de courses en fenêtre (toucher le total) ---------- */
+async function ouvrirRecapCourses(rafraichir){
+  const dlg = $('#recap-co');
+  const w = await attendreApp('courses', w => !!w.quotidienCO); if(!w) return;
+  const rayons = w.quotidienCO.liste();
+  const reste = rayons.flatMap(r => r.articles).filter(a => !a.coche), total = reste.reduce((s, a) => s + (a.prix || 0), 0);
+  const ok = svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14);
+  dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2 tabindex="-1">Courses<small>${plur(reste.length, 'produit', 'produits')} · ${Math.round(total)} € · ${esc(prochainesCourses().replace(/^courses /, ''))}</small></h2><button type="button" class="rond petit" data-rf="1" aria-label="Fermer">✕</button></div>
+    <div class="pop-c">
+      <button type="button" class="btn primaire" data-co-ajout>${svg('<path d="M12 5v14M5 12h14"/>', 16)} Ajouter un produit</button>
+      ${rayons.map(r => { const c = RAYON_C[r.rayon] || RAYON_C.autre; return `<h3 style="--scl:${c[0]};--scd:${c[1]}" class="rc-h">${esc(r.nom)} <small>${r.articles.filter(a => !a.coche).length}</small></h3>
+        <div class="rj-l" style="--scl:${c[0]};--scd:${c[1]}">${r.articles.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(a => `<div class="rc-i${a.coche ? ' achete' : ''}"><button type="button" class="coche" data-coche-co="${esc(a.id)}" aria-label="Cocher ${esc(a.nom)}">${a.coche ? ok : ''}</button><span>${esc(a.emoji)} ${esc(a.nom)}</span><em>${esc(a.qte)}</em></div>`).join('')}</div>`; }).join('') || '<p class="hint">La liste est vide.</p>'}
+    </div></div>`;
+  if(!rafraichir || !dlg.open){ dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true}); }
+}
+$('#recap-co').addEventListener('click', e => {
+  const dlg = $('#recap-co');
+  if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }
+  if(e.target.closest('[data-co-ajout]')){ dlg.close(); ouvrirAjoutCourse(); return; }
+  const cc = e.target.closest('[data-coche-co]'); if(cc) cocherCourse(cc);
+});
 $('#recap-jour').addEventListener('click', e => {
   const dlg = $('#recap-jour');
   if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }

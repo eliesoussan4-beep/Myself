@@ -103,6 +103,45 @@ button.cb-t{cursor:pointer;width:100%}
 .cb-gl b{font-family:var(--display);font-weight:800;color:var(--c);text-align:right}
 .cb-gl small{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
 .cb-note{margin:4px 0 0;font-size:11px;color:var(--muted)}
+.cb-car.pleine{margin:0 -16px;padding:0 16px;scroll-padding:0 16px}
+.cb-tk,.cb-st{flex:0 0 100%;scroll-snap-align:start;height:190px;box-sizing:border-box}
+.cb-tk{justify-content:flex-start}
+.cb-tk-tot{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.1}
+.cb-tk-l{display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.cb-tk-l > span{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden}
+.cb-tk-l b{font-weight:700;color:var(--muted)}
+.cb-tk-l em{font-style:normal;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.cb-tout{align-items:center;justify-content:center;gap:4px;color:var(--denim)}
+.cb-tout b{font-family:var(--display);font-size:18px}
+.cb-tout span{font-size:12.5px;color:var(--muted)}
+.cb-gl > div.prod{grid-template-columns:minmax(0,7.5em) minmax(0,1fr) 3.6em}
+.cb-gl b.eur{color:var(--ink)}
+.cb-mbar{flex:1;min-height:0;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;padding-top:4px}
+.cb-mbar > div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;min-width:0}
+.cb-mbar b{font-size:11px;font-weight:700;color:var(--muted)}
+.cb-mbar i{width:70%;border-radius:6px 6px 3px 3px;background:color-mix(in srgb,var(--denim) 45%,transparent)}
+.cb-mbar .on i{background:var(--denim)}
+.cb-mbar span{font-size:11px;font-weight:600;color:var(--muted)}
+.cb-3{flex:1;display:grid;grid-template-columns:repeat(3,1fr);align-items:center;text-align:center;gap:6px}
+.cb-3 b{display:block;font-family:var(--display);font-size:22px;font-weight:800}
+.cb-3 span{font-size:11.5px;font-weight:600;color:var(--muted)}
+.cb-ray{cursor:pointer}
+/* fenêtre au milieu */
+dialog.pop-co{width:min(92vw,440px);max-height:min(80dvh,640px);border-radius:22px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);animation:popin .18s ease}
+@keyframes popin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.pop-in{display:flex;flex-direction:column;max-height:min(80dvh,640px)}
+.pop-h{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+.pop-h h2{margin:0;font-family:var(--display);font-size:22px}
+.pop-x{width:36px;height:36px;border-radius:50%;border:0;background:var(--sunk);color:var(--muted);font-size:15px}
+.pop-c{overflow-y:auto;overscroll-behavior:contain;padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+.pr-r{background:color-mix(in srgb,var(--c) 14%,var(--sunk));border-radius:14px}
+.pr-r summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer}
+.pr-r summary::-webkit-details-marker{display:none}
+.pr-r summary b{font-family:var(--display);font-size:16px;color:var(--c)}
+.pr-r summary span{font-size:12.5px;font-weight:700;color:var(--muted)}
+.pr-r[open] summary span::after{content:" ▴"}
+.pr-r:not([open]) summary span::after{content:" ▾"}
+.pr-l{display:flex;flex-direction:column;gap:3px;padding:0 8px 10px}
 html.qd-superpose,html.qd-superpose body{background:transparent!important}
 html.qd-superpose #app{visibility:hidden}
 main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
@@ -994,26 +1033,52 @@ function render(){
     <div class="cb-dep-l"><span>${months[1].long}</span><b class="prec">${Math.round(months[1].sum)} €</b></div>
     ${avg != null ? `<div class="cb-dep-l"><span>Par course</span><b class="moy">≈ ${Math.round(avg)} €</b></div>` : ''}</div>`;
   const tuileBas = low.length ? `<div class="cb-t cb-low"><span class="cb-low-t">🪫 Presque vide</span><div class="cb-low-l">${low.map(p => `<button type="button" class="lowchip" data-act="pfiche" data-id="${p.id}">${emojiOf(p)} ${esc(p.name)}</button>`).join('')}</div></div>` : '';
+  const pointsCb = n => n > 1 ? `<div class="cb-points">${Array.from({length:n}, (_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
   // 3) Tous les produits : une diapo par rayon ; à gauche (1/5), le bouton pour en créer un
   const prods = [...S.products.values()];
   const diapos = RAYONS.map(([r, label]) => {
     const arr = prods.filter(p => (p.rayon || 'autre') === r).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
     if(!arr.length) return '';
-    return `<div class="cb-t cb-ray rc-${r}"><div class="cb-titre"><b>${label}</b><span>${arr.length}</span></div>
+    return `<div class="cb-t cb-ray rc-${r}" data-act="rayons" data-r="${r}" role="button"><div class="cb-titre"><b>${label}</b><span>${arr.length}</span></div>
       <div class="cb-pl">${arr.map(p => { const pc = stockPct(p); return `<button type="button" class="cb-p" data-act="pfiche" data-id="${p.id}"><span>${nameE(p)}</span>${inList(p.id) ? '<small>🛒</small>' : ''}${pc != null ? `<em class="sbar"><i style="width:${Math.max(3, pc)}%"></i></em>` : ''}</button>`; }).join('')}</div></div>`;
   }).filter(Boolean);
   const produits = `<div class="cb-bande"><div class="cb-btns"><button type="button" class="cb-bbtn" data-act="newp">${SVG.tag}<span>Nouveau produit</span></button></div>
     <div class="cb-bloc">${diapos.length ? `<div class="cb-car" data-car="produits">${diapos.join('')}</div><div class="cb-points">${diapos.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : '<button type="button" class="cb-t cb-ray" data-act="newp"><p class="cb-vide">Pas encore de produit. Touche pour en créer un.</p></button>'}</div></div>`;
-  // 4) Les 5 dernières courses
-  const hist = `<button type="button" class="cb-t cb-hist" data-act="tickets"><div class="cb-titre"><b>Dernières courses</b><span>Tout l’historique ›</span></div>
-    ${tk.length ? tk.slice(0, 5).map(t => `<div class="cb-h"><span>${cap(new Date(t.date).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}))}</span><small>${(t.lines || []).length} produit${(t.lines || []).length > 1 ? 's' : ''}</small><b>${t.total != null ? fmt2(t.total) + ' €' : '—'}</b></div>`).join('') : '<p class="cb-vide">Pas encore de courses notées.</p>'}</button>`;
-  // 5) Ce que tu achètes, depuis le début : part de chaque rayon et moyenne par course
-  const totR = new Map(); let totAll = 0; const nbT = tk.filter(t => (t.lines || []).some(l => l.price != null)).length;
-  for(const t of tk) for(const l of t.lines || []){ if(l.price == null) continue; const pr = S.products.get(l.pid), r = pr ? (pr.rayon || 'autre') : 'autre'; totR.set(r, (totR.get(r) || 0) + l.price); totAll += l.price; }
+  // 4) Les courses, une carte par course (les plus récentes d'abord)
+  const hDiapos = tk.slice(0, 12).map(t => { const ls = (t.lines || []).slice().sort((a, b) => (b.price || 0) - (a.price || 0));
+    return `<button type="button" class="cb-t cb-tk" data-act="ticket" data-id="${t.id}"><div class="cb-titre"><b>${cap(new Date(t.date).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'short'}))}</b><span>${ls.length} produit${ls.length > 1 ? 's' : ''}</span></div>
+      <div class="cb-tk-tot">${t.total != null ? fmt2(t.total) + ' €' : '—'}</div>
+      <div class="cb-tk-l">${ls.slice(0, 4).map(l => { const pr = S.products.get(l.pid); return `<span><em>${pr ? nameE(pr) : '?'}</em>${l.price != null ? `<b>${fmt2(l.price)} €</b>` : ''}</span>`; }).join('')}${ls.length > 4 ? `<span class="muted">+ ${ls.length - 4} autre${ls.length - 4 > 1 ? 's' : ''}</span>` : ''}</div></button>`; });
+  const hist = hDiapos.length ? `<div class="cb-bloc"><div class="cb-car pleine" data-car="hist">${hDiapos.join('')}${tk.length > 12 ? `<button type="button" class="cb-t cb-tk cb-tout" data-act="tickets"><b>Tout l’historique ›</b><span>${tk.length} courses</span></button>` : ''}</div>${pointsCb(hDiapos.length + (tk.length > 12 ? 1 : 0))}</div>` : '<div class="cb-t"><p class="cb-vide">Pas encore de courses notées.</p></div>';
+  // 5) Les stats, une carte par stat
+  const totR = new Map(), parP = new Map(), nbP = new Map(); let totAll = 0;
+  const nbT = tk.filter(t => (t.lines || []).some(l => l.price != null)).length;
+  for(const t of tk) for(const l of t.lines || []){
+    nbP.set(l.pid, (nbP.get(l.pid) || 0) + 1);
+    if(l.price == null) continue;
+    const pr = S.products.get(l.pid), r = pr ? (pr.rayon || 'autre') : 'autre';
+    totR.set(r, (totR.get(r) || 0) + l.price); parP.set(l.pid, (parP.get(l.pid) || 0) + l.price); totAll += l.price;
+  }
+  const barres = (rows, cls = '') => `<div class="cb-gl ${cls}">${rows.join('')}</div>`;
+  const sDiapos = [];
   const rsT = [...totR.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-  const maxR = rsT.length ? rsT[0][1] : 1;
-  const graph = `<div class="cb-t cb-graph"><div class="cb-titre"><b>Ce que j’achète</b><span>depuis le début · ${nbT} course${nbT > 1 ? 's' : ''}</span></div>
-    ${rsT.length ? `<div class="cb-gl">${rsT.map(([r, v]) => `<div class="rc-${r}"><span>${SH[r]}</span><i><em style="width:${Math.max(3, v / maxR * 100)}%"></em></i><b>${Math.round(v / totAll * 100)}%</b><small>≈ ${fmt2(nbT ? v / nbT : 0)} €</small></div>`).join('')}</div><p class="cb-note">% de tes dépenses · ≈ moyenne par course</p>` : '<p class="cb-vide">Il faut des courses avec des prix pour voir la répartition.</p>'}</div>`;
+  if(rsT.length){ const m = rsT[0][1];
+    sDiapos.push(`<div class="cb-t cb-st"><div class="cb-titre"><b>Par rayon</b><span>depuis le début</span></div>${barres(rsT.slice(0, 6).map(([r, v]) => `<div class="rc-${r}"><span>${SH[r]}</span><i><em style="width:${Math.max(3, v / m * 100)}%"></em></i><b>${Math.round(v / totAll * 100)}%</b><small>≈ ${fmt2(nbT ? v / nbT : 0)} €</small></div>`))}<p class="cb-note">% des dépenses · ≈ par course</p></div>`); }
+  const chers = [...parP.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  if(chers.length){ const m = chers[0][1];
+    sDiapos.push(`<div class="cb-t cb-st"><div class="cb-titre"><b>Ce qui te coûte le plus</b><span>depuis le début</span></div>${barres(chers.map(([pid, v]) => { const pr = S.products.get(pid); return `<div class="rc-${pr ? pr.rayon || 'autre' : 'autre'} prod"><span>${pr ? nameE(pr) : '?'}</span><i><em style="width:${Math.max(3, v / m * 100)}%"></em></i><b class="eur">${Math.round(v)} €</b></div>`; }))}</div>`); }
+  const plus = [...nbP.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  if(plus.length){ const m = plus[0][1];
+    sDiapos.push(`<div class="cb-t cb-st"><div class="cb-titre"><b>Ce que tu achètes le plus</b><span>nombre de fois</span></div>${barres(plus.map(([pid, n]) => { const pr = S.products.get(pid); return `<div class="rc-${pr ? pr.rayon || 'autre' : 'autre'} prod"><span>${pr ? nameE(pr) : '?'}</span><i><em style="width:${Math.max(3, n / m * 100)}%"></em></i><b class="eur">${n}×</b></div>`; }))}</div>`); }
+  // dépenses des 6 derniers mois
+  const mois6 = [0, 1, 2, 3, 4, 5].map(k => monthInfo(k)).reverse(), mx = Math.max(1, ...mois6.map(m => m.sum));
+  if(mois6.some(m => m.sum > 0))
+    sDiapos.push(`<div class="cb-t cb-st"><div class="cb-titre"><b>Dépenses par mois</b><span>${avg != null ? '≈ ' + Math.round(avg) + ' € / course' : ''}</span></div>
+      <div class="cb-mbar">${mois6.map((m, k) => `<div${k === 5 ? ' class="on"' : ''}><b>${m.sum ? Math.round(m.sum) : ''}</b><i style="height:${Math.max(3, m.sum / mx * 100)}%"></i><span>${m.short}</span></div>`).join('')}</div></div>`);
+  if(nbT){ const moy = totAll / nbT, par = tk.filter(t => t.total != null), freq = par.length > 1 ? (par[0].date - par[par.length - 1].date) / 864e5 / (par.length - 1) : null;
+    sDiapos.push(`<div class="cb-t cb-st cb-chif"><div class="cb-titre"><b>En moyenne</b><span>${nbT} course${nbT > 1 ? 's' : ''}</span></div>
+      <div class="cb-3"><div><b>${fmt2(moy)} €</b><span>par course</span></div><div><b>${(tk.reduce((s, t) => s + (t.lines || []).length, 0) / tk.length).toFixed(1).replace('.', ',')}</b><span>produits</span></div><div><b>${freq ? Math.round(freq) + ' j' : '—'}</b><span>entre 2 courses</span></div></div></div>`); }
+  const graph = sDiapos.length ? `<div class="cb-bloc"><div class="cb-car pleine" data-car="stats">${sDiapos.join('')}</div>${pointsCb(sDiapos.length)}</div>` : '<div class="cb-t"><p class="cb-vide">Il faut des courses avec des prix pour voir les stats.</p></div>';
   $('#app').innerHTML = `
     <div class="cb">
       <div class="cb-duo">${tuileMois}${tuileDep}</div>
@@ -1044,16 +1109,21 @@ $('#app').addEventListener('click', e => {
   else if(a === 'products') openProducts();
   else if(a === 'stock') openStock();
   else if(a === 'tickets') openTickets();
+  else if(a === 'ticket'){ const t = S.tickets.get(b.dataset.id); if(t) openTicket(t, () => render()); }
+  else if(a === 'rayons') ouvrirRayons(b.dataset.r);
   else if(a === 'backup') openBackup();
 });
 // Carrousel « Tous les produits » : les points suivent la diapo visible, et on garde la position
 let posProduits = 0;
+const posCb = {};
 new MutationObserver(() => {
-  const car = document.querySelector('.cb-car[data-car="produits"]'); if(!car || car.__branche) return;
-  car.__branche = true; if(posProduits) car.scrollLeft = posProduits;
-  const pts = car.parentNode.querySelectorAll('.cb-points span');
-  const maj = () => { posProduits = car.scrollLeft; const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth + 10)); pts.forEach((p, k) => p.classList.toggle('on', k === i)); };
-  car.addEventListener('scroll', maj, {passive:true}); maj();
+  document.querySelectorAll('.cb-car').forEach(car => {
+    if(car.__branche) return; car.__branche = true;
+    const k = car.dataset.car; if(posCb[k]) car.scrollLeft = posCb[k];
+    const pts = car.parentNode.querySelectorAll('.cb-points span');
+    const maj = () => { posCb[k] = car.scrollLeft; const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth + 10)); pts.forEach((p, j) => p.classList.toggle('on', j === i)); };
+    car.addEventListener('scroll', maj, {passive:true}); maj();
+  });
 }).observe(document.getElementById('app'), {childList:true});
 $('#app').addEventListener('change', e => {
   const c = e.target.closest('[data-act="check"]'); if(!c) return;
@@ -1082,6 +1152,26 @@ function checkout(filtre, discret){
     saveT({id: tid, date: now, store: '', total: known.length ? +known.reduce((s, l) => s + l.price, 0).toFixed(2) : null, lines, manual: true, created: now});
   }
   render(); if(!discret) toast(`Courses notées ✔️ ${lines.length} produit${lines.length > 1 ? 's' : ''}`);
+}
+
+/* ---------- Fenêtre au milieu : tous les rayons, en liste dépliante (celui touché est ouvert) ---------- */
+function ouvrirRayons(ouvert){
+  const d = document.createElement('dialog'); d.className = 'pop-co';
+  const prods = [...S.products.values()];
+  const html = RAYONS.map(([r, label]) => {
+    const arr = prods.filter(p => (p.rayon || 'autre') === r).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    if(!arr.length) return '';
+    return `<details class="pr-r rc-${r}"${r === ouvert ? ' open' : ''}><summary><b>${label}</b><span>${arr.length}</span></summary>
+      <div class="pr-l">${arr.map(p => { const pc = stockPct(p); return `<button type="button" class="cb-p" data-pid="${p.id}"><span>${nameE(p)}</span>${inList(p.id) ? '<small>🛒</small>' : ''}${pc != null ? `<em class="sbar"><i style="width:${Math.max(3, pc)}%"></i></em>` : ''}</button>`; }).join('')}</div></details>`;
+  }).join('');
+  d.innerHTML = `<div class="pop-in"><div class="pop-h"><h2>Produits</h2><button type="button" class="pop-x" aria-label="Fermer">✕</button></div><div class="pop-c">${html}</div></div>`;
+  document.body.appendChild(d); d.showModal();
+  const o = d.querySelector('details[open]'); if(o) setTimeout(() => o.scrollIntoView({block:'start'}), 30);
+  d.addEventListener('click', e => {
+    if(e.target === d || e.target.closest('.pop-x')){ d.close(); return; }
+    const b = e.target.closest('[data-pid]'); if(b){ d.close(); openView(S.products.get(b.dataset.pid)); }
+  });
+  d.addEventListener('close', () => d.remove());
 }
 
 /* ---------- Popups ---------- */

@@ -1302,13 +1302,13 @@
   .tb-note .tb-hb > div{grid-template-columns:4.9em minmax(0,1fr);font-size:11.5px}
   .tb-note .tb-hb i{height:7px}
   /* À compléter */
-  .tb-ac{height:100%;gap:6px;min-height:150px;background:color-mix(in srgb,var(--accent) 16%,var(--surface-2)) !important}
+  .tb-ac{height:100%;gap:4px;min-height:0;padding:10px 12px !important;background:color-mix(in srgb,var(--accent) 16%,var(--surface-2)) !important}
   .tb-ac .tb-titre b{color:var(--accent)}
   .tb-ac-n{min-width:24px;height:24px;border-radius:12px;background:var(--accent);color:var(--bg) !important;font-family:var(--display);font-size:13px !important;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
   .tb-ac-l span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:2px}
   .tb-ac-h{display:flex;justify-content:space-between;align-items:baseline}
   .tb-ac-h b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1}
-  .tb-ac-l{display:flex;flex-direction:column;gap:2px;overflow-y:auto;max-height:104px;scrollbar-width:none;overscroll-behavior-y:contain}
+  .tb-ac-l{display:flex;flex-direction:column;gap:0;overflow-y:auto;flex:1;min-height:0;scrollbar-width:none;overscroll-behavior-y:contain}
   .tb-ac-l::-webkit-scrollbar{display:none}
   .tb-ac-l button{display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--text);font:600 14px/1.2 var(--body);padding:5px 0;text-align:left;border-top:1px solid color-mix(in srgb,var(--accent) 26%,transparent);cursor:pointer;min-width:0}
   .tb-ac-l button:first-child{border-top:0}
@@ -1379,17 +1379,33 @@
   .tb-pl-l span{flex:1;min-width:0;font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-pl-l b{font-size:13.5px;font-weight:700;color:var(--sc);white-space:nowrap}
   .tb-pl-l.tx b{color:var(--text-dim)}
+  /* Les deux cartes du haut : basses, pour que tout tienne sur l'écran */
+  .tb-duo{height:118px}
+  .tb-duo > *{min-height:0;height:118px}
+  .tb-spec{padding:9px 10px !important;gap:2px !important}
+  .tb-spec .tb-spec-l{display:none}
+  .tb-spec-d b{font-size:16px !important}
+  .tb-spec-d b.long{font-size:14px !important}
+  .tb-spec-p{gap:3px !important}
+  .tb-spec .tb-sous{font-size:10.5px}
+  .tb-etoiles svg{width:15px !important;height:15px !important}
+  .tb-ac-l button{padding:4px 0 !important;font-size:13.5px !important}
+  .tb-note2{padding:8px 10px !important;gap:3px !important}
+  .tb-note2 .tb-titre b{font-size:14px}
+  .tb-n2 > i{height:3px}
+  .tb{margin-top:14px}
   /* Spectacle : 2 tuiles (le spectacle, puis ta note) */
   .tb-spec-car{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:16px;min-width:0}
   .tb-spec-car::-webkit-scrollbar{display:none}
   .tb-spec-car > .tb-tuile{flex:0 0 100%;scroll-snap-align:start}
   .tb-etoiles{cursor:pointer;padding:4px 6px;margin:-4px -6px 0;border-radius:10px}
   .tb-note2{gap:5px;padding:10px 12px;cursor:pointer}
-  .tb-n2{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:6px;row-gap:2px}
+  .tb-n2g{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;align-content:center}
+  .tb-n2{display:flex;flex-direction:column;gap:2px;min-width:0}
   .tb-n2 > span{font-size:10.5px;font-weight:600;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-n2 > b{font-family:var(--display);font-size:13px;font-weight:800;white-space:nowrap}
   .tb-n2 > b small{font-size:10px;color:var(--text-dim);font-weight:700}
-  .tb-n2 > i{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--star) 20%,transparent);overflow:hidden}
+  .tb-n2 > i{height:4px;border-radius:2px;background:color-mix(in srgb,var(--star) 20%,transparent);overflow:hidden}
   .tb-n2 > i em{display:block;height:100%;border-radius:2px;background:var(--star)}
   /* Période des stats (en haut à droite) */
   .tb-per{font-size:11.5px;font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);border-radius:99px;padding:4px 9px;white-space:nowrap;cursor:pointer}
@@ -5333,8 +5349,8 @@ function renderNoteDetail(r){
   r = r || computeStarRating();
   const f = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
   const l = (lab, val, max, ratio) => `<div class="tb-n2"><span>${lab}</span><b>${val}<small>/${max}</small></b><i><em style="width:${Math.max(3, Math.round(ratio * 100))}%"></em></i></div>`;
-  el.innerHTML = `<div class="tb-titre"><b>Ta note</b><span>${f(r.stars)} ★ · par mois</span></div>
-    ${l('Plateaux', f(r.beauxPerMonth), 9, r.ratioBeaux)}${l('Note', f(r.avgNote), 15, r.ratioNote)}${l('Scènes', f(r.scenesPerMonth), 15, r.ratioFreq)}${l('Argent', Math.round(r.gainsPerMonth) + '€', '500€', r.ratioMoney)}`;
+  el.innerHTML = `<div class="tb-titre"><b>Ta note</b><span>${f(r.stars)} ★</span></div>
+    <div class="tb-n2g">${l('Plateaux', f(r.beauxPerMonth), 9, r.ratioBeaux)}${l('Note', f(r.avgNote), 15, r.ratioNote)}${l('Scènes', f(r.scenesPerMonth), 15, r.ratioFreq)}${l('Argent', Math.round(r.gainsPerMonth) + '€', '500', r.ratioMoney)}</div>`;
 }
 function voirNote(versNote = true){
   const c = document.getElementById('tb-spec-car'); if(!c) return;

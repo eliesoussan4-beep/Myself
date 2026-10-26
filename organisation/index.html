@@ -173,6 +173,23 @@ button.ob-t{width:100%}
 .ob-ev-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .ob-ev-t b{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ob-ev-t small{font-size:12px;color:var(--muted)}
+.att{display:flex;flex-direction:column;gap:5px;max-height:34dvh;overflow-y:auto;overscroll-behavior:contain;margin-bottom:6px}
+.att-l{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:11px 12px;color:var(--ink);text-align:left;font-size:15px;font-weight:600;font-family:inherit}
+.att-l .cdot{flex:none}
+.att-l .ell{flex:1;min-width:0}
+.att-plus{flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--denim);color:var(--on-denim)}
+.ob-ev2{height:120px;background:color-mix(in srgb,var(--c,var(--denim)) 18%,var(--sunk));cursor:pointer}
+.ob-ev2 .ob-titre b{color:var(--c,var(--ink))}
+.ob-n{display:flex;align-items:baseline;gap:8px;margin-top:auto}
+.ob-n b{font-family:var(--display);font-size:34px;font-weight:800;line-height:1}
+.ob-n span{font-size:13px;font-weight:600;color:var(--muted)}
+.ob-dates{flex:1;min-height:0;display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;overflow-y:auto;scrollbar-width:none}
+.ob-dates span{font-size:13px;font-weight:700;background:color-mix(in srgb,var(--surface) 75%,transparent);border-radius:8px;padding:4px 9px}
+.ob-dates span.passe{opacity:.5;text-decoration:line-through}
+.ob-dates em{font-style:normal;font-size:13px;color:var(--muted)}
+.ob-remettre{position:absolute;right:12px;bottom:10px;display:flex;align-items:center;gap:4px;border:0;border-radius:99px;background:var(--c,var(--denim));color:var(--surface);font-size:12.5px;font-weight:700;padding:6px 11px;font-family:inherit}
+.ob-ev2.verso{animation:obflip .25s ease}
+@keyframes obflip{from{transform:rotateY(90deg)}to{transform:none}}
 .task-body{flex:1;min-width:0;min-height:48px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px}
 .t-title{font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task.done .t-title{color:var(--muted);text-decoration:line-through}
@@ -1370,8 +1387,15 @@ function openDayAdd(d) {
   const name = d === t0 ? "Aujourd'hui" : d === addDays(t0, 1) ? 'Demain' : `${cap(JC[dow(d)])} ${x.getDate()} ${MOIS[x.getMonth()]}`;
   const sh = openSheet({ label: 'Ajouter · ' + name, render: () => {
     const rs = S.routines.slice().sort(byOrder).filter(r => routineSteps(r).some(z => !z.info.done));
+    // Ce qui attend déjà : les tâches sans date et les événements gardés pour être remis
+    const attente = S.tasks.filter(t => !t.rep && !t.date && !t.done && !t.info && t.kind !== 'event' && !t.srcId).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
+    const evTpl = S.tasks.filter(t => t.info && t.free).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+    const ligne = t => { const th = themeOf(t); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="place-on" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${th ? h(th.emoji) + ' ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
     return `<h2 class="sheet-title">${h(name)}</h2>
-      <div class="btn-row trois"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.todo, 18, 1.8)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(IC.cal, 18, 1.8)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button></div>
+      ${attente.length ? `<h3 class="sec-sub">Tâches en attente · ${attente.length}</h3><div class="att">${attente.map(ligne).join('')}</div>` : ''}
+      ${evTpl.length ? `<h3 class="sec-sub">Événements à remettre · ${evTpl.length}</h3><div class="att">${evTpl.map(ligne).join('')}</div>` : ''}
+      <h3 class="sec-sub">${attente.length || evTpl.length ? 'Ou un nouveau' : 'Nouveau'}</h3>
+      <div class="btn-row trois"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button></div>
       ${rs.length ? `<h3 class="sec-sub">Routine</h3><div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
       `;
   } });
@@ -1561,13 +1585,23 @@ function dashboardHTML() {
       <div class="ob-liste">${ts.map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}" data-a="edit" data-id="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('')}</div>
     </div>`);
   const taches = `<div class="ob-bloc">${cDiapos.length ? `<div class="ob-car pleine" data-car="cats">${cDiapos.join('')}</div>${pts(cDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore de tâche.</p></div>`}</div>`;
-  // Événements : tout ce qui arrive (4 mois)
-  const up = [];
-  for (let i = 0; i <= 120; i++) { const d = addDays(t0, i); S.tasks.forEach(x => { if (isEvent(x) && occursOn(x, d)) up.push({ t: x, d }); }); }
-  up.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
-  const evs = `<div class="ob-t ob-evs"><div class="ob-titre"><b>Événements</b><button type="button" class="ob-lien" data-a="open-events">${up.length ? up.length + ' à venir' : 'Tous'} ›</button></div>
-    <div class="ob-liste">${up.map(({ t, d }) => { const th = themeOf(t); return `<button type="button" class="ob-ev c-${th ? th.color || 'slate' : 'slate'}" data-a="edit" data-id="${t.id}" data-d="${d}"><span class="ob-ev-d"><b>${parse(d).getDate()}</b><small>${MC[parse(d).getMonth()]}</small></span><span class="ob-ev-t"><b>${th ? h(th.emoji) + ' ' : ''}${h(t.title)}</b><small>${h(JOURS[dow(d)])}${t.time ? ' · ' + h(evWhen(t)) : ''}</small></span></button>`; }).join('') || '<p class="ob-vide">Rien de prévu ces 4 prochains mois.</p>'}</div>
-  </div>`;
+  // Événements à remettre (gardés dans la base) : une diapo chacun, avec combien de fois il est prévu ce mois ;
+  // toucher la carte la retourne et montre les dates
+  const mois = t0.slice(0, 7);
+  const tpls = S.tasks.filter(x => x.info && x.free).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+  const datesDe = tpl => S.tasks.filter(x => x.srcId === tpl.id && x.date && x.date.slice(0, 7) === mois).map(x => ({ d: x.date, t: x })).sort((a, b) => a.d < b.d ? -1 : 1);
+  const eDiapos = tpls.map(tpl => {
+    const th = themeOf(tpl), col = th ? th.color || 'slate' : 'slate', ds = datesDe(tpl), n = ds.length, verso = U.evVerso && U.evVerso.has(tpl.id);
+    const proch = ds.find(x => x.d >= t0);
+    return `<div class="ob-t ob-ev2 c-${col}${verso ? ' verso' : ''}" data-a="ev-flip" data-id="${tpl.id}" role="button" aria-label="${h(tpl.title)} : ${n} fois ce mois. Toucher pour ${verso ? 'revenir' : 'voir les dates'}">
+      <div class="ob-titre"><b>${th ? h(th.emoji) + ' ' : ''}${h(tpl.title)}</b>${tpl.time ? `<span>${h(evWhen(tpl))}</span>` : ''}</div>
+      ${verso ? `<div class="ob-dates">${ds.map(x => `<span class="${x.d < t0 ? 'passe' : ''}">${h(cap(JC[dow(x.d)]))} ${parse(x.d).getDate()}${x.t.time ? ' · ' + h(evWhen(x.t)) : ''}</span>`).join('') || '<em>Pas prévu ce mois-ci.</em>'}</div>
+        <button type="button" class="ob-remettre" data-a="plan-other" data-id="${tpl.id}">${ic(P.plus, 14, 2.4)}Remettre</button>`
+      : `<div class="ob-n"><b>${n}</b><span>fois en ${h(MOIS[parse(t0).getMonth()])}</span></div>
+        <span class="ob-sous">${proch ? 'Prochain : ' + h(dayMonth(proch.d)) : n ? 'Tout est passé ce mois-ci' : 'Pas prévu ce mois-ci'}</span>`}
+    </div>`;
+  });
+  const evs = `<div class="ob-bloc">${eDiapos.length ? `<div class="ob-car pleine" data-car="evs">${eDiapos.join('')}</div>${pts(eDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore d’événement à remettre. Quand tu crées un événement, coche « à garder » pour le retrouver ici.</p></div>`}</div>`;
   return `<div class="ob">${routines}${taches}${evs}</div>`;
 }
 // Carrousels du tableau de bord : les points suivent, et on garde la position
@@ -3327,6 +3361,8 @@ const A = {
     renderHome();
     const el = document.getElementById('day-' + tom); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
+  'ev-flip': (el, c) => { if (!U.evVerso) U.evVerso = new Set(); U.evVerso.has(c.id) ? U.evVerso.delete(c.id) : U.evVerso.add(c.id); refresh(); },
+  'place-on': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, c.d); if (stack.length) closeTop(); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`); },
   'open-events': () => { U.todoView = 'events'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-lists': () => openSheet({ render: renderLists, label: 'Listes' }),

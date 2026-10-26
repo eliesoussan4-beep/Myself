@@ -138,7 +138,8 @@ dialog.pop-co{width:min(92vw,440px);max-height:min(80dvh,640px);border-radius:22
 .pr-r summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer}
 .pr-r summary::-webkit-details-marker{display:none}
 .pr-r summary b{font-family:var(--display);font-size:16px;color:var(--c)}
-.pr-r summary span{font-size:12.5px;font-weight:700;color:var(--muted)}
+.pr-r summary span{font-size:12.5px;font-weight:700;color:var(--muted);margin-left:auto;margin-right:10px}
+.pr-plus{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:color-mix(in srgb,var(--c) 22%,var(--surface));color:var(--c);font:800 18px/1 var(--body);display:flex;align-items:center;justify-content:center;padding:0}
 .pr-r[open] summary span::after{content:" ▴"}
 .pr-r:not([open]) summary span::after{content:" ▾"}
 .pr-l{display:flex;flex-direction:column;gap:3px;padding:0 8px 10px}
@@ -1160,8 +1161,8 @@ function ouvrirRayons(ouvert){
   const prods = [...S.products.values()];
   const html = RAYONS.map(([r, label]) => {
     const arr = prods.filter(p => (p.rayon || 'autre') === r).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-    if(!arr.length) return '';
-    return `<details class="pr-r rc-${r}"${r === ouvert ? ' open' : ''}><summary><b>${label}</b><span>${arr.length}</span></summary>
+    if(!arr.length && r !== ouvert) return '';
+    return `<details class="pr-r rc-${r}"${r === ouvert ? ' open' : ''}><summary><b>${label}</b><span>${arr.length}</span><button type="button" class="pr-plus" data-plus="${r}" aria-label="Nouveau produit dans ${label}">+</button></summary>
       <div class="pr-l">${arr.map(p => { const pc = stockPct(p); return `<button type="button" class="cb-p" data-pid="${p.id}"><span>${nameE(p)}</span>${inList(p.id) ? '<small>🛒</small>' : ''}${pc != null ? `<em class="sbar"><i style="width:${Math.max(3, pc)}%"></i></em>` : ''}</button>`; }).join('')}</div></details>`;
   }).join('');
   d.innerHTML = `<div class="pop-in"><div class="pop-h"><h2>Produits</h2><button type="button" class="pop-x" aria-label="Fermer">✕</button></div><div class="pop-c">${html}</div></div>`;
@@ -1169,6 +1170,7 @@ function ouvrirRayons(ouvert){
   const o = d.querySelector('details[open]'); if(o) setTimeout(() => o.scrollIntoView({block:'start'}), 30);
   d.addEventListener('click', e => {
     if(e.target === d || e.target.closest('.pop-x')){ d.close(); return; }
+    const pl = e.target.closest('[data-plus]'); if(pl){ e.preventDefault(); const r = pl.dataset.plus; d.close(); openProduct(null, {rayon:r, onSaved: () => { render(); ouvrirRayons(r); }}); return; }
     const b = e.target.closest('[data-pid]'); if(b){ d.close(); openView(S.products.get(b.dataset.pid)); }
   });
   d.addEventListener('close', () => d.remove());
@@ -1364,15 +1366,15 @@ function openView(p, refresh){
 }
 
 /* Fiche produit */
-function openProduct(p, {name = '', onSaved} = {}){
+function openProduct(p, {name = '', onSaved, rayon = null} = {}){
   const isNew = !p;
-  const P = p ? JSON.parse(JSON.stringify(p)) : {id: uid(), name, rayon: guessRayon(name), unit: 'u', format: guessFormat(name), pack: null, purchases: [], created: Date.now()};
+  const P = p ? JSON.parse(JSON.stringify(p)) : {id: uid(), name, rayon: rayon || guessRayon(name), unit: 'u', format: guessFormat(name), pack: null, purchases: [], created: Date.now()};
   const st0 = stockAt(P);
   const priceStr0 = priceOf(P) != null ? fmt2(priceOf(P) * (P.unit === 'kg' ? 1 : packOf(P))) : '';
   const stockStr = st0 != null ? fmtNum(st0, 2) : '';
   const open = new Set();
   const aliases = () => [...S.aliases.values()].filter(a => a.pid === P.id);
-  let emojiTouched = false, rayonTouched = false, fmtTouched = false;
+  let emojiTouched = false, rayonTouched = !!rayon, fmtTouched = false;
   const extra = () => {
     const al = aliases(), hist = (P.purchases || []).slice().reverse();
     if(open.has('al')) return al.map(a => `<div class="trow"><span class="tx"><b style="font-family:ui-monospace,Menlo,monospace;font-size:13px">${esc(a.label)}</b></span><button type="button" class="mini-x" data-act="unalias" data-l="${esc(a.label)}" aria-label="Oublier ce libellé">✕</button></div>`).join('');

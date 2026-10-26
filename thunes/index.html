@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thunes</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#E8EBEF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11151C" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E8EBEF; --surface:#FFFFFF; --sunk:#F2F4F7; --ink:#18202E; --muted:#636C7D; --line:#D3D8E0;
+  --denim:#2F4C78; --denim-soft:#DCE4F0; --on-denim:#FFFFFF; --warn:#A8432C;
+  --today:#e8962e; --today-soft:#fff1dc; --tomorrow:#7b5cd6; --tomorrow-soft:#efe9ff;
+  --display:"Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11151C; --surface:#1B212B; --sunk:#232A36; --ink:#E7EBF1; --muted:#98A1B1; --line:#2E3645;
+    --denim:#8FB0E3; --denim-soft:#26344B; --on-denim:#0F1622; --warn:#E3826B;
+    --today:#f0a648; --today-soft:#3b2c15; --tomorrow:#a58cf0; --tomorrow-soft:#2a2342;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11151C; --surface:#1B212B; --sunk:#232A36; --ink:#E7EBF1; --muted:#98A1B1; --line:#2E3645;
+  --denim:#8FB0E3; --denim-soft:#26344B; --on-denim:#0F1622; --warn:#E3826B;
+  --today:#f0a648; --today-soft:#3b2c15; --tomorrow:#a58cf0; --tomorrow-soft:#2a2342;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{height:100%}
+body{margin:0;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;min-height:100%;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--denim);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+:root{--plus:#2F7A4A;--moins:#B84A3E}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--plus:#7CC992;--moins:#E58A84}}
+:root[data-theme="dark"]{--plus:#7CC992;--moins:#E58A84}
+main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;flex-direction:column;gap:12px}
+.tete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.tete h1{font-size:clamp(26px,7vw,38px);font-weight:800;letter-spacing:-.025em}
+.t{background:var(--sunk);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.titre{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.titre b{font-family:var(--display);font-size:16px;font-weight:800}
+.titre span,.titre button.lien{font-size:12px;font-weight:700;color:var(--denim);background:none;border:0;padding:0}
+.vide{margin:0;font-size:14px;color:var(--muted)}
+/* La cagnotte */
+.cag{display:grid;grid-template-columns:56px minmax(0,1fr) 56px;align-items:center;gap:8px;padding:16px 12px}
+.cag-b{width:56px;height:56px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;font:800 30px/1 var(--display);color:var(--surface)}
+.cag-b.moins{background:var(--moins)} .cag-b.plus{background:var(--plus)}
+.cag-c{text-align:center;display:flex;flex-direction:column;align-items:center;min-width:0}
+.cag-c small{font-size:12px;font-weight:700;color:var(--muted)}
+.cag-c b{font-family:var(--display);font-size:clamp(32px,10vw,44px);font-weight:800;line-height:1.05;letter-spacing:-.02em;white-space:nowrap}
+.cag-c b.neg{color:var(--moins)}
+.cag-c span{font-size:12.5px;font-weight:600;color:var(--muted)}
+/* Versement manquant */
+.ask{background:color-mix(in srgb,var(--today) 18%,var(--sunk))}
+.ask p{margin:0;font-weight:700}
+.row{display:flex;gap:8px}
+.in{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:11px 12px;font-size:16px}
+.btn{border:0;border-radius:12px;background:var(--denim);color:var(--on-denim);font-weight:700;padding:11px 16px}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.rouge{background:var(--moins);color:var(--surface)}
+/* Ce mois */
+.lignes{display:flex;flex-direction:column}
+.l{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;font-size:14.5px}
+.l span{color:var(--muted);font-weight:600}
+.l b{font-weight:800;white-space:nowrap}
+.l.tot{border-top:1px solid var(--line);margin-top:3px;padding-top:8px}
+.l.tot b{font-family:var(--display);font-size:18px}
+.jauge{height:8px;border-radius:4px;background:color-mix(in srgb,var(--denim) 16%,transparent);position:relative;overflow:hidden}
+.jauge i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--denim)}
+.jauge i.trop{background:var(--moins)}
+.note{margin:0;font-size:12px;color:var(--muted)}
+/* listes */
+.items{display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;overscroll-behavior:contain}
+.it{display:flex;align-items:center;gap:10px;border:0;border-radius:12px;background:var(--surface);padding:10px 12px;text-align:left;width:100%}
+.it .d{flex:none;width:44px;font-size:12px;font-weight:700;color:var(--muted)}
+.it .n{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .m{font-weight:800;white-space:nowrap}
+.it .m.plus{color:var(--plus)} .it .m.moins{color:var(--ink)}
+.ajout{border:1.5px dashed var(--line);border-radius:12px;background:none;color:var(--denim);font-weight:700;padding:11px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chif{display:flex;flex-direction:column;gap:2px}
+.chif small{font-size:12px;font-weight:700;color:var(--muted)}
+.chif b{font-family:var(--display);font-size:22px;font-weight:800}
+/* graphique : dépenses par jour */
+.bars{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;align-items:end;height:90px}
+.bars i{display:block;border-radius:3px 3px 1px 1px;background:color-mix(in srgb,var(--denim) 45%,transparent);min-height:2px}
+.bars i.auj{background:var(--today)}
+.bars i.fut{background:var(--line);opacity:.5}
+.axe{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+/* fenêtre au milieu */
+dialog{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(92vw,420px);border-radius:22px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,14,22,.5)}
+dialog[open]{animation:popin .18s ease}
+@keyframes popin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.pop{padding:18px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.pop h2{font-size:22px}
+.pop label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--sunk);border-radius:99px;padding:6px 11px;font-size:13px;font-weight:600}
+.btns{display:flex;gap:8px}
+.btns .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.pied{text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<dialog id="pop"></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script>
+'use strict';
+/* ================================================================
+   « Thunes » : la cagnotte de ce que tu peux dépenser.
+   Chaque mois : ce que tu te verses − les charges fixes − ce que tu mets de côté = à dépenser.
+   Divisé par le nombre de jours du mois : chaque jour, la cagnotte gagne cette part.
+   Les dépenses (−) et les rentrées (+) notées pendant le mois s'y ajoutent.
+   Données : localStorage « thunes_v1 » (la sauvegarde globale de Mon quotidien la prend : préfixe thunes_).
+   ⚠ L'accueil de Mon quotidien refait ce même calcul (calculThunes dans index.html) : garder les deux pareils.
+   ================================================================ */
+const VERSION = 1, CLE = 'thunes_v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const moisDe = d => iso(d).slice(0, 7);
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const eur = (n, dec = true) => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:dec ? 2 : 0, maximumFractionDigits:dec ? 2 : 0}) + ' €';
+const nombre = v => { const n = parseFloat(String(v || '').replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : null; };
+const nomMois = m => new Date(+m.slice(0, 4), +m.slice(5) - 1, 1).toLocaleDateString('fr-FR', {month:'long'});
+
+function lire(){ try{ const d = JSON.parse(localStorage.getItem(CLE) || 'null'); if(d && typeof d === 'object') return {charges:[], epargne:0, versements:{}, mouvements:[], ...d}; }catch(e){} return {charges:[], epargne:0, versements:{}, mouvements:[]}; }
+function ecrire(d){ try{ localStorage.setItem(CLE, JSON.stringify(d)); }catch(e){ toast('Impossible d’enregistrer.'); } }
+// Ce que tu te verses ce mois : celui du mois, sinon le dernier connu
+function versement(d, m){ if(d.versements[m] != null) return {v:d.versements[m], connu:true}; const avant = Object.keys(d.versements).filter(k => k < m).sort().pop(); return {v:avant ? d.versements[avant] : 0, connu:false, depuis:avant}; }
+function calcul(d, jour = new Date()){
+  const m = moisDe(jour), nbJ = new Date(jour.getFullYear(), jour.getMonth() + 1, 0).getDate(), j = jour.getDate();
+  const ver = versement(d, m), charges = d.charges.reduce((s, c) => s + (+c.montant || 0), 0), ep = +d.epargne || 0;
+  const budget = ver.v - charges - ep, parJour = budget / nbJ;
+  const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m);
+  const depenses = -mv.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mv.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
+  const cagnotte = parJour * j - depenses + rentrees;
+  return {m, nbJ, j, ver, charges, ep, budget, parJour, depenses, rentrees, cagnotte, finMois:cagnotte + parJour * (nbJ - j), mv};
+}
+let D = lire();
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
+
+function render(){
+  D = lire();
+  const c = calcul(D), auj = new Date();
+  const mv = c.mv.slice().sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
+  // dépenses par jour du mois
+  const parJ = Array.from({length:c.nbJ}, (_, k) => -c.mv.filter(x => x.m < 0 && +x.d.slice(8) === k + 1).reduce((s, x) => s + x.m, 0));
+  const mx = Math.max(c.parJour > 0 ? c.parJour : 1, ...parJ);
+  const prorata = c.parJour * c.j, ratio = prorata > 0 ? c.depenses / prorata : 0;
+  $('#app').innerHTML = `
+    <header class="tete"><h1>${cap(nomMois(c.m))}</h1></header>
+    <section class="t cag" aria-label="Cagnotte">
+      <button type="button" class="cag-b moins" data-a="moins" aria-label="Noter une dépense">−</button>
+      <div class="cag-c"><small>Cagnotte</small><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><span>${c.parJour >= 0 ? '+' : ''}${eur(c.parJour)} / jour</span></div>
+      <button type="button" class="cag-b plus" data-a="plus" aria-label="Noter une rentrée d’argent">+</button>
+    </section>
+    ${!c.ver.connu ? `<section class="t ask"><p>Combien tu te verses en ${nomMois(c.m)} ?</p>${c.ver.depuis ? `<p class="note">En attendant, je compte comme en ${nomMois(c.ver.depuis)} : ${eur(c.ver.v, false)}.</p>` : ''}
+      <div class="row"><input class="in" id="ver-in" inputmode="decimal" placeholder="${c.ver.v ? String(c.ver.v).replace('.', ',') : 'ex. 1 800'}" aria-label="Versement du mois"><button type="button" class="btn" data-a="ver">OK</button></div></section>` : ''}
+    <section class="t">
+      <div class="titre"><b>Ce mois</b><span>jour ${c.j} sur ${c.nbJ}</span></div>
+      <div class="lignes">
+        <div class="l"><span>Je me verse</span><b>${eur(c.ver.v)}</b></div>
+        <div class="l"><span>Charges fixes</span><b>− ${eur(c.charges)}</b></div>
+        <div class="l"><span>Mis de côté</span><b>− ${eur(c.ep)}</b></div>
+        <div class="l tot"><span>À dépenser dans le mois</span><b>${eur(c.budget)}</b></div>
+      </div>
+      <div class="jauge" aria-label="Dépensé par rapport à ce qui est déjà tombé"><i class="${ratio > 1 ? 'trop' : ''}" style="width:${Math.min(100, ratio * 100)}%"></i></div>
+      <p class="note">Dépensé ${eur(c.depenses)} sur les ${eur(Math.max(0, prorata))} déjà tombés${c.rentrees ? ` · rentrées ${eur(c.rentrees)}` : ''} · fin du mois si tu ne dépenses plus : <b>${eur(c.finMois)}</b></p>
+    </section>
+    <section class="t">
+      <div class="titre"><b>Dépenses par jour</b><span>${eur(c.depenses / Math.max(1, c.j))} / jour en moyenne</span></div>
+      <div class="bars">${parJ.map((v, k) => `<i class="${k + 1 === c.j ? 'auj' : k + 1 > c.j ? 'fut' : ''}" style="height:${Math.max(2, v / mx * 100)}%" title="${k + 1} : ${eur(v)}"></i>`).join('')}</div>
+      <div class="axe"><span>1</span><span>${Math.round(c.nbJ / 2)}</span><span>${c.nbJ}</span></div>
+    </section>
+    <section class="t">
+      <div class="titre"><b>Mouvements du mois</b><span>${mv.length}</span></div>
+      <div class="items">${mv.map(x => `<button type="button" class="it" data-a="mv" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.l || (x.m < 0 ? 'Dépense' : 'Rentrée'))}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`).join('') || '<p class="vide">Rien de noté ce mois-ci. Touche − pour une dépense, + pour une rentrée.</p>'}</div>
+    </section>
+    <section class="t">
+      <div class="titre"><b>Charges fixes</b><span>${eur(c.charges)} / mois</span></div>
+      <div class="items">${D.charges.slice().sort((a, b) => b.montant - a.montant).map(x => `<button type="button" class="it" data-a="charge" data-id="${x.id}"><span class="n">${esc(x.nom)}</span><span class="m">${eur(+x.montant || 0)}</span></button>`).join('') || '<p class="vide">Loyer, abonnements, assurance…</p>'}</div>
+      <button type="button" class="ajout" data-a="charge">＋ Ajouter une charge</button>
+    </section>
+    <section class="duo">
+      <button type="button" class="t chif" data-a="reg-ep" style="border:0;text-align:left"><small>Mis de côté / mois</small><b>${eur(+D.epargne || 0, false)}</b><span class="note">Toucher pour changer</span></button>
+      <button type="button" class="t chif" data-a="reg-ver" style="border:0;text-align:left"><small>Je me verse en ${nomMois(c.m)}</small><b>${eur(c.ver.v, false)}</b><span class="note">Toucher pour changer</span></button>
+    </section>
+    <p class="pied">Thunes · version ${VERSION}</p>`;
+}
+
+/* ---------- Fenêtres ---------- */
+function ouvrir(html, onClick){
+  const dlg = $('#pop'); dlg.innerHTML = `<form class="pop" method="dialog" novalidate>${html}</form>`;
+  dlg.onclick = e => { if(e.target === dlg){ dlg.close(); return; } onClick && onClick(e, dlg); };
+  dlg.showModal();
+}
+// Noter une dépense (signe −1) ou une rentrée (+1) — aussi utilisé par l'accueil de Mon quotidien
+function fenetreMouvement(signe, x){
+  const recents = [...new Set(D.mouvements.filter(m => Math.sign(m.m) === signe && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
+  ouvrir(`<h2>${x ? 'Modifier' : signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2>
+    <label>Montant<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(Math.abs(x.m)).replace('.', ',') : ''}"></label>
+    <label>${signe < 0 ? 'C’est quoi ?' : 'D’où ça vient ?'}<input class="in" name="l" placeholder="${signe < 0 ? 'ex. resto, ciné…' : 'ex. cachet, remboursement…'}" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>
+    ${recents.length ? `<div class="chips">${recents.map(l => `<button type="button" class="chip" data-l="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}
+    <label>Date<input class="in" name="d" type="date" value="${x ? x.d : iso(new Date())}"></label>
+    <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
+  (e, dlg) => {
+    const f = dlg.querySelector('form'), ch = e.target.closest('[data-l]');
+    if(ch){ f.l.value = ch.dataset.l; return; }
+    const b = e.target.closest('[data-f]'); if(!b) return;
+    if(b.dataset.f === 'non'){ dlg.close(); return; }
+    D = lire();
+    if(b.dataset.f === 'sup'){ D.mouvements = D.mouvements.filter(m => m.id !== x.id); ecrire(D); dlg.close(); render(); toast('Supprimé'); return; }
+    const v = nombre(f.m.value); if(!v || v <= 0){ f.m.focus(); return; }
+    const l = f.l.value.trim();
+    if(signe < 0 && !l){ f.l.focus(); f.l.placeholder = 'Dis-moi ce que c’était'; return; }
+    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now()};
+    D.mouvements = x ? D.mouvements.map(y => y.id === x.id ? m : y) : [...D.mouvements, m];
+    ecrire(D); dlg.close(); render(); toast(signe < 0 ? `− ${eur(v)} · ${l}` : `+ ${eur(v)}`);
+  });
+}
+function fenetreCharge(x){
+  ouvrir(`<h2>${x ? 'Charge fixe' : 'Nouvelle charge fixe'}</h2>
+    <label>Nom<input class="in" name="n" placeholder="ex. Loyer, Netflix…" value="${x ? esc(x.nom) : ''}" autocomplete="off"></label>
+    <label>Montant par mois<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(x.montant).replace('.', ',') : ''}"></label>
+    <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
+  (e, dlg) => {
+    const b = e.target.closest('[data-f]'); if(!b) return;
+    const f = dlg.querySelector('form');
+    if(b.dataset.f === 'non'){ dlg.close(); return; }
+    D = lire();
+    if(b.dataset.f === 'sup'){ D.charges = D.charges.filter(c => c.id !== x.id); ecrire(D); dlg.close(); render(); return; }
+    const n = f.n.value.trim(), v = nombre(f.m.value);
+    if(!n){ f.n.focus(); return; } if(v == null || v < 0){ f.m.focus(); return; }
+    const c = {id:x ? x.id : uid(), nom:n, montant:Math.round(v * 100) / 100};
+    D.charges = x ? D.charges.map(y => y.id === x.id ? c : y) : [...D.charges, c];
+    ecrire(D); dlg.close(); render();
+  });
+}
+function fenetreNombre(titre, val, poser){
+  ouvrir(`<h2>${titre}</h2><label>Montant<input class="in" name="m" inputmode="decimal" value="${val != null ? String(val).replace('.', ',') : ''}"></label>
+    <div class="btns"><button type="button" class="btn sec" data-f="non">Annuler</button><button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
+  (e, dlg) => { const b = e.target.closest('[data-f]'); if(!b) return; if(b.dataset.f === 'non'){ dlg.close(); return; }
+    const v = nombre(dlg.querySelector('form').m.value); if(v == null || v < 0) return; D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
+}
+$('#app').addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if(!b) return;
+  const a = b.dataset.a, m = moisDe(new Date());
+  if(a === 'moins') fenetreMouvement(-1);
+  else if(a === 'plus') fenetreMouvement(1);
+  else if(a === 'mv'){ const x = D.mouvements.find(y => y.id === b.dataset.id); if(x) fenetreMouvement(Math.sign(x.m) || -1, x); }
+  else if(a === 'charge') fenetreCharge(b.dataset.id ? D.charges.find(y => y.id === b.dataset.id) : null);
+  else if(a === 'reg-ep') fenetreNombre('Mis de côté chaque mois', D.epargne, (d, v) => { d.epargne = v; });
+  else if(a === 'reg-ver') fenetreNombre(`Je me verse en ${nomMois(m)}`, versement(D, m).v, (d, v) => { d.versements[m] = v; });
+  else if(a === 'ver'){ const v = nombre($('#ver-in').value); if(v == null || v < 0){ $('#ver-in').focus(); return; } D = lire(); D.versements[m] = Math.round(v * 100) / 100; ecrire(D); render(); }
+});
+// Si l'accueil de Mon quotidien note quelque chose, on se redessine
+window.addEventListener('storage', e => { if(e.key === CLE) render(); });
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') render(); });
+// Mon quotidien : toucher l'onglet ramène en haut ; et l'accueil peut ouvrir la fenêtre − / +
+window.quotidienAccueil = () => { const d = $('#pop'); if(d.open) d.close(); render(); window.scrollTo(0, 0); };
+window.quotidienThunes = {calcul:() => calcul(lire())};
+render();
+</script>
+</body>
+</html>

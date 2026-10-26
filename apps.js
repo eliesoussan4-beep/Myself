@@ -22,7 +22,7 @@
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 33;
+self.VERSION_QUOTIDIEN = 34;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;
@@ -67,5 +67,16 @@ self.APPS = [
     stockage: 'localStorage',
     prefixe: 'backstage_',
     icone: '<rect x="9" y="3" width="5" height="7.5" rx="2.5" transform="rotate(18 11.5 6.75)"/><path d="M13.3 9.3 11 21"/><path d="M7.5 21h7"/>'
+  },
+  {
+    id: 'thunes',
+    nom: 'Thunes',
+    dossier: 'thunes/',
+    accueil: 6,              // (sa cagnotte s'affiche au-dessus des Dispos et des Courses sur l'accueil)
+    toujoursAccueil: true,
+    couleur: ['#1F7A6A', '#5CCBB7'],
+    stockage: 'localStorage',
+    prefixe: 'thunes_',
+    icone: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3"/><path d="M4 7.5V17a2 2 0 0 0 2 2h14V9H6.5A2.5 2.5 0 0 1 4 7.5Z"/><circle cx="16" cy="14" r="1.2"/>'
   }
 ];

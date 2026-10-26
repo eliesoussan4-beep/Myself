@@ -183,9 +183,17 @@ main{gap:22px}
 .rj-c{display:flex;flex-wrap:wrap;justify-content:center;gap:2px}
 .rj-c button{border:0;background:color-mix(in srgb,var(--surface) 55%,transparent);border-radius:10px;font-size:18px;line-height:1;padding:5px 6px;cursor:pointer}
 .rj-l{display:flex;flex-direction:column;gap:5px}
-.rj-i{display:flex;align-items:center;gap:10px;border:0;border-left:3px solid var(--sc);border-radius:0 12px 12px 0;background:color-mix(in srgb,var(--sc) 12%,var(--sunk));color:var(--ink);padding:10px 12px;text-align:left;font:600 15px/1.25 var(--body)}
+.rj-i{display:flex;align-items:center;gap:10px;border:0;border-left:3px solid var(--sc);border-radius:0 12px 12px 0;background:color-mix(in srgb,var(--sc) 12%,var(--sunk));color:var(--ink);padding:6px 12px 6px 10px;text-align:left;font:600 15px/1.25 var(--body)}
+.rj-ouv{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-start;gap:10px;border:0;background:none;color:inherit;font:inherit;padding:4px 0;text-align:left}
+.rj-ouv > span{flex:1;min-width:0;text-align:left}
+.rj-ouv > b{flex:none;min-width:38px;text-align:left}
+.rj-i .coche{flex:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--sc);margin:0;background:none;color:var(--on-denim);display:flex;align-items:center;justify-content:center;padding:0}
+.rj-i.faite .coche{background:var(--sc)}
+.rj-i.faite .rj-ouv span{text-decoration:line-through;color:var(--muted);font-weight:500}
+.rj-ev{flex:none;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.rj-ev::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sc)}
 .rj-i b{flex:none;min-width:42px;font-size:12.5px;color:var(--sc)}
-.rj-i span{flex:1;min-width:0}
+.rj-i > span:not(.rj-ev),.rj-ouv > span{flex:1;min-width:0}
 .rj-i em{font-style:normal;font-size:12px;color:var(--muted)}
 .feuille h3 small{font-size:12px;color:var(--muted);font-family:var(--body)}
 /* Fenêtre au milieu de l'écran (pas un volet du bas) */
@@ -198,6 +206,19 @@ dialog.popup[open]{animation:popin .18s ease}
 .pop-h h2 small{font-family:var(--body);font-size:13px;font-weight:600;color:var(--muted);margin-top:2px}
 .pop-c{overflow-y:auto;overscroll-behavior:contain;padding:0 16px 16px;display:flex;flex-direction:column;gap:8px}
 .pop-c h3{margin:6px 0 0;font-family:var(--display);font-size:16px}
+/* Cagnotte (Thunes) au-dessus des Dispos et des Courses */
+.cag-h{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:8px;background:var(--sunk);border-radius:16px;padding:10px;margin-bottom:12px}
+.cag-b{width:48px;height:48px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;font:800 26px/1 var(--display);color:var(--surface);padding:0}
+.cag-b.moins{background:#B84A3E} .cag-b.plus{background:#2F7A4A}
+.cag-c{border:0;background:none;color:var(--ink);display:flex;flex-direction:column;align-items:center;min-width:0;padding:0;font-family:var(--body)}
+.cag-c small{font-size:11.5px;font-weight:700;color:var(--muted)}
+.cag-c b{font-family:var(--display);font-size:28px;font-weight:800;line-height:1.1;white-space:nowrap}
+.cag-c b.neg{color:#B84A3E}
+.cag-c span{font-size:11.5px;font-weight:600;color:var(--muted)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cag-b.moins{background:#E58A84}:root:not([data-theme="light"]) .cag-b.plus{background:#7CC992}:root:not([data-theme="light"]) .cag-c b.neg{color:#E58A84}}
+:root[data-theme="dark"] .cag-b.moins{background:#E58A84}:root[data-theme="dark"] .cag-b.plus{background:#7CC992}
+.tm .champ input{font-size:18px}
+.tm-ch{display:flex;flex-wrap:wrap;gap:6px}
 /* Liste de courses en fenêtre */
 .re-total{border:0;background:none;color:inherit;font:inherit;padding:0;cursor:pointer}
 .rc-h{--sc:var(--scl);color:var(--sc)}
@@ -618,6 +639,7 @@ dialog h2:focus{outline:none}
 <dialog id="mois" aria-label="L’agenda"></dialog>
 <dialog id="recap-jour" class="popup" aria-label="À faire"></dialog>
 <dialog id="recap-co" class="popup" aria-label="Liste de courses"></dialog>
+<dialog id="thunes-mvt" class="popup" aria-label="Noter une dépense ou une rentrée"></dialog>
 <dialog id="dispos" aria-label="Mes disponibilités"></dialog>
 <button type="button" id="retour-btn" aria-label="Noter une modif" hidden></button>
 <input type="file" id="fichier" accept="application/json,.json" multiple hidden>
@@ -1090,8 +1112,59 @@ function carreCourses(d){
 }
 // Bloc du bas : « Dispos » à gauche, Courses à droite
 function blocDuo(co){
-  return `<div class="gr2 compact tenue-co"><div class="dispo-carre" data-dispo role="button" aria-label="Mes disponibilités"><p class="vide">Calcul…</p></div>${co === undefined ? '<div class="co-carre"><p class="vide">Chargement…</p></div>' : carreCourses(co)}</div>`;
+  return (APPS.some(a => a.id === 'thunes' && !a.cache) ? carteThunes(resultats.thunes) : '') + `<div class="gr2 compact tenue-co"><div class="dispo-carre" data-dispo role="button" aria-label="Mes disponibilités"><p class="vide">Calcul…</p></div>${co === undefined ? '<div class="co-carre"><p class="vide">Chargement…</p></div>' : carreCourses(co)}</div>`;
 }
+/* ---------- Thunes : la cagnotte (ce que tu peux dépenser) ----------
+   ⚠ Même calcul que dans thunes/index.html (calcul) : garder les deux pareils.
+   versé ce mois (ou le dernier connu) − charges fixes − mis de côté = à dépenser ; ÷ jours du mois = ce qui tombe chaque jour ;
+   cagnotte = ce qui est tombé jusqu'à aujourd'hui − dépenses + rentrées du mois. */
+const CLE_THUNES = 'thunes_v1';
+function lireThunesData(){ try{ const d = JSON.parse(localStorage.getItem(CLE_THUNES) || 'null'); if(d && typeof d === 'object') return {charges:[], epargne:0, versements:{}, mouvements:[], ...d}; }catch(e){} return null; }
+function calculThunes(d, jour = new Date()){
+  const m = iso(jour).slice(0, 7), nbJ = new Date(jour.getFullYear(), jour.getMonth() + 1, 0).getDate(), j = jour.getDate();
+  let v = d.versements[m]; if(v == null){ const avant = Object.keys(d.versements).filter(k => k < m).sort().pop(); v = avant ? d.versements[avant] : 0; }
+  const budget = v - d.charges.reduce((s, c) => s + (+c.montant || 0), 0) - (+d.epargne || 0), parJour = budget / nbJ;
+  const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m).reduce((s, x) => s + x.m, 0);
+  return {cagnotte:parJour * j + mv, parJour, connu:d.versements[m] != null};
+}
+async function lireThunes(){ const d = lireThunesData(); return d ? calculThunes(d) : null; }
+const eurT = n => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+function carteThunes(t){
+  const corps = t ? `<b class="${t.cagnotte < 0 ? 'neg' : ''}">${eurT(t.cagnotte)}</b><span>${t.parJour >= 0 ? '+' : ''}${eurT(t.parJour)} / jour${t.connu ? '' : ' · versement ?'}</span>`
+    : `<b>—</b><span>Touche pour régler ta cagnotte</span>`;
+  return `<div class="cag-h" data-aller="thunes" data-action="ouvrir"><button type="button" class="cag-b moins" data-thunes="-1" aria-label="Noter une dépense">−</button>
+    <button type="button" class="cag-c" data-aller="thunes" data-action="ouvrir" aria-label="Ouvrir Thunes"><small>Cagnotte</small>${corps}</button>
+    <button type="button" class="cag-b plus" data-thunes="1" aria-label="Noter une rentrée d’argent">+</button></div>`;
+}
+// − / + : une petite fenêtre au milieu (montant, ce que c'est, date)
+function ouvrirMouvement(signe){
+  const d = lireThunesData() || {charges:[], epargne:0, versements:{}, mouvements:[]};
+  const recents = [...new Set(d.mouvements.filter(m => Math.sign(m.m) === signe && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
+  const dlg = $('#thunes-mvt');
+  dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2 tabindex="-1">${signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2><button type="button" class="rond petit" data-rf="1" aria-label="Fermer">✕</button></div>
+    <div class="pop-c tm">
+      <label class="champ"><input id="tm-m" inputmode="decimal" placeholder="Montant (€)" autocomplete="off"></label>
+      <label class="champ"><input id="tm-l" placeholder="${signe < 0 ? 'C’est quoi ? (resto, ciné…)' : 'D’où ça vient ? (cachet…)'}" autocomplete="off"></label>
+      ${recents.length ? `<div class="tm-ch">${recents.map(l => `<button type="button" class="chip-d" data-tl="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}
+      <p class="msg" id="tm-msg" role="status"></p>
+      <button type="button" class="btn primaire" data-tm-ok="${signe}">Enregistrer</button>
+    </div></div>`;
+  dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
+}
+$('#thunes-mvt').addEventListener('click', e => {
+  const dlg = $('#thunes-mvt');
+  if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }
+  const ch = e.target.closest('[data-tl]'); if(ch){ $('#tm-l').value = ch.dataset.tl; return; }
+  const ok = e.target.closest('[data-tm-ok]'); if(!ok) return;
+  const signe = +ok.dataset.tmOk, v = parseFloat(String($('#tm-m').value).replace(/\s/g, '').replace(',', '.')), l = $('#tm-l').value.trim();
+  if(!(v > 0)){ $('#tm-msg').textContent = 'Indique un montant.'; return; }
+  if(signe < 0 && !l){ $('#tm-msg').textContent = 'Dis-moi ce que c’était.'; return; }
+  const d = lireThunesData() || {charges:[], epargne:0, versements:{}, mouvements:[]};
+  d.mouvements.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d:iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:Date.now()});
+  try{ localStorage.setItem(CLE_THUNES, JSON.stringify(d)); }catch(err){ $('#tm-msg').textContent = 'Impossible d’enregistrer.'; return; }
+  dlg.close(); toast(signe < 0 ? `− ${eurT(v)} · ${l}` : `+ ${eurT(v)}`); planifierAccueil(0);
+});
+
 /* ---------- Disponibilités : d'après les événements de l'Organisation et ce qu'ils occupent (matin, après-midi, soirée) ---------- */
 const CREN = [['matin', 'Matin'], ['aprem', 'Après-midi'], ['soir', 'Soirée']];
 const CLE_DISPOS = 'quotidien-dispos';
@@ -1380,13 +1453,14 @@ function blocBackstage(d){
 
 /* ---------- Blocs de l'accueil : un « lecteur » par app (optionnel) ---------- */
 // Une app peut s'afficher dans la carte d'une autre : ici les Courses, à droite de la carte Vêtements
-const AVEC = {courses:'duo'};   // les Courses s'affichent à droite du carré « Dispos »
+const AVEC = {courses:'duo', thunes:'duo'};   // les Courses s'affichent à droite du carré « Dispos », la cagnotte au-dessus
 const resultats = {};
 const LECTEURS = {
   'garde-robe':   {titre:() => 'Tenue', lire:lireGardeRobe, rendre:d => blocGardeRobe(d, resultats.courses)},
   'organisation': {titre:d => 'Aujourd’hui' + titreOrganisation(d), lire:lireOrganisation, rendre:blocOrganisation},
   'courses':      {titre:() => 'À acheter bientôt', lire:lireCourses, rendre:carreCourses},
   'backstage':    {titre:() => 'Sur scène', lire:lireBackstage, rendre:blocBackstage},
+  'thunes':       {titre:() => 'Cagnotte', lire:lireThunes, rendre:carteThunes},
 };
 const styleCouleur = app => app.couleur ? ` style="--c-c:${app.couleur[0]};--c-s:${app.couleur[1]}"` : '';
 // Carte de l'accueil : toucher la carte ouvre l'app ; les cases à cocher et le carrousel restent utilisables dedans
@@ -1539,6 +1613,7 @@ $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
   const rc = e.target.closest('[data-recap]'); if(rc){ ouvrirRecapJour(+rc.dataset.recap); return; }
   if(e.target.closest('[data-recap-co]')){ ouvrirRecapCourses(); return; }
+  const th = e.target.closest('[data-thunes]'); if(th){ ouvrirMouvement(+th.dataset.thunes); return; }
   const ac = e.target.closest('[data-aller-cat]');
   if(ac){ const sl = ac.closest('.slides'), cible = sl && sl.querySelector(`.slide[data-cat="${CSS.escape(ac.dataset.allerCat)}"]`); if(cible) sl.scrollTo({left:cible.offsetLeft - sl.firstElementChild.offsetLeft, behavior:'smooth'}); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
@@ -1642,7 +1717,7 @@ function ouvrirRecapJour(j){
   const d = j === 1 ? {...d0, ...d0.demain} : d0, dj = parseD(d.d);
   const heure = x => x.time ? x.time.replace(':', 'h').replace(/h00$/, 'h') : '';
   // Tout ce qu'il reste, tâches et événements ensemble, rangé par catégorie puis par heure
-  const tout = [...d.evts.map(e => ({t:e, d:d.d})), ...d.restantes.map(e => ({t:e.t, d:e.d, retard:e.retard}))];
+  const tout = [...d.evts.map(e => ({t:e, d:d.d, ev:true})), ...d.restantes.map(e => ({t:e.t, d:e.d, retard:e.retard}))];
   const groupes = new Map(), thMsg = [...d.themes.values()].find(th => /message/i.test(th.name || ''));
   tout.forEach(e => { const th = e.t.bsRappel ? (thMsg || {id:'_msg', name:'Messages', emoji:'💬', color:'blue', order:-1}) : d.themes.get(e.t.themeId), k = th ? th.id : '_'; if(!groupes.has(k)) groupes.set(k, {th, l:[]}); groupes.get(k).l.push(e); });
   const rang = th => th ? (th.order || 0) : 1e9;
@@ -1652,7 +1727,7 @@ function ouvrirRecapJour(j){
       const col = esc(g.th ? g.th.color || 'slate' : 'slate');
       g.l.sort((a, b) => (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
       return `<h3 style="color:var(--c-${col})">${g.th ? esc((g.th.emoji ? g.th.emoji + ' ' : '') + g.th.name) : '📌 Sans catégorie'} <small>${g.l.length}</small></h3>
-      <div class="rj-l">${g.l.map(e => `<button type="button" class="rj-i" data-rt="${esc(e.t.id)}" data-rd="${esc(e.d)}" style="--sc:var(--c-${col})"><b>${e.retard ? 'retard' : esc(heure(e.t))}</b><span>${esc(e.t.title)}</span>${e.t.duration ? `<em>${e.t.duration} min</em>` : ''}</button>`).join('')}</div>`;
+      <div class="rj-l">${g.l.map(e => `<div class="rj-i" style="--sc:var(--c-${col})">${e.ev ? '<span class="rj-ev" aria-hidden="true"></span>' : `<button type="button" class="coche" data-rc-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="Cocher ${esc(e.t.title)}"></button>`}<button type="button" class="rj-ouv" data-rt="${esc(e.t.id)}" data-rd="${esc(e.d)}"><b>${e.retard ? 'retard' : esc(heure(e.t))}</b><span>${esc(e.t.title)}</span>${e.t.duration ? `<em>${e.t.duration} min</em>` : ''}</button></div>`).join('')}</div>`;
     }).join('') || '<p class="hint">Rien à faire. Profite ☀️</p>'}</div></div>`;
   dlg.showModal(); const h = dlg.querySelector('h2'); if(h) h.focus({preventScroll:true});
 }
@@ -1677,9 +1752,26 @@ $('#recap-co').addEventListener('click', e => {
   if(e.target.closest('[data-co-ajout]')){ dlg.close(); ouvrirAjoutCourse(); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc) cocherCourse(cc);
 });
+// Cocher depuis le récap : c'est l'Organisation qui coche (mêmes règles que depuis Aujourd'hui)
+async function cocherRecap(btn){
+  const l = btn.closest('.rj-i'); if(!l || l.dataset.attente) return;
+  l.dataset.attente = '1';
+  const fait = !l.classList.contains('faite');
+  l.classList.toggle('faite', fait); btn.innerHTML = fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : '';
+  try{
+    const app = APPS.find(a => a.id === 'organisation'), f = creerFrame(app);
+    await f.charge;
+    let w = f.contentWindow;
+    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero, #app .ob')); i++){ await pause(150); w = f.contentWindow; }
+    w.toggleTask(btn.dataset.rcCoche, btn.dataset.d, !!btn.dataset.late);
+  }catch(err){ l.classList.toggle('faite', !fait); btn.innerHTML = ''; toast('Impossible de cocher pour l’instant.'); }
+  delete l.dataset.attente;
+  clearTimeout(cocherRecap.t); cocherRecap.t = setTimeout(() => planifierAccueil(0), 1200);
+}
 $('#recap-jour').addEventListener('click', e => {
   const dlg = $('#recap-jour');
   if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }
+  const cb = e.target.closest('[data-rc-coche]'); if(cb){ cocherRecap(cb); return; }
   const it = e.target.closest('[data-rt]'); if(it){ dlg.close(); superposer('organisation', {action:'tache', id:it.dataset.rt, d:it.dataset.rd || (dernierOrga && dernierOrga.d)}); }
 });
 

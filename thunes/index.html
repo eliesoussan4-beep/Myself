@@ -71,6 +71,21 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .virer{border:0;border-radius:10px;background:var(--surface);color:var(--denim);font-size:12.5px;font-weight:700;padding:8px 6px;margin-top:4px}
 .virer:disabled{opacity:.45}
 .it.ro{cursor:default}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cat{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:8px 2px;min-width:0}
+.cat span{font-size:22px;line-height:1}
+.cat small{font-size:11.5px;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat.on{border-color:var(--denim);background:color-mix(in srgb,var(--denim) 18%,var(--surface));box-shadow:inset 0 0 0 1px var(--denim)}
+.err{color:var(--moins);min-height:1em}
+.in.emo{flex:none;width:58px;text-align:center;font-size:22px;padding:8px}
+.chip.plus{color:var(--denim);border-style:dashed;background:none}
+.cbars{display:flex;flex-direction:column;gap:7px}
+.cbars > div{display:grid;grid-template-columns:minmax(0,7.5em) minmax(0,1fr) 3.4em 2.4em;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.cbars span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbars i{display:block;height:9px;border-radius:5px;background:color-mix(in srgb,var(--denim) 16%,transparent);overflow:hidden}
+.cbars i em{display:block;height:100%;border-radius:5px;background:var(--denim)}
+.cbars b{text-align:right;font-weight:800}
+.cbars small{text-align:right;color:var(--muted);font-size:11.5px}
 .cag-c{text-align:center;display:flex;flex-direction:column;align-items:center;min-width:0}
 .cag-c small{font-size:12px;font-weight:700;color:var(--muted)}
 .cag-c b{font-family:var(--display);font-size:clamp(32px,10vw,44px);font-weight:800;line-height:1.05;letter-spacing:-.02em;white-space:nowrap}
@@ -160,7 +175,13 @@ const nomMois = m => new Date(+m.slice(0, 4), +m.slice(5) - 1, 1).toLocaleDateSt
 function lire(){ let d = null; try{ d = JSON.parse(localStorage.getItem(CLE) || 'null'); }catch(e){}
   d = {charges:[], epargne:0, versements:{}, mouvements:[], virements:[], ...(d && typeof d === 'object' ? d : {})};
   if(!d.cote) d.cote = {depart:0, depuis:moisDe(new Date())};
+  if(!Array.isArray(d.categories)) d.categories = CATS_DEPART.map(([emoji, nom], i) => ({id:'c' + i, emoji, nom}));
   return d; }
+// Catégories de dépenses proposées au départ (tu peux les changer, en ajouter, en supprimer)
+const CATS_DEPART = [['🍽️', 'Resto'], ['🛒', 'Courses'], ['🚇', 'Transport'], ['🎉', 'Sorties'], ['🛍️', 'Shopping'], ['💊', 'Santé'], ['🎁', 'Cadeaux'], ['📦', 'Autre']];
+const catDe = (d, x) => x && x.c ? d.categories.find(c => c.id === x.c) : null;
+// Le libellé d'un mouvement : « 🍽️ Resto · sushi » (ou l'ancien texte libre)
+const libelle = (d, x) => { const c = catDe(d, x); return c ? `${c.emoji} ${c.nom}${x.l ? ' · ' + x.l : ''}` : (x.l || (x.m < 0 ? 'Dépense' : 'Rentrée')); };
 function ecrire(d){ try{ localStorage.setItem(CLE, JSON.stringify(d)); }catch(e){ toast('Impossible d’enregistrer.'); } }
 // Ce que tu te verses ce mois : celui du mois, sinon le dernier connu
 function versement(d, m){ if(d.versements[m] != null) return {v:d.versements[m], connu:true}; const avant = Object.keys(d.versements).filter(k => k < m).sort().pop(); return {v:avant ? d.versements[avant] : 0, connu:false, depuis:avant}; }
@@ -202,7 +223,7 @@ function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add(
 
 function render(){
   D = lire();
-  try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && !brut.cote) ecrire(D); }catch(e){}   // le côté démarre le mois où tu commences
+  try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && (!brut.cote || !brut.categories)) ecrire(D); }catch(e){}   // le côté démarre le mois où tu commences
   const c = calcul(D), auj = new Date();
   const mv = [...c.mv, ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), l:'🎤 ' + (x.nom || 'Scène'), scene:true})), ...c.virs.map(x => ({...x, l:'↪ Virement du stand-up', vir:true}))]
     .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
@@ -241,7 +262,15 @@ function render(){
     </section>
     <section class="t">
       <div class="titre"><b>Mouvements du mois</b><span>${mv.length}</span></div>
-      <div class="items">${mv.map(x => `<button type="button" class="it${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.l || (x.m < 0 ? 'Dépense' : 'Rentrée'))}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`).join('') || '<p class="vide">Rien de noté ce mois-ci. Touche − pour une dépense, + pour une rentrée.</p>'}</div>
+      <div class="items">${mv.map(x => `<button type="button" class="it${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.scene || x.vir ? x.l : libelle(D, x))}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`).join('') || '<p class="vide">Rien de noté ce mois-ci. Touche − pour une dépense, + pour une rentrée.</p>'}</div>
+    </section>
+    <section class="t">
+      <div class="titre"><b>Par catégorie</b><span>${nomMois(c.m)}</span></div>
+      ${(() => { const par = new Map(); c.mv.filter(x => x.m < 0).forEach(x => { const k = x.c && D.categories.some(y => y.id === x.c) ? x.c : '_'; par.set(k, (par.get(k) || 0) - x.m); });
+        if(c.depScenes) par.set('_sc', c.depScenes);
+        const l = [...par.entries()].sort((a, b) => b[1] - a[1]), mx = l.length ? l[0][1] : 1, tot = l.reduce((s, x) => s + x[1], 0);
+        return l.length ? `<div class="cbars">${l.map(([k, v]) => { const cc = D.categories.find(y => y.id === k); return `<div><span>${k === '_sc' ? '🎤 Scène' : cc ? esc(cc.emoji + ' ' + cc.nom) : '✏️ Autre'}</span><i><em style="width:${Math.max(3, v / mx * 100)}%"></em></i><b>${eur(v, false)}</b><small>${Math.round(v / tot * 100)}%</small></div>`; }).join('')}</div>` : '<p class="vide">Pas encore de dépense ce mois-ci.</p>'; })()}
+      <div class="chips">${D.categories.map(x => `<button type="button" class="chip" data-a="cat" data-id="${x.id}">${esc(x.emoji)} ${esc(x.nom)}</button>`).join('')}<button type="button" class="chip plus" data-a="cat">＋ Catégorie</button></div>
     </section>
     <section class="t">
       <div class="titre"><b>Charges fixes</b><span>${eur(c.charges)} / mois</span></div>
@@ -261,28 +290,52 @@ function ouvrir(html, onClick){
   dlg.onclick = e => { if(e.target === dlg){ dlg.close(); return; } onClick && onClick(e, dlg); };
   dlg.showModal();
 }
-// Noter une dépense (signe −1) ou une rentrée (+1) — aussi utilisé par l'accueil de Mon quotidien
+// Noter une dépense (signe −1 : on choisit une catégorie, et on peut préciser) ou une rentrée (+1 : d'où ça vient)
 function fenetreMouvement(signe, x){
-  const recents = [...new Set(D.mouvements.filter(m => Math.sign(m.m) === signe && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
+  D = lire();
+  let cat = x && x.c ? x.c : null;
+  const recents = [...new Set(D.mouvements.filter(m => m.m > 0 && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
+  const dessinCats = () => D.categories.map(c => `<button type="button" class="cat${c.id === cat ? ' on' : ''}" data-c="${c.id}"><span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small></button>`).join('');
   ouvrir(`<h2>${x ? 'Modifier' : signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2>
     <label>Montant<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(Math.abs(x.m)).replace('.', ',') : ''}"></label>
-    <label>${signe < 0 ? 'C’est quoi ?' : 'D’où ça vient ?'}<input class="in" name="l" placeholder="${signe < 0 ? 'ex. resto, ciné…' : 'ex. cachet, remboursement…'}" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>
-    ${recents.length ? `<div class="chips">${recents.map(l => `<button type="button" class="chip" data-l="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}
+    ${signe < 0 ? `<div class="cats" id="cats">${dessinCats()}</div>
+      <label>Préciser (si tu veux)<input class="in" name="l" placeholder="ex. sushi avec Lou" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>`
+    : `<label>D’où ça vient ?<input class="in" name="l" placeholder="ex. cachet, remboursement…" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>
+      ${recents.length ? `<div class="chips">${recents.map(l => `<button type="button" class="chip" data-l="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}`}
     <label>Date<input class="in" name="d" type="date" value="${x ? x.d : iso(new Date())}"></label>
+    <p class="note err" id="err"></p>
     <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
   (e, dlg) => {
-    const f = dlg.querySelector('form'), ch = e.target.closest('[data-l]');
-    if(ch){ f.l.value = ch.dataset.l; return; }
+    const f = dlg.querySelector('form');
+    const cb = e.target.closest('[data-c]'); if(cb){ cat = cat === cb.dataset.c ? null : cb.dataset.c; dlg.querySelector('#cats').innerHTML = dessinCats(); return; }
+    const ch = e.target.closest('[data-l]'); if(ch){ f.l.value = ch.dataset.l; return; }
     const b = e.target.closest('[data-f]'); if(!b) return;
     if(b.dataset.f === 'non'){ dlg.close(); return; }
     D = lire();
     if(b.dataset.f === 'sup'){ D.mouvements = D.mouvements.filter(m => m.id !== x.id); ecrire(D); dlg.close(); render(); toast('Supprimé'); return; }
-    const v = nombre(f.m.value); if(!v || v <= 0){ f.m.focus(); return; }
+    const v = nombre(f.m.value); if(!v || v <= 0){ dlg.querySelector('#err').textContent = 'Indique un montant.'; f.m.focus(); return; }
+    if(signe < 0 && !cat){ dlg.querySelector('#err').textContent = 'Choisis une catégorie.'; return; }
     const l = f.l.value.trim();
-    if(signe < 0 && !l){ f.l.focus(); f.l.placeholder = 'Dis-moi ce que c’était'; return; }
-    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now()};
+    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now(), ...(signe < 0 ? {c:cat} : {})};
     D.mouvements = x ? D.mouvements.map(y => y.id === x.id ? m : y) : [...D.mouvements, m];
-    ecrire(D); dlg.close(); render(); toast(signe < 0 ? `− ${eur(v)} · ${l}` : `+ ${eur(v)}`);
+    ecrire(D); dlg.close(); render(); toast(signe < 0 ? `− ${eur(v)} · ${libelle(D, m)}` : `+ ${eur(v)}`);
+  });
+}
+// Une catégorie : nom et emoji (ou la supprimer)
+function fenetreCategorie(x){
+  ouvrir(`<h2>${x ? 'Catégorie' : 'Nouvelle catégorie'}</h2>
+    <div class="row"><input class="in emo" name="e" value="${x ? esc(x.emoji) : '💸'}" aria-label="Emoji" maxlength="4"><input class="in" name="n" placeholder="Nom" value="${x ? esc(x.nom) : ''}" autocomplete="off"></div>
+    <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
+  (e, dlg) => {
+    const b = e.target.closest('[data-f]'); if(!b) return;
+    const f = dlg.querySelector('form');
+    if(b.dataset.f === 'non'){ dlg.close(); return; }
+    D = lire();
+    if(b.dataset.f === 'sup'){ if(!confirm('Supprimer cette catégorie ? Les dépenses déjà notées gardent leur montant.')) return; D.categories = D.categories.filter(c => c.id !== x.id); ecrire(D); dlg.close(); render(); return; }
+    const n = f.n.value.trim(); if(!n){ f.n.focus(); return; }
+    const c = {id:x ? x.id : uid(), emoji:f.e.value.trim() || '💸', nom:n};
+    D.categories = x ? D.categories.map(y => y.id === x.id ? c : y) : [...D.categories, c];
+    ecrire(D); dlg.close(); render();
   });
 }
 // Virer de la cagnotte stand-up vers la cagnotte de tous les jours
@@ -339,6 +392,7 @@ $('#app').addEventListener('click', e => {
   else if(a === 'charge') fenetreCharge(b.dataset.id ? D.charges.find(y => y.id === b.dataset.id) : null);
   else if(a === 'cote') fenetreNombre('Ce que tu as de côté aujourd’hui', Math.round(calcul(lire()).cote * 100) / 100, (d, v) => { const avant = calcul(d).cote; d.cote = {...d.cote, depart:(+d.cote.depart || 0) + (v - avant)}; });
   else if(a === 'virer') fenetreVirement();
+  else if(a === 'cat') fenetreCategorie(b.dataset.id ? D.categories.find(y => y.id === b.dataset.id) : null);
   else if(a === 'vir'){ const x = (D.virements || []).find(y => y.id === b.dataset.id); if(x) fenetreVirement(x); }
   else if(a === 'reg-ep') fenetreNombre('Mis de côté chaque mois', D.epargne, (d, v) => { d.epargne = v; });
   else if(a === 'reg-ver') fenetreNombre(`Je me verse en ${nomMois(m)}`, versement(D, m).v, (d, v) => { d.versements[m] = v; });
@@ -349,7 +403,7 @@ window.addEventListener('storage', e => { if(e.key === CLE || e.key === 'backsta
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') render(); });
 // Mon quotidien : toucher l'onglet ramène en haut ; et l'accueil peut ouvrir la fenêtre − / +
 window.quotidienAccueil = () => { const d = $('#pop'); if(d.open) d.close(); render(); window.scrollTo(0, 0); };
-window.quotidienThunes = {calcul:() => calcul(lire())};   // l'accueil de Mon quotidien lit la cagnotte ici (un seul calcul)
+window.quotidienThunes = {calcul:() => calcul(lire()), categories:() => lire().categories, libelle:x => libelle(lire(), x)};   // l'accueil de Mon quotidien lit la cagnotte ici (un seul calcul)
 render();
 </script>
 </body>

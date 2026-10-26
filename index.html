@@ -78,7 +78,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-dire
 .bloc::before{content:none}
 /* Tableau de bord uniforme : les cartes se fondent dans le fond, seuls leurs contenus ressortent */
 .bloc{background:none;border:0;border-radius:0;padding:0;overflow:visible}
-main{gap:22px}
+main{gap:12px;padding-top:8px}   /* serré : tout l’accueil tient sur un écran */
 .bloc:active{transform:scale(.985)}
 .bloc-t{display:flex;align-items:center;gap:10px}
 .bloc-ico{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent)}
@@ -218,6 +218,11 @@ dialog.popup[open]{animation:popin .18s ease}
 :root[data-theme="dark"] .cag-c b.neg{color:#E58A84}
 .tm .champ input{font-size:18px}
 .tm-ch{display:flex;flex-wrap:wrap;gap:6px}
+.tm-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tm-cat{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:8px 2px;color:var(--ink);min-width:0}
+.tm-cat span{font-size:22px;line-height:1}
+.tm-cat small{font-size:11.5px;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm-cat.on{border-color:var(--denim);background:color-mix(in srgb,var(--denim) 18%,var(--surface));box-shadow:inset 0 0 0 1px var(--denim)}
 /* Liste de courses en fenêtre */
 .re-total{border:0;background:none;color:inherit;font:inherit;padding:0;cursor:pointer}
 .rc-h{--sc:var(--scl);color:var(--sc)}
@@ -629,6 +634,11 @@ dialog h2:focus{outline:none}
 [data-bloc="duo"] .co-slides .art{min-height:30px;padding:2px 0}
 [data-bloc="duo"] .co-slides .art .coche{width:20px;height:20px;border-radius:6px}
 [data-bloc="duo"] .co-slides .art-n{font-size:13.5px}
+/* La carte des choses à faire, un peu plus basse */
+[data-bloc="organisation"] .bande-car .slides{height:118px}
+[data-bloc="organisation"] .bande-car .slide{height:118px;box-sizing:border-box;overflow:hidden}
+[data-bloc="organisation"] .bande-car .slide .liste{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none}
+[data-bloc="organisation"] .bande-car .slide-cat{flex:none}
 </style>
 <script src="apps.js"></script>
 </head>
@@ -969,14 +979,14 @@ async function lireOrganisation(){
   return lire('organisation', async db => {
     const [tasks, themes] = await Promise.all([tout(db, 'tasks'), tout(db, 'themes')]);
     const t = iso(new Date()), jour = tasks.filter(x => occursOn(x, t));
-    const evts = jour.filter(isEvent).sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+    const evts = jour.filter(isEvent).sort((a, b) => cleH(a) < cleH(b) ? -1 : 1);
     const taches = jour.filter(x => !isEvent(x));
     const restantes = [...lateEntries(tasks, t).map(e => ({...e, retard:true})),
       ...taches.filter(x => !isDone(x, t)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0)).map(x => ({t:x, d:t}))];
     const faitesL = taches.filter(x => isDone(x, t)).map(x => ({t:x, d:t, fait:true}));
     // Demain : mêmes règles, sans les retards
     const dm = new Date(); dm.setDate(dm.getDate() + 1); const t1 = iso(dm), jour1 = tasks.filter(x => occursOn(x, t1));
-    const demain = {d:t1, evts:jour1.filter(isEvent).sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1),
+    const demain = {d:t1, evts:jour1.filter(isEvent).sort((a, b) => cleH(a) < cleH(b) ? -1 : 1),
       restantes:jour1.filter(x => !isEvent(x) && !isDone(x, t1)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0)).map(x => ({t:x, d:t1})),
       faitesL:jour1.filter(x => !isEvent(x) && isDone(x, t1)).map(x => ({t:x, d:t1, fait:true}))};
     return {d:t, evts, restantes, faitesL, faites:faitesL.length, demain, themes:new Map(themes.map(th => [th.id, th]))};
@@ -1136,16 +1146,22 @@ function carteThunes(t){
     <button type="button" class="cag-c" data-aller="thunes" data-action="ouvrir" aria-label="Ouvrir Thunes"><small>Cagnotte</small>${corps}</button>
     <button type="button" class="cag-b plus" data-thunes="1" aria-label="Noter une rentrée d’argent">+</button></div>`;
 }
-// − / + : une petite fenêtre au milieu (montant, ce que c'est, date)
-function ouvrirMouvement(signe){
+// − / + : une petite fenêtre au milieu. Dépense : le montant, une catégorie (celles de Thunes), et préciser si tu veux.
+let tmCat = null;
+async function ouvrirMouvement(signe){
   const d = lireThunesData() || {charges:[], epargne:0, versements:{}, mouvements:[]};
-  const recents = [...new Set(d.mouvements.filter(m => Math.sign(m.m) === signe && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
+  let cats = d.categories;
+  if(signe < 0 && !Array.isArray(cats)){ const w = await attendreApp('thunes', w => !!w.quotidienThunes); cats = w ? w.quotidienThunes.categories() : []; }
+  tmCat = null;
+  const recents = [...new Set(d.mouvements.filter(m => m.m > 0 && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
   const dlg = $('#thunes-mvt');
   dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2 tabindex="-1">${signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2><button type="button" class="rond petit" data-rf="1" aria-label="Fermer">✕</button></div>
     <div class="pop-c tm">
       <label class="champ"><input id="tm-m" inputmode="decimal" placeholder="Montant (€)" autocomplete="off"></label>
-      <label class="champ"><input id="tm-l" placeholder="${signe < 0 ? 'C’est quoi ? (resto, ciné…)' : 'D’où ça vient ? (cachet…)'}" autocomplete="off"></label>
-      ${recents.length ? `<div class="tm-ch">${recents.map(l => `<button type="button" class="chip-d" data-tl="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}
+      ${signe < 0 ? `<div class="tm-cats">${(cats || []).map(c => `<button type="button" class="tm-cat" data-tc="${esc(c.id)}"><span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small></button>`).join('')}</div>
+        <label class="champ"><input id="tm-l" placeholder="Préciser (si tu veux)" autocomplete="off"></label>`
+      : `<label class="champ"><input id="tm-l" placeholder="D’où ça vient ? (cachet…)" autocomplete="off"></label>
+        ${recents.length ? `<div class="tm-ch">${recents.map(l => `<button type="button" class="chip-d" data-tl="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}`}
       <p class="msg" id="tm-msg" role="status"></p>
       <button type="button" class="btn primaire" data-tm-ok="${signe}">Enregistrer</button>
     </div></div>`;
@@ -1154,15 +1170,17 @@ function ouvrirMouvement(signe){
 $('#thunes-mvt').addEventListener('click', e => {
   const dlg = $('#thunes-mvt');
   if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }
+  const tc = e.target.closest('[data-tc]'); if(tc){ tmCat = tmCat === tc.dataset.tc ? null : tc.dataset.tc; dlg.querySelectorAll('[data-tc]').forEach(b => b.classList.toggle('on', b.dataset.tc === tmCat)); return; }
   const ch = e.target.closest('[data-tl]'); if(ch){ $('#tm-l').value = ch.dataset.tl; return; }
   const ok = e.target.closest('[data-tm-ok]'); if(!ok) return;
   const signe = +ok.dataset.tmOk, v = parseFloat(String($('#tm-m').value).replace(/\s/g, '').replace(',', '.')), l = $('#tm-l').value.trim();
   if(!(v > 0)){ $('#tm-msg').textContent = 'Indique un montant.'; return; }
-  if(signe < 0 && !l){ $('#tm-msg').textContent = 'Dis-moi ce que c’était.'; return; }
+  if(signe < 0 && !tmCat){ $('#tm-msg').textContent = 'Choisis une catégorie.'; return; }
   const d = lireThunesData() || {charges:[], epargne:0, versements:{}, mouvements:[]};
-  d.mouvements.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d:iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:Date.now()});
+  d.mouvements.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d:iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:Date.now(), ...(signe < 0 ? {c:tmCat} : {})});
   try{ localStorage.setItem(CLE_THUNES, JSON.stringify(d)); }catch(err){ $('#tm-msg').textContent = 'Impossible d’enregistrer.'; return; }
-  dlg.close(); toast(signe < 0 ? `− ${eurT(v)} · ${l}` : `+ ${eurT(v)}`); planifierAccueil(0);
+  const cat = signe < 0 && Array.isArray(d.categories) ? d.categories.find(c => c.id === tmCat) : null;
+  dlg.close(); toast(signe < 0 ? `− ${eurT(v)} · ${cat ? cat.emoji + ' ' + cat.nom : ''}${l ? ' · ' + l : ''}` : `+ ${eurT(v)}`); planifierAccueil(0);
 });
 
 /* ---------- Disponibilités : d'après les événements de l'Organisation et ce qu'ils occupent (matin, après-midi, soirée) ---------- */
@@ -1712,6 +1730,8 @@ $('#ajout-course').addEventListener('click', async e => {
 });
 
 /* ---------- Récap du jour (aujourd'hui ou demain) : tout ce qu'il y a à faire, par catégorie ---------- */
+// Clé de tri chronologique : l'heure ; sinon le moment (matin, après-midi, soirée) ; sinon après le reste
+const cleH = t => (t && t.time) || (t && Array.isArray(t.creneaux) && t.creneaux.length ? (t.creneaux.includes('matin') ? '08:00' : t.creneaux.includes('aprem') ? '14:00' : '19:00') : '99');
 function ouvrirRecapJour(j){
   const d0 = dernierOrga; if(!d0) return;
   const d = j === 1 ? {...d0, ...d0.demain} : d0, dj = parseD(d.d);
@@ -1725,7 +1745,7 @@ function ouvrirRecapJour(j){
   dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2 tabindex="-1">${j ? 'Demain' : 'Aujourd’hui'}<small>${esc(cap(dj.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))} · ${tout.length}</small></h2><button type="button" class="rond petit" data-rf="1" aria-label="Fermer">✕</button></div>
     <div class="pop-c">${[...groupes.values()].sort((a, b) => rang(a.th) - rang(b.th)).map(g => {
       const col = esc(g.th ? g.th.color || 'slate' : 'slate');
-      g.l.sort((a, b) => (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
+      g.l.sort((a, b) => cleH(a.t) < cleH(b.t) ? -1 : 1);
       return `<h3 style="color:var(--c-${col})">${g.th ? esc((g.th.emoji ? g.th.emoji + ' ' : '') + g.th.name) : '📌 Sans catégorie'} <small>${g.l.length}</small></h3>
       <div class="rj-l">${g.l.map(e => `<div class="rj-i" style="--sc:var(--c-${col})">${e.ev ? '<span class="rj-ev" aria-hidden="true"></span>' : `<button type="button" class="coche" data-rc-coche="${esc(e.t.id)}" data-d="${esc(e.d)}"${e.retard ? ' data-late="1"' : ''} aria-label="Cocher ${esc(e.t.title)}"></button>`}<button type="button" class="rj-ouv" data-rt="${esc(e.t.id)}" data-rd="${esc(e.d)}"><b>${e.retard ? 'retard' : esc(heure(e.t))}</b><span>${esc(e.t.title)}</span>${e.t.duration ? `<em>${e.t.duration} min</em>` : ''}</button></div>`).join('')}</div>`;
     }).join('') || '<p class="hint">Rien à faire. Profite ☀️</p>'}</div></div>`;
@@ -1786,7 +1806,7 @@ async function chargerMois(){
 }
 function elementsDu(d){
   if(!moisDonnees) return [];
-  const els = moisDonnees.tasks.filter(x => occursOn(x, d)).sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+  const els = moisDonnees.tasks.filter(x => occursOn(x, d)).sort((a, b) => cleH(a) < cleH(b) ? -1 : 1);
   if(d !== iso(new Date())) return els;
   // Aujourd'hui : les tâches pas faites d'un jour précédent, reportées automatiquement
   const retard = lateEntries(moisDonnees.tasks, d).filter(e => !isDone(e.t, e.d) && !els.includes(e.t)).map(e => ({...e.t, __retard:e.d}));

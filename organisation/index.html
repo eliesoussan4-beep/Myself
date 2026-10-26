@@ -179,6 +179,36 @@ button.ob-t{width:100%}
 .att-l .ell{flex:1;min-width:0}
 .att-plus{flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--denim);color:var(--on-denim)}
 .ob-att{margin-bottom:12px}
+.ob-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.ob-carre{position:relative}
+.ob-car.sq{margin:0;padding:0}
+.ob-car.sq > .ob-t{height:160px}
+.ob-carre .ob-rout .ob-titre{padding-right:30px}
+.ob-carre .ob-rout .ob-titre b{font-size:15px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ob-carre .ob-play{position:static;align-self:flex-start;margin-top:auto}
+.ob-carre .ob-steps{max-height:44px}
+.ob-carre .ob-ev2 .ob-titre b{font-size:15px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ob-carre .ob-ev2 .ob-titre > span{display:none}
+.ob-carre .ob-n b{font-size:30px}
+.ob-carre .ob-remettre{right:10px;bottom:10px}
+.ob-carre .ob-dates{padding-bottom:34px}
+.ob-mini-plus{position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:50%;border:0;background:color-mix(in srgb,var(--surface) 75%,transparent);color:var(--denim);display:flex;align-items:center;justify-content:center;padding:0}
+.ob-cat{cursor:pointer}
+dialog.ob-pop{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(92vw,440px);max-height:min(80dvh,640px);border-radius:22px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);animation:obpop .18s ease}
+dialog.ob-pop::backdrop{background:rgba(10,14,22,.5)}
+@keyframes obpop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.ob-pop-in{display:flex;flex-direction:column;max-height:min(80dvh,640px)}
+.ob-pop-h{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+.ob-pop-h h2{margin:0;font-family:var(--display);font-size:22px}
+.ob-pop-x{width:36px;height:36px;border-radius:50%;border:0;background:var(--sunk);color:var(--muted);font-size:15px}
+.ob-pop-c{overflow-y:auto;overscroll-behavior:contain;padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+.ob-pr{background:color-mix(in srgb,var(--c,var(--denim)) 14%,var(--sunk));border-radius:14px}
+.ob-pr summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer}
+.ob-pr summary::-webkit-details-marker{display:none}
+.ob-pr summary b{flex:1;font-family:var(--display);font-size:16px;color:var(--c,var(--ink))}
+.ob-pr summary span{font-size:12.5px;font-weight:700;color:var(--muted)}
+.ob-pr-plus{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:color-mix(in srgb,var(--c,var(--denim)) 22%,var(--surface));color:var(--c,var(--denim));font-size:18px;font-weight:800;line-height:1;padding:0}
+.ob-pr-l{display:flex;flex-direction:column;gap:4px;padding:0 8px 10px}
 .ob-tip{height:138px;background:color-mix(in srgb,var(--c,var(--denim)) 18%,var(--sunk));justify-content:space-between}
 .ob-tip-c{font-size:12px;font-weight:700;color:var(--c,var(--muted))}
 .ob-tip-t{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:2px;border:0;background:none;color:var(--ink);padding:0;text-align:left;font-family:inherit}
@@ -1056,7 +1086,7 @@ const topThemes = () => S.themes.filter(x => !parentOf(x)).sort(byOrder);
 const themesTries = () => topThemes().flatMap(tp => [tp, ...childrenOf(tp.id).map(c => ({ ...c, emoji: '↳ ' + c.emoji }))]);
 function dayItems(d) {
   return S.tasks.filter(t => occursOn(t, d)).sort((a, b) =>
-    ((isEvent(b) ? 1 : 0) - (isEvent(a) ? 1 : 0)) || (isEvent(a) && isEvent(b) ? ((a.time || '99') < (b.time || '99') ? -1 : (a.time || '99') > (b.time || '99') ? 1 : 0) : 0) ||
+    ((isEvent(b) ? 1 : 0) - (isEvent(a) ? 1 : 0)) || (isEvent(a) && isEvent(b) ? (cleH(a) < cleH(b) ? -1 : cleH(a) > cleH(b) ? 1 : 0) : 0) ||
  ((b.prio ? 1 : 0) - (a.prio ? 1 : 0)) || ((a.created || '') < (b.created || '') ? -1 : 1));
 }
 function lateEntries() {
@@ -1489,7 +1519,7 @@ function soonItems() {
       if (x.free || x.bsRappel || !occursOn(x, d) || isDone(x, d)) return; // les « Recontacter » de Backstage restent des tâches, pas dans Bientôt
       if (isPinned(themeOf(x)) || isEvent(x) || (x.rep && gapAfter(x, d) >= 14)) day.push({ t: x, d });
     });
-    day.sort((a, b) => (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
+    day.sort((a, b) => cleH(a.t) < cleH(b.t) ? -1 : 1);
     out.push(...day);
   }
   return out.slice(0, 30);
@@ -1574,13 +1604,12 @@ function dashboardHTML() {
     const steps = routineSteps(r), live = steps.filter(x => !x.info.done), tot = routineTotal(r);
     return `<div class="ob-t ob-rout c-${col}" data-a="routine-edit" data-id="${r.id}" role="button">
       <div class="ob-titre"><b>${h(r.emoji)} ${h(r.name)}</b></div>
-      <span class="ob-sous">${plural(live.length, 'étape', 'étapes')}${tot ? ' · ' + fmtMin(tot) : ''}${steps.length > live.length ? ' · ' + (steps.length - live.length) + ' faite' + (steps.length - live.length > 1 ? 's' : '') : ''}</span>
+      <span class="ob-sous ob-rs">${plural(live.length, 'étape', 'étapes')}${tot ? ' · ' + fmtMin(tot) : ''}${steps.length > live.length ? ' · ' + (steps.length - live.length) + ' faite' + (steps.length - live.length > 1 ? 's' : '') : ''}</span>
       <div class="ob-steps">${live.slice(0, 3).map(({ info }) => `<span>${h(info.title)}</span>`).join('')}${live.length > 3 ? `<span class="muted">+ ${live.length - 3}</span>` : ''}</div>
       <button type="button" class="ob-play" data-a="routine-launch" data-id="${r.id}" aria-label="Lancer ${h(r.name)}">${PLAY}Lancer</button>
     </div>`;
   });
-  const routines = `<div class="ob-bande"><div class="ob-btns"><button type="button" class="ob-bbtn" data-a="new-routine">${ic(P.plus, 20, 2)}<span>Nouvelle routine</span></button></div>
-    <div class="ob-bloc">${rDiapos.length ? `<div class="ob-car" data-car="routines">${rDiapos.join('')}</div>${pts(rDiapos.length)}` : `<button type="button" class="ob-t ob-rout" data-a="new-routine"><p class="ob-vide">Pas encore de routine. Touche pour en créer une.</p></button>`}</div></div>`;
+  const routines = `<div class="ob-bloc ob-carre"><button type="button" class="ob-mini-plus" data-a="new-routine" aria-label="Nouvelle routine">${ic(P.plus, 16, 2.4)}</button>${rDiapos.length ? `<div class="ob-car sq" data-car="routines">${rDiapos.join('')}</div>${pts(rDiapos.length)}` : `<button type="button" class="ob-t ob-rout" data-a="new-routine"><p class="ob-vide">Pas encore de routine. Touche pour en créer une.</p></button>`}</div>`;
   // Tâches par catégorie : une diapo par catégorie (avec ses sous-catégories)
   const estTache = t => !t.srcId && !t.info && t.kind !== 'event';
   const cats = topThemes().map(th => {
@@ -1591,7 +1620,7 @@ function dashboardHTML() {
   const orph = S.tasks.filter(t => estTache(t) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
   if (orph.length) cats.push({ th: { emoji: '📌', name: 'Sans catégorie', color: 'slate' }, ts: orph });
   const quand = t => { const n = t.rep ? nextOcc(t, t0) : t.date; return t.rep ? repShort(t) : n ? (n < t0 ? 'en retard' : dayMonth(n)) : 'sans date'; };
-  const cDiapos = cats.map(({ th, ts }) => `<div class="ob-t ob-cat c-${th.color || 'slate'}">
+  const cDiapos = cats.map(({ th, ts }) => `<div class="ob-t ob-cat c-${th.color || 'slate'}" data-a="cats-pop" data-id="${th.id || '_'}" role="button">
       <div class="ob-titre"><b>${h(th.emoji + ' ' + th.name)}</b><span>${ts.length}</span></div>
       <div class="ob-liste">${ts.map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}" data-a="edit" data-id="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('')}</div>
     </div>`);
@@ -1612,8 +1641,8 @@ function dashboardHTML() {
         <span class="ob-sous">${proch ? 'Prochain : ' + h(dayMonth(proch.d)) : n ? 'Tout est passé ce mois-ci' : 'Pas prévu ce mois-ci'}</span>`}
     </div>`;
   });
-  const evs = `<div class="ob-bloc">${eDiapos.length ? `<div class="ob-car pleine" data-car="evs">${eDiapos.join('')}</div>${pts(eDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore d’événement à remettre. Quand tu crées un événement, coche « à garder » pour le retrouver ici.</p></div>`}</div>`;
-  return `<div class="ob">${routines}${taches}${evs}${statsHTML()}</div>`;
+  const evs = `<div class="ob-bloc ob-carre">${eDiapos.length ? `<div class="ob-car sq" data-car="evs">${eDiapos.join('')}</div>${pts(eDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore d’événement à remettre. Quand tu crées un événement, coche « à garder » pour le retrouver ici.</p></div>`}</div>`;
+  return `<div class="ob"><div class="ob-duo">${routines}${evs}</div>${taches}${statsHTML()}</div>`;
 }
 // Carte « Stats » : 5 diapos (ce que tu as fait, régularité, temps par catégorie, ce qui traîne, la semaine qui vient)
 function statsHTML() {
@@ -1647,6 +1676,27 @@ function statsHTML() {
   diapos.push(`<div class="ob-t ob-st"><div class="ob-titre"><b>La semaine qui vient</b><span>${c7.reduce((a, b) => a + b, 0)} choses prévues</span></div>
     <div class="ob-bars sept">${j7.map((d, k) => `<div class="${k === 0 ? 'on' : ''}"><b>${c7[k] || ''}</b><i style="height:${Math.max(3, c7[k] / m7 * 100)}%"></i><span>${k === 0 ? 'Auj.' : JC[dow(d)]}</span></div>`).join('')}</div></div>`);
   return `<div class="ob-bloc"><div class="ob-car pleine" data-car="stats">${diapos.join('')}</div>${diapos.length > 1 ? `<div class="ob-points" aria-hidden="true">${diapos.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
+}
+
+// Fenêtre au milieu : toutes les catégories en liste dépliante (celle touchée ouverte) ; toucher une tâche l'ouvre
+function ouvrirCategories(ouverte) {
+  const t0 = today(), estTache = t => !t.srcId && !t.info && t.kind !== 'event';
+  const quand = t => { const n = t.rep ? nextOcc(t, t0) : t.date; return t.rep ? repShort(t) : n ? (n < t0 ? 'en retard' : dayMonth(n)) : 'sans date'; };
+  const groupes = topThemes().map(th => ({ th, ts: S.tasks.filter(t => estTache(t) && [th.id, ...childrenOf(th.id).map(c => c.id)].includes(t.themeId)) }));
+  const orph = S.tasks.filter(t => estTache(t) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
+  if (orph.length) groupes.push({ th: { id: '_', emoji: '📌', name: 'Sans catégorie', color: 'slate' }, ts: orph });
+  const d = document.createElement('dialog'); d.className = 'ob-pop';
+  d.innerHTML = `<div class="ob-pop-in"><div class="ob-pop-h"><h2>Tâches</h2><button type="button" class="ob-pop-x" aria-label="Fermer">✕</button></div>
+    <div class="ob-pop-c">${groupes.filter(g => g.ts.length || g.th.id === ouverte).map(({ th, ts }) => `<details class="ob-pr c-${th.color || 'slate'}"${th.id === ouverte ? ' open' : ''}><summary><b>${h(th.emoji + ' ' + th.name)}</b><span>${ts.length}</span>${th.id !== '_' ? `<button type="button" class="ob-pr-plus" data-new="${th.id}" aria-label="Nouvelle tâche dans ${h(th.name)}">+</button>` : ''}</summary>
+      <div class="ob-pr-l">${ts.sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr')).map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}" data-edit="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('') || '<p class="ob-vide">Rien ici.</p>'}</div></details>`).join('')}</div></div>`;
+  document.body.appendChild(d); d.showModal();
+  const o = d.querySelector('details[open]'); if (o) setTimeout(() => o.scrollIntoView({ block: 'start' }), 30);
+  d.addEventListener('click', e => {
+    if (e.target === d || e.target.closest('.ob-pop-x')) { d.close(); return; }
+    const nw = e.target.closest('[data-new]'); if (nw) { e.preventDefault(); d.close(); openTaskForm(null, { themeId: nw.dataset.new, date: null }); return; }   // sans date : elle attend d'être placée
+    const ed = e.target.closest('[data-edit]'); if (ed) { const t = S.tasks.find(x => x.id === ed.dataset.edit); d.close(); if (t) openEditor(t, null); }
+  });
+  d.addEventListener('close', () => d.remove());
 }
 
 // Carrousels du tableau de bord : les points suivent, et on garde la position
@@ -1831,7 +1881,7 @@ function eventsList() {
   const tpls = S.tasks.filter(x => x.info && x.free).sort((a, b) => a.title.localeCompare(b.title));
   const up = [];
   for (let i = 0; i <= 120; i++) { const d = addDays(t0, i); S.tasks.forEach(x => { if (isEvent(x) && occursOn(x, d)) up.push({ t: x, d }); }); }
-  up.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
+  up.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : cleH(a.t) < cleH(b.t) ? -1 : 1);
   let html = feedsSection();
   // À réutiliser, rangé par catégorie
   const grp = [];
@@ -2173,6 +2223,8 @@ function eventEmoji(title) {
   for (const [re, e] of EV_KW) if (new RegExp('[^a-z](' + re + ')').test(n)) return e;
   return '📅';
 }
+// Clé de tri chronologique : l'heure ; sinon le moment (matin, après-midi, soirée) ; sinon après le reste
+const cleH = t => (t && t.time) || (t && Array.isArray(t.creneaux) && t.creneaux.length ? (t.creneaux.includes('matin') ? '08:00' : t.creneaux.includes('aprem') ? '14:00' : '19:00') : '99');
 const evWhen = t => { if (!t.time) return ''; const [hh, mm] = t.time.split(':'); return `${+hh} h${mm && mm !== '00' ? ' ' + mm : ''}`; };
 // Créneaux qu'un événement occupe (pour les disponibilités de Mon quotidien) : déduits de l'heure, modifiables
 const CRENEAUX = [['matin', 'Matin'], ['aprem', 'Après-midi'], ['soir', 'Soirée']];
@@ -2315,7 +2367,7 @@ function upcomingEvents(days = 30) {
     const d = addDays(t0, i);
     S.tasks.forEach(x => { if (isEvent(x) && occursOn(x, d) && !isDone(x, d)) out.push({ t: x, d }); });
   }
-  return out.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : (a.t.time || '99') < (b.t.time || '99') ? -1 : 1);
+  return out.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : cleH(a.t) < cleH(b.t) ? -1 : 1);
 }
 
 /* ---------- Jours fériés (France) ---------- */
@@ -3406,6 +3458,7 @@ const A = {
     renderHome();
     const el = document.getElementById('day-' + tom); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
+  'cats-pop': (el, c) => ouvrirCategories(c.id),
   'ev-flip': (el, c) => { if (!U.evVerso) U.evVerso = new Set(); U.evVerso.has(c.id) ? U.evVerso.delete(c.id) : U.evVerso.add(c.id); refresh(); },
   'place-on': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, c.d); if (stack.length) closeTop(); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`); },
   'open-events': () => { U.todoView = 'events'; openSheet({ render: renderTodo, label: 'Planning' }); },

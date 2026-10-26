@@ -71,6 +71,40 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .virer{border:0;border-radius:10px;background:var(--surface);color:var(--denim);font-size:12.5px;font-weight:700;padding:8px 6px;margin-top:4px}
 .virer:disabled{opacity:.45}
 .it.ro{cursor:default}
+.duo.hautes .chif{border:0;text-align:left;padding:10px 14px}
+.duo.hautes .chif b{font-size:20px}
+.chif.manque{background:color-mix(in srgb,var(--today) 18%,var(--sunk))}
+.carre{display:flex;flex-direction:column;gap:6px;min-width:0}
+.car{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:16px;overscroll-behavior-x:contain}
+.car::-webkit-scrollbar{display:none}
+.car > *{flex:0 0 100%;scroll-snap-align:start;min-width:0}
+.carre .t,.carre1{aspect-ratio:1;box-sizing:border-box}
+.pot{gap:4px !important;min-height:0 !important}
+.pot b{font-size:22px !important}
+.cagc{border:0;text-align:left;color:var(--ink);justify-content:space-between}
+.cagc b{font-size:24px !important;white-space:nowrap}
+.cagc b.neg{color:var(--moins)}
+.carre1{border:0;text-align:left}
+.pts{display:flex;justify-content:center;gap:5px}
+.pts span{width:6px;height:6px;border-radius:50%;background:var(--line);transition:width .2s,background .2s}
+.pts span.on{background:var(--denim);width:14px;border-radius:3px}
+.mvts{cursor:pointer;gap:6px}
+.mvts .pg{display:flex;flex-direction:column;gap:4px}
+.mini-b{display:flex;gap:6px}
+.mini{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 18px/1 var(--display);padding:0;display:flex;align-items:center;justify-content:center}
+.carte-c{border:0;text-align:left;color:var(--ink);gap:3px !important;justify-content:flex-start}
+.carte-c .emo{font-size:30px;line-height:1}
+.carte-c small{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.carte-c b{font-family:var(--display);font-size:22px;font-weight:800}
+.carte-c > span:not(.emo){font-size:12px;font-weight:600;color:var(--muted)}
+.carte-c.info{justify-content:space-between}
+.carte-c .virer{margin-top:auto}
+.ch-l{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0;flex:1;scrollbar-width:none}
+.ch-l button{display:flex;justify-content:space-between;gap:6px;border:0;background:none;padding:3px 0;font-size:12.5px;font-weight:600;color:var(--ink);text-align:left}
+.ch-l span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-l em{font-style:normal;color:var(--muted);white-space:nowrap}
+.chip.on{border-color:var(--denim);background:color-mix(in srgb,var(--denim) 18%,var(--surface))}
+.items.grand{max-height:55dvh}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .cat{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:8px 2px;min-width:0}
 .cat span{font-size:22px;line-height:1}
@@ -176,6 +210,8 @@ function lire(){ let d = null; try{ d = JSON.parse(localStorage.getItem(CLE) || 
   d = {charges:[], epargne:0, versements:{}, mouvements:[], virements:[], ...(d && typeof d === 'object' ? d : {})};
   if(!d.cote) d.cote = {depart:0, depuis:moisDe(new Date())};
   if(!Array.isArray(d.categories)) d.categories = CATS_DEPART.map(([emoji, nom], i) => ({id:'c' + i, emoji, nom}));
+  if(!Array.isArray(d.catCharges)) d.catCharges = [['🏠', 'Loyer'], ['📺', 'Abonnements'], ['💳', 'Paiements'], ['🛡️', 'Assurances'], ['📦', 'Autre']].map(([emoji, nom], i) => ({id:'k' + i, emoji, nom}));
+  if(!Array.isArray(d.ajustements)) d.ajustements = [];
   return d; }
 // Catégories de dépenses proposées au départ (tu peux les changer, en ajouter, en supprimer)
 const CATS_DEPART = [['🍽️', 'Resto'], ['🛒', 'Courses'], ['🚇', 'Transport'], ['🎉', 'Sorties'], ['🛍️', 'Shopping'], ['💊', 'Santé'], ['🎁', 'Cadeaux'], ['📦', 'Autre']];
@@ -197,8 +233,9 @@ function bilanMois(d, m, j, sc){
   const depenses = -mv.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mv.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
   const scM = sc.filter(x => x.date.slice(0, 7) === m), depScenes = scM.reduce((s, x) => s + (+x.depenses || 0), 0);
   const virs = (d.virements || []).filter(x => x.d.slice(0, 7) === m), vir = virs.reduce((s, x) => s + x.m, 0);
-  const brute = parJour * j - depenses + rentrees - depScenes + vir;
-  return {ver, charges, ep, budget, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, brute, finBrute:brute + parJour * (nbJ - j)};
+  const ajs = (d.ajustements || []).filter(x => x.d.slice(0, 7) === m), aj = ajs.reduce((s, x) => s + x.m, 0);   // « je réajuste ma cagnotte »
+  const brute = parJour * j - depenses + rentrees - depScenes + vir + aj;
+  return {ver, charges, ep, budget, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, ajs, brute, finBrute:brute + parJour * (nbJ - j)};
 }
 function calcul(d, jour = new Date()){
   const m = moisDe(jour), j = jour.getDate(), sc = scenes();
@@ -221,68 +258,73 @@ function calcul(d, jour = new Date()){
 let D = lire();
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
 
+const pointsH = n => n > 1 ? `<div class="pts" aria-hidden="true">${Array.from({length:n}, (_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
+function tousMouvements(c){
+  return [...c.mv.map(x => ({...x, lib:libelle(D, x)})),
+    ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), lib:'🎤 ' + (x.nom || 'Scène'), scene:true})),
+    ...c.virs.map(x => ({...x, lib:'↪ Virement du stand-up', vir:true})),
+    ...c.ajs.map(x => ({...x, lib:'↕ Réajustement', aj:true}))]
+    .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
+}
+const ligneMv = x => `<button type="button" class="it${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.aj ? 'aj' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.lib)}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`;
 function render(){
   D = lire();
-  try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && (!brut.cote || !brut.categories)) ecrire(D); }catch(e){}   // le côté démarre le mois où tu commences
-  const c = calcul(D), auj = new Date();
-  const mv = [...c.mv, ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), l:'🎤 ' + (x.nom || 'Scène'), scene:true})), ...c.virs.map(x => ({...x, l:'↪ Virement du stand-up', vir:true}))]
-    .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
+  try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && (!brut.cote || !brut.categories || !brut.catCharges)) ecrire(D); }catch(e){}
+  const c = calcul(D);
+  const mvs = tousMouvements(c);
   // dépenses par jour du mois
   const parJ = Array.from({length:c.nbJ}, (_, k) => -c.mv.filter(x => x.m < 0 && +x.d.slice(8) === k + 1).reduce((s, x) => s + x.m, 0) + c.scM.filter(x => +x.date.slice(8) === k + 1).reduce((s, x) => s + (+x.depenses || 0), 0));
   const mx = Math.max(c.parJour > 0 ? c.parJour : 1, ...parJ);
-  const prorata = c.parJour * c.j, ratio = prorata > 0 ? (c.depenses + c.depScenes) / prorata : 0;
+  // dépenses du mois par catégorie
+  const parCat = new Map(); c.mv.filter(x => x.m < 0).forEach(x => { const k = x.c && D.categories.some(y => y.id === x.c) ? x.c : '_'; parCat.set(k, (parCat.get(k) || 0) - x.m); });
+  const totDep = [...parCat.values()].reduce((a, b) => a + b, 0) + c.depScenes;
+  const catsTri = D.categories.slice().sort((a, b) => (parCat.get(b.id) || 0) - (parCat.get(a.id) || 0));
+  // charges fixes par catégorie
+  const catDeCharge = x => D.catCharges.some(y => y.id === x.cat) ? x.cat : (D.catCharges[D.catCharges.length - 1] || {}).id;   // sans catégorie : dans la dernière (« Autre »)
+  const chCat = D.catCharges.map(k => ({k, l:D.charges.filter(x => catDeCharge(x) === k.id)})).filter(g => g.l.length);
+  const pages = []; for(let i = 0; i < mvs.length; i += 2) pages.push(mvs.slice(i, i + 2));
   $('#app').innerHTML = `
-    <header class="tete"><h1>${cap(nomMois(c.m))}</h1></header>
-    <section class="t cag" aria-label="Cagnotte">
-      <button type="button" class="cag-b moins" data-a="moins" aria-label="Noter une dépense">−</button>
-      <div class="cag-c"><small>Cagnotte</small><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><span>${c.parJour >= 0 ? '+' : ''}${eur(c.parJour)} / jour</span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote)} pris sur ton côté</span>` : ''}</div>
-      <button type="button" class="cag-b plus" data-a="plus" aria-label="Noter une rentrée d’argent">+</button>
+    <section class="duo hautes">
+      <button type="button" class="t chif" data-a="reg-ep"><small>Mis de côté / mois</small><b>${eur(+D.epargne || 0, false)}</b></button>
+      <button type="button" class="t chif${c.ver.connu ? '' : ' manque'}" data-a="reg-ver"><small>Je me verse en ${nomMois(c.m)}</small><b>${eur(c.ver.v, false)}</b>${c.ver.connu ? '' : '<span class="note">à confirmer</span>'}</button>
     </section>
     <section class="duo">
-      <button type="button" class="t pot" data-a="cote"><small>De côté</small><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><span>+${eur(c.coteMois, false)} / mois${c.priseCote > 0 ? ` · −${eur(c.priseCote, false)} ce mois` : ''}</span></button>
-      <div class="t pot su"><small>🎤 Stand-up</small><b>${eur(c.standup, false)}</b><span>gagné ${eur(c.gainsSU, false)}${c.viresSU ? ` · viré ${eur(c.viresSU, false)}` : ''}</span><button type="button" class="virer" data-a="virer"${c.standup > 0 ? '' : ' disabled'}>Virer dans la cagnotte →</button></div>
+      <div class="carre"><div class="car" data-car="pots">
+        <button type="button" class="t pot cagc" data-a="ajuster"><small>Cagnotte</small><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><span>${c.parJour >= 0 ? '+' : ''}${eur(c.parJour)} / jour</span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote, false)} pris sur le côté</span>` : '<span class="note">Toucher pour réajuster</span>'}</button>
+        <div class="t pot su"><small>🎤 Stand-up</small><b>${eur(c.standup, false)}</b><span>gagné ${eur(c.gainsSU, false)}${c.viresSU ? ` · viré ${eur(c.viresSU, false)}` : ''}</span><button type="button" class="virer" data-a="virer"${c.standup > 0 ? '' : ' disabled'}>Virer dans la cagnotte →</button></div>
+      </div>${pointsH(2)}</div>
+      <button type="button" class="t pot carre1" data-a="cote"><small>De côté</small><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><span>+${eur(c.coteMois, false)} / mois${c.priseCote > 0 ? ` · −${eur(c.priseCote, false)} ce mois` : ''}</span><span class="note">Toucher pour réajuster</span></button>
     </section>
-    ${!c.ver.connu ? `<section class="t ask"><p>Combien tu te verses en ${nomMois(c.m)} ?</p>${c.ver.depuis ? `<p class="note">En attendant, je compte comme en ${nomMois(c.ver.depuis)} : ${eur(c.ver.v, false)}.</p>` : ''}
-      <div class="row"><input class="in" id="ver-in" inputmode="decimal" placeholder="${c.ver.v ? String(c.ver.v).replace('.', ',') : 'ex. 1 800'}" aria-label="Versement du mois"><button type="button" class="btn" data-a="ver">OK</button></div></section>` : ''}
-    <section class="t">
-      <div class="titre"><b>Ce mois</b><span>jour ${c.j} sur ${c.nbJ}</span></div>
-      <div class="lignes">
-        <div class="l"><span>Je me verse</span><b>${eur(c.ver.v)}</b></div>
-        <div class="l"><span>Charges fixes</span><b>− ${eur(c.charges)}</b></div>
-        <div class="l"><span>Mis de côté</span><b>− ${eur(c.ep)}</b></div>
-        <div class="l tot"><span>À dépenser dans le mois</span><b>${eur(c.budget)}</b></div>
-      </div>
-      <div class="jauge" aria-label="Dépensé par rapport à ce qui est déjà tombé"><i class="${ratio > 1 ? 'trop' : ''}" style="width:${Math.min(100, ratio * 100)}%"></i></div>
-      <p class="note">Dépensé ${eur(c.depenses + c.depScenes)}${c.depScenes ? ` (dont ${eur(c.depScenes)} pour la scène)` : ''} sur les ${eur(Math.max(0, prorata))} déjà tombés${c.rentrees ? ` · rentrées ${eur(c.rentrees)}` : ''} · fin du mois si tu ne dépenses plus : <b>${eur(c.finMois)}</b></p>
+    <section class="t mvts" data-a="tous-mv" role="button">
+      <div class="titre"><b>Mouvements</b><span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button></span></div>
+      ${pages.length ? `<div class="car" data-car="mv">${pages.map(pg => `<div class="pg">${pg.map(ligneMv).join('')}</div>`).join('')}</div>${pointsH(pages.length)}` : '<p class="vide">Rien de noté ce mois-ci.</p>'}
+    </section>
+    <section class="duo">
+      <div class="carre"><div class="car" data-car="cats">
+        <div class="t carte-c info"><small>Dépenses de ${nomMois(c.m)}</small><b>${eur(totDep, false)}</b><span>${plur(D.categories.length, 'catégorie', 'catégories')}${c.depScenes ? ` · 🎤 ${eur(c.depScenes, false)}` : ''}</span><button type="button" class="virer" data-a="cat">＋ Nouvelle catégorie</button></div>
+        ${catsTri.map(k => { const v = parCat.get(k.id) || 0; return `<button type="button" class="t carte-c" data-a="cat" data-id="${k.id}"><span class="emo">${esc(k.emoji)}</span><small>${esc(k.nom)}</small><b>${eur(v, false)}</b><span>${totDep ? Math.round(v / totDep * 100) + ' % du mois' : 'ce mois'}</span></button>`; }).join('')}
+      </div>${pointsH(catsTri.length + 1)}</div>
+      <div class="carre"><div class="car" data-car="charges">
+        <div class="t carte-c info"><small>Charges fixes</small><b>${eur(c.charges, false)}</b><span>par mois · ${plur(D.charges.length, 'charge', 'charges')}</span><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
+        ${chCat.map(g => `<div class="t carte-c ch"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
+      </div>${pointsH(chCat.length + 1)}</div>
     </section>
     <section class="t">
-      <div class="titre"><b>Dépenses par jour</b><span>${eur(c.depenses / Math.max(1, c.j))} / jour en moyenne</span></div>
+      <div class="titre"><b>Dépenses par jour</b><span>${eur(totDep / Math.max(1, c.j))} / jour en moyenne</span></div>
       <div class="bars">${parJ.map((v, k) => `<i class="${k + 1 === c.j ? 'auj' : k + 1 > c.j ? 'fut' : ''}" style="height:${Math.max(2, v / mx * 100)}%" title="${k + 1} : ${eur(v)}"></i>`).join('')}</div>
       <div class="axe"><span>1</span><span>${Math.round(c.nbJ / 2)}</span><span>${c.nbJ}</span></div>
     </section>
-    <section class="t">
-      <div class="titre"><b>Mouvements du mois</b><span>${mv.length}</span></div>
-      <div class="items">${mv.map(x => `<button type="button" class="it${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.scene || x.vir ? x.l : libelle(D, x))}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`).join('') || '<p class="vide">Rien de noté ce mois-ci. Touche − pour une dépense, + pour une rentrée.</p>'}</div>
-    </section>
-    <section class="t">
-      <div class="titre"><b>Par catégorie</b><span>${nomMois(c.m)}</span></div>
-      ${(() => { const par = new Map(); c.mv.filter(x => x.m < 0).forEach(x => { const k = x.c && D.categories.some(y => y.id === x.c) ? x.c : '_'; par.set(k, (par.get(k) || 0) - x.m); });
-        if(c.depScenes) par.set('_sc', c.depScenes);
-        const l = [...par.entries()].sort((a, b) => b[1] - a[1]), mx = l.length ? l[0][1] : 1, tot = l.reduce((s, x) => s + x[1], 0);
-        return l.length ? `<div class="cbars">${l.map(([k, v]) => { const cc = D.categories.find(y => y.id === k); return `<div><span>${k === '_sc' ? '🎤 Scène' : cc ? esc(cc.emoji + ' ' + cc.nom) : '✏️ Autre'}</span><i><em style="width:${Math.max(3, v / mx * 100)}%"></em></i><b>${eur(v, false)}</b><small>${Math.round(v / tot * 100)}%</small></div>`; }).join('')}</div>` : '<p class="vide">Pas encore de dépense ce mois-ci.</p>'; })()}
-      <div class="chips">${D.categories.map(x => `<button type="button" class="chip" data-a="cat" data-id="${x.id}">${esc(x.emoji)} ${esc(x.nom)}</button>`).join('')}<button type="button" class="chip plus" data-a="cat">＋ Catégorie</button></div>
-    </section>
-    <section class="t">
-      <div class="titre"><b>Charges fixes</b><span>${eur(c.charges)} / mois</span></div>
-      <div class="items">${D.charges.slice().sort((a, b) => b.montant - a.montant).map(x => `<button type="button" class="it" data-a="charge" data-id="${x.id}"><span class="n">${esc(x.nom)}</span><span class="m">${eur(+x.montant || 0)}</span></button>`).join('') || '<p class="vide">Loyer, abonnements, assurance…</p>'}</div>
-      <button type="button" class="ajout" data-a="charge">＋ Ajouter une charge</button>
-    </section>
-    <section class="duo">
-      <button type="button" class="t chif" data-a="reg-ep" style="border:0;text-align:left"><small>Mis de côté / mois</small><b>${eur(+D.epargne || 0, false)}</b><span class="note">Toucher pour changer</span></button>
-      <button type="button" class="t chif" data-a="reg-ver" style="border:0;text-align:left"><small>Je me verse en ${nomMois(c.m)}</small><b>${eur(c.ver.v, false)}</b><span class="note">Toucher pour changer</span></button>
-    </section>
     <p class="pied">Thunes · version ${VERSION}</p>`;
+  // carrousels : les points suivent, et on garde la position
+  document.querySelectorAll('.car').forEach(car => {
+    const k = car.dataset.car; if(posCar[k]) car.scrollLeft = posCar[k];
+    const pts = car.parentNode.querySelectorAll(':scope > .pts span');
+    const maj = () => { posCar[k] = car.scrollLeft; const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth)); pts.forEach((p, j) => p.classList.toggle('on', i === j)); };
+    car.addEventListener('scroll', maj, {passive:true}); maj();
+  });
 }
+const posCar = {};
+const plur = (n, a, b) => n + ' ' + (n > 1 ? b : a);
 
 /* ---------- Fenêtres ---------- */
 function ouvrir(html, onClick){
@@ -323,7 +365,9 @@ function fenetreMouvement(signe, x){
 }
 // Une catégorie : nom et emoji (ou la supprimer)
 function fenetreCategorie(x){
+  const c = calcul(lire()), dep = x ? c.mv.filter(m => m.m < 0 && m.c === x.id).sort((a, b) => b.d.localeCompare(a.d)) : [];
   ouvrir(`<h2>${x ? 'Catégorie' : 'Nouvelle catégorie'}</h2>
+    ${x ? `<div class="items">${dep.map(m => ligneMv({...m, lib:m.l || x.nom})).join('') || '<p class="vide">Pas de dépense ce mois-ci.</p>'}</div>` : ''}
     <div class="row"><input class="in emo" name="e" value="${x ? esc(x.emoji) : '💸'}" aria-label="Emoji" maxlength="4"><input class="in" name="n" placeholder="Nom" value="${x ? esc(x.nom) : ''}" autocomplete="off"></div>
     <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
   (e, dlg) => {
@@ -336,6 +380,20 @@ function fenetreCategorie(x){
     const c = {id:x ? x.id : uid(), emoji:f.e.value.trim() || '💸', nom:n};
     D.categories = x ? D.categories.map(y => y.id === x.id ? c : y) : [...D.categories, c];
     ecrire(D); dlg.close(); render();
+  });
+}
+// Tous les mouvements du mois, dans une fenêtre
+function fenetreTousMouvements(){
+  const c = calcul(lire()), l = tousMouvements(c);
+  ouvrir(`<h2>Mouvements · ${nomMois(c.m)}</h2><div class="items grand">${l.map(ligneMv).join('') || '<p class="vide">Rien ce mois-ci.</p>'}</div>
+    <div class="btns"><button type="button" class="btn sec" data-f="non">Fermer</button></div>`,
+  (e, dlg) => {
+    if(e.target.closest('[data-f="non"]')){ dlg.close(); return; }
+    const b = e.target.closest('[data-a]'); if(!b || !b.dataset.a) return;
+    dlg.close();
+    const x = b.dataset.a === 'mv' ? D.mouvements.find(y => y.id === b.dataset.id) : null;
+    if(x) fenetreMouvement(Math.sign(x.m) || -1, x);
+    else if(b.dataset.a === 'vir'){ const v = (D.virements || []).find(y => y.id === b.dataset.id); if(v) fenetreVirement(v); }
   });
 }
 // Virer de la cagnotte stand-up vers la cagnotte de tous les jours
@@ -360,32 +418,43 @@ function fenetreVirement(x){
   });
 }
 function fenetreCharge(x){
+  D = lire();
+  let cat = x && x.cat && D.catCharges.some(k => k.id === x.cat) ? x.cat : (D.catCharges[0] || {}).id;
+  const dessin = () => D.catCharges.map(k => `<button type="button" class="chip${k.id === cat ? ' on' : ''}" data-k="${k.id}">${esc(k.emoji)} ${esc(k.nom)}</button>`).join('') + '<button type="button" class="chip plus" data-knew>＋</button>';
   ouvrir(`<h2>${x ? 'Charge fixe' : 'Nouvelle charge fixe'}</h2>
-    <label>Nom<input class="in" name="n" placeholder="ex. Loyer, Netflix…" value="${x ? esc(x.nom) : ''}" autocomplete="off"></label>
+    <label>Nom<input class="in" name="n" placeholder="ex. Netflix, loyer…" value="${x ? esc(x.nom) : ''}" autocomplete="off"></label>
     <label>Montant par mois<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(x.montant).replace('.', ',') : ''}"></label>
+    <div class="chips" id="kcats">${dessin()}</div>
+    <div class="row" id="knew" hidden><input class="in emo" name="ke" value="📌" maxlength="4" aria-label="Emoji"><input class="in" name="kn" placeholder="Nouvelle catégorie" autocomplete="off"><button type="button" class="btn" data-kok>OK</button></div>
     <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
   (e, dlg) => {
-    const b = e.target.closest('[data-f]'); if(!b) return;
     const f = dlg.querySelector('form');
+    const kb = e.target.closest('[data-k]'); if(kb){ cat = kb.dataset.k; dlg.querySelector('#kcats').innerHTML = dessin(); return; }
+    if(e.target.closest('[data-knew]')){ const n = dlg.querySelector('#knew'); n.hidden = !n.hidden; if(!n.hidden) f.kn.focus(); return; }
+    if(e.target.closest('[data-kok]')){ const n = f.kn.value.trim(); if(!n) return; D = lire(); const k = {id:uid(), emoji:f.ke.value.trim() || '📌', nom:cap(n)}; D.catCharges.push(k); ecrire(D); cat = k.id; dlg.querySelector('#knew').hidden = true; dlg.querySelector('#kcats').innerHTML = dessin(); return; }
+    const b = e.target.closest('[data-f]'); if(!b) return;
     if(b.dataset.f === 'non'){ dlg.close(); return; }
     D = lire();
     if(b.dataset.f === 'sup'){ D.charges = D.charges.filter(c => c.id !== x.id); ecrire(D); dlg.close(); render(); return; }
     const n = f.n.value.trim(), v = nombre(f.m.value);
     if(!n){ f.n.focus(); return; } if(v == null || v < 0){ f.m.focus(); return; }
-    const c = {id:x ? x.id : uid(), nom:n, montant:Math.round(v * 100) / 100};
+    const c = {id:x ? x.id : uid(), nom:n, montant:Math.round(v * 100) / 100, cat};
     D.charges = x ? D.charges.map(y => y.id === x.id ? c : y) : [...D.charges, c];
     ecrire(D); dlg.close(); render();
   });
 }
-function fenetreNombre(titre, val, poser){
+function fenetreNombre(titre, val, poser, negatif){
   ouvrir(`<h2>${titre}</h2><label>Montant<input class="in" name="m" inputmode="decimal" value="${val != null ? String(val).replace('.', ',') : ''}"></label>
     <div class="btns"><button type="button" class="btn sec" data-f="non">Annuler</button><button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
   (e, dlg) => { const b = e.target.closest('[data-f]'); if(!b) return; if(b.dataset.f === 'non'){ dlg.close(); return; }
-    const v = nombre(dlg.querySelector('form').m.value); if(v == null || v < 0) return; D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
+    const v = nombre(String(dlg.querySelector('form').m.value).replace('−', '-')); if(v == null || (v < 0 && !negatif)) return; D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
 }
 $('#app').addEventListener('click', e => {
-  const b = e.target.closest('[data-a]'); if(!b) return;
+  const b = e.target.closest('[data-a]'); if(!b || !b.dataset.a) return;
   const a = b.dataset.a, m = moisDe(new Date());
+  if(a === 'tous-mv'){ fenetreTousMouvements(); return; }
+  if(a === 'ajuster'){ fenetreNombre('Ta cagnotte aujourd’hui', Math.round(calcul(lire()).cagnotte * 100) / 100, (d, v) => { const diff = Math.round((v - calcul(d).cagnotte) * 100) / 100; if(diff) d.ajustements = [...(d.ajustements || []), {id:uid(), d:iso(new Date()), m:diff, t:Date.now()}]; }, true); return; }
+  if(a === 'aj'){ const x = (D.ajustements || []).find(y => y.id === b.dataset.id); if(x && confirm(`Annuler ce réajustement de ${eur(x.m)} ?`)){ D = lire(); D.ajustements = D.ajustements.filter(y => y.id !== x.id); ecrire(D); render(); } return; }
   if(a === 'moins') fenetreMouvement(-1);
   else if(a === 'plus') fenetreMouvement(1);
   else if(a === 'mv'){ const x = D.mouvements.find(y => y.id === b.dataset.id); if(x) fenetreMouvement(Math.sign(x.m) || -1, x); }

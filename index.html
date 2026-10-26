@@ -222,6 +222,10 @@ dialog.popup[open]{animation:popin .18s ease}
 .tm-cat{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:8px 2px;color:var(--ink);min-width:0}
 .tm-cat span{font-size:22px;line-height:1}
 .tm-cat small{font-size:11.5px;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm-cat.nouv{border-style:dashed;background:none;color:var(--denim)}
+.tm-nc{display:flex;gap:6px}
+.tm-nc input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:10px 12px;font:500 16px var(--body)}
+.tm-nc input.tm-ne{flex:none;width:56px;text-align:center;font-size:20px;padding:6px}
 .tm-cat.on{border-color:var(--denim);background:color-mix(in srgb,var(--denim) 18%,var(--surface));box-shadow:inset 0 0 0 1px var(--denim)}
 /* Liste de courses en fenêtre */
 .re-total{border:0;background:none;color:inherit;font:inherit;padding:0;cursor:pointer}
@@ -1118,8 +1122,7 @@ function carreCourses(d){
   const resume = `<div class="slide rayon resume">${d.bas.length ? `<span class="re-warn" title="${plur(d.bas.length, 'produit presque vide', 'produits presque vides')}">${d.bas.length}</span>` : ''}
     <div class="re-label">Courses</div>
     <button type="button" class="re-total" data-recap-co aria-label="Voir la liste de courses">${Math.round(total)} €</button>
-    <div class="re-sous">${plur(reste.length, 'produit', 'produits')} · ${esc(prochainesCourses().replace(/^courses /, ''))}</div>
-    <button type="button" class="re-ajout" data-ajout-course>${svg('<path d="M12 5v14M5 12h14"/>', 16)}Ajouter</button></div>`;
+    <div class="re-sous">${plur(reste.length, 'produit', 'produits')} · ${esc(prochainesCourses().replace(/^courses /, ''))}</div></div>`;
   slides.unshift(resume);
   return `<div class="co-carre" data-ouvrir="courses">
     <div class="slides mini co-slides">${slides.join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, k) => `<span${k ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>`;
@@ -1158,7 +1161,8 @@ async function ouvrirMouvement(signe){
   dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2 tabindex="-1">${signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2><button type="button" class="rond petit" data-rf="1" aria-label="Fermer">✕</button></div>
     <div class="pop-c tm">
       <label class="champ"><input id="tm-m" inputmode="decimal" placeholder="Montant (€)" autocomplete="off"></label>
-      ${signe < 0 ? `<div class="tm-cats">${(cats || []).map(c => `<button type="button" class="tm-cat" data-tc="${esc(c.id)}"><span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small></button>`).join('')}</div>
+      ${signe < 0 ? `<div class="tm-cats" id="tm-cats">${(cats || []).map(c => `<button type="button" class="tm-cat" data-tc="${esc(c.id)}"><span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small></button>`).join('')}<button type="button" class="tm-cat nouv" data-tc-new><span>＋</span><small>Catégorie</small></button></div>
+        <div class="tm-nc" id="tm-nc" hidden><input id="tm-ne" class="tm-ne" value="💸" maxlength="4" aria-label="Emoji"><input id="tm-nn" placeholder="Nom de la catégorie" autocomplete="off"><button type="button" class="btn" data-tc-cree>OK</button></div>
         <label class="champ"><input id="tm-l" placeholder="Préciser (si tu veux)" autocomplete="off"></label>`
       : `<label class="champ"><input id="tm-l" placeholder="D’où ça vient ? (cachet…)" autocomplete="off"></label>
         ${recents.length ? `<div class="tm-ch">${recents.map(l => `<button type="button" class="chip-d" data-tl="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}`}
@@ -1170,6 +1174,19 @@ async function ouvrirMouvement(signe){
 $('#thunes-mvt').addEventListener('click', e => {
   const dlg = $('#thunes-mvt');
   if(e.target === dlg || e.target.closest('[data-rf]')){ dlg.close(); return; }
+  if(e.target.closest('[data-tc-new]')){ const nc = $('#tm-nc'); nc.hidden = !nc.hidden; if(!nc.hidden) $('#tm-nn').focus(); return; }
+  if(e.target.closest('[data-tc-cree]')){
+    const nom = $('#tm-nn').value.trim(); if(!nom){ $('#tm-nn').focus(); return; }
+    const d = lireThunesData() || {charges:[], epargne:0, versements:{}, mouvements:[]};
+    if(!Array.isArray(d.categories)) d.categories = [];
+    const c = {id:'c' + Date.now().toString(36), emoji:$('#tm-ne').value.trim() || '💸', nom:nom.charAt(0).toUpperCase() + nom.slice(1)};
+    d.categories.push(c);
+    try{ localStorage.setItem(CLE_THUNES, JSON.stringify(d)); }catch(err){ return; }
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tm-cat'; b.dataset.tc = c.id; b.innerHTML = `<span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small>`;
+    $('#tm-cats').insertBefore(b, $('#tm-cats [data-tc-new]'));
+    tmCat = c.id; $('#tm-cats').querySelectorAll('[data-tc]').forEach(x => x.classList.toggle('on', x.dataset.tc === tmCat));
+    $('#tm-nc').hidden = true; $('#tm-nn').value = ''; return;
+  }
   const tc = e.target.closest('[data-tc]'); if(tc){ tmCat = tmCat === tc.dataset.tc ? null : tc.dataset.tc; dlg.querySelectorAll('[data-tc]').forEach(b => b.classList.toggle('on', b.dataset.tc === tmCat)); return; }
   const ch = e.target.closest('[data-tl]'); if(ch){ $('#tm-l').value = ch.dataset.tl; return; }
   const ok = e.target.closest('[data-tm-ok]'); if(!ok) return;

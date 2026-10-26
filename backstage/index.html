@@ -1322,6 +1322,15 @@
   .tb-bbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:14px;background:var(--surface-2);color:var(--text);font:600 11px/1.15 var(--body);padding:6px 2px;text-align:center;cursor:pointer;min-height:0}
   .tb-bbtn svg{width:19px;height:19px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .tb-bbtn:active{transform:scale(.97)}
+  /* Cette semaine : un jour par diapo */
+  #home-semaine .tb-car > .tb-tuile{height:150px;padding:12px 14px;gap:8px;cursor:default}
+  .tb-pl{display:flex;flex-direction:column;gap:4px;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none;flex:1;min-height:0}
+  .tb-pl::-webkit-scrollbar{display:none}
+  .tb-pl-l{--sc:var(--text-dim);display:flex;align-items:center;gap:8px;border:0;border-left:3px solid var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);border-radius:0 10px 10px 0;padding:7px 10px;color:var(--text);font-family:var(--body);text-align:left;cursor:pointer;flex:none;min-width:0}
+  .tb-pl-l.t0{--sc:var(--s0)} .tb-pl-l.t1{--sc:var(--s1)} .tb-pl-l.t2{--sc:var(--s2)}
+  .tb-pl-l span{flex:1;min-width:0;font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-pl-l b{font-size:13.5px;font-weight:700;color:var(--sc);white-space:nowrap}
+  .tb-pl-l.tx b{color:var(--text-dim)}
   /* Le mois */
   .tb-mois{flex-direction:row !important;align-items:stretch;gap:10px}
   .tb-m-g{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
@@ -1395,6 +1404,15 @@
   .vt-b{flex:none;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:99px;padding:9px 13px;font:700 13px/1 var(--body);cursor:pointer;white-space:nowrap}
   .vt-b.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   .vt-b.bonus{background:color-mix(in srgb,var(--star) 22%,var(--surface-2));border-color:transparent;color:var(--text)}
+  .vt-etat{flex:none;font-size:12px;font-weight:700;color:var(--accent)}
+  .vt-etat.bonus{color:var(--star)}
+  .vt-ic{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .vt-ic svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .vt-ic.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .vt-choix{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 4px 8px 12px;margin-top:-2px}
+  .vt-choix span{font-size:12.5px;font-weight:700;color:var(--text-dim);width:100%}
+  .vt-choix button{border:1px solid var(--accent);background:none;color:var(--accent);border-radius:99px;padding:8px 12px;font:700 13px/1 var(--body);cursor:pointer}
+  .vt-choix em{font-style:normal;font-size:13px;color:var(--text-dim)}
   .vt-ajout{width:100%;margin-top:14px;min-height:50px;border:1.5px dashed var(--border);border-radius:14px;background:none;color:var(--accent);font:700 15px/1 var(--body);cursor:pointer}
   .bs-back{border:0;background:none;color:var(--accent);font-weight:600;font-size:15px;padding:14px 0 0;cursor:pointer}
   .page-head{margin:14px 0 4px}
@@ -1466,6 +1484,7 @@
       <!-- Tableau de bord : des cartes, comme l'accueil de Mon quotidien -->
       <div class="tb">
         <div id="home-stats"></div>
+        <div id="home-semaine"></div>
         <div class="tb-duo">
           <button type="button" class="tb-tuile tb-spec" onclick="goto('tests')" aria-label="Ta note et la date estimée du spectacle">
             <span class="rating-stars tb-etoiles" id="tb-etoiles" aria-hidden="true"></span>
@@ -4921,6 +4940,7 @@ function renderHomeRating(){
   renderSpectacleCard();
   renderHomeWeekSummary();
   renderHomeACompleter();
+  renderHomeSemaine();
   renderHomeRotation();
   renderHomeStats();
   renderHomeTodayPlateaux();
@@ -5044,6 +5064,28 @@ function renderHomeRotation(){
   const d = [...core.map(x => diapo(x, false)), ...bonus.map(x => diapo(x, true))];
   wrap.innerHTML = `<div class="tb-bande">${rotBoutons}<div class="tb-bloc"><div class="tb-car">${d.join('')}</div>${tbPoints(d.length)}</div></div>`;
   brancherCarrousel('home-rotation');
+}
+
+// Carte « Cette semaine » : un jour par diapo (aujourd'hui + 6 jours), avec les plateaux de l'Agenda ce jour-là
+function renderHomeSemaine(){
+  const wrap = document.getElementById('home-semaine');
+  if(!wrap) return;
+  const ville = currentPlateauxCity || 'Paris';
+  const pls = loadPlateaux().filter(p => (p.city || 'Paris') === ville && isPlateauComplete(p));
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const diapos = [];
+  for(let k = 0; k < 7; k++){
+    const d = new Date(t0); d.setDate(t0.getDate() + k);
+    const dow = d.getDay(), liste = sortByEffectiveTime(pls.filter(p => doesPlateauOccur(p, d)), dow);
+    const nom = k === 0 ? 'Aujourd’hui' : k === 1 ? 'Demain' : d.toLocaleDateString('fr-FR', {weekday:'long'}).replace(/^./, c => c.toUpperCase());
+    const date = d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+    diapos.push(`<div class="tb-tuile tb-jour">
+      <div class="tb-titre"><b>${nom}</b><span>${date} · ${liste.length ? liste.length + (liste.length > 1 ? ' plateaux' : ' plateau') : 'rien'}</span></div>
+      <div class="tb-pl">${liste.map(({p, slot}) => `<button type="button" class="tb-pl-l t${slot.type != null ? slot.type : 'x'}" onclick="goto('plateaux'); openPlateauDetail(${p.id})"><span>${escapeHtml(p.name)}</span><b>${escapeHtml(formatPlateauTime(slot.time || ''))}</b></button>`).join('') || '<p class="tb-vide">Pas de plateau ce jour-là.</p>'}</div>
+    </div>`);
+  }
+  wrap.innerHTML = `<div class="tb-bloc"><div class="tb-car">${diapos.join('')}</div>${tbPoints(diapos.length)}</div>`;
+  brancherCarrousel('home-semaine');
 }
 
 // Carte « À compléter » : les plateaux dont il manque le jour, la fréquence ou l'heure
@@ -6328,7 +6370,11 @@ document.addEventListener('pointerdown', e => {
 });
 
 /* ---------- Volet « Tous les textes » : ajouter à la rotation ou l'enlever ---------- */
-function ouvrirVoletTextes(){ remplirVoletTextes(); ouvrirVolet('volet-textes'); }
+function ouvrirVoletTextes(){ vtRemplace = null; remplirVoletTextes(); ouvrirVolet('volet-textes'); }
+let vtRemplace = null;   // texte de la rotation dont on choisit le remplaçant
+const IC_REMPLACER = '<svg viewBox="0 0 24 24"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.7V12a9 9 0 0 1 15-6.7l3-2.9"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.3V12a9 9 0 0 1-15 6.7l-3 2.9"/></svg>';
+const IC_RETIRER = '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+function vtBasculerRemplace(id){ vtRemplace = vtRemplace === id ? null : id; remplirVoletTextes(); }
 function remplirVoletTextes(){
   const box = document.getElementById('vt-liste'); if(!box) return;
   const list = loadTexts(), rot = loadRotation2(), core = new Set(rot.selectedIds), bonus = new Set(rot.bonusIds);
@@ -6341,8 +6387,11 @@ function remplirVoletTextes(){
     const titre = !sep && !dans(t) ? (sep = true, `<div class="vt-sep">Hors rotation</div>`) : '';
     return `${titre}<div class="vt-l${fini ? ' fini' : ''}">
       <button type="button" class="vt-n" onclick="fermerVolet(true, false); goto('tests'); openTextDetail(${t.id})"><b>${escapeHtml(t.name)}</b><span>${v}/${TEXT_TARGET} validées${fini ? ' · fini' : ''}</span></button>
-      <button type="button" class="vt-b${c ? ' on' : b ? ' bonus' : ''}" onclick="toggleRotationInclude(${t.id})" aria-pressed="${c || b}">${c ? '✓ Rotation' : b ? '⭐ Bonus' : '+ Rotation'}</button>
-    </div>`;
+      ${c || b ? `<span class="vt-etat${b ? ' bonus' : ''}">${b ? '⭐ Bonus' : 'Rotation'}</span>
+        <button type="button" class="vt-ic${vtRemplace === t.id ? ' on' : ''}" onclick="vtBasculerRemplace(${t.id})" aria-label="Remplacer ${escapeHtml(t.name)} par un autre texte" aria-expanded="${vtRemplace === t.id}">${IC_REMPLACER}</button>
+        <button type="button" class="vt-ic" onclick="vtRemplace = null; openRemovalReasonModal(${t.id}, null)" aria-label="Retirer ${escapeHtml(t.name)} de la rotation">${IC_RETIRER}</button>`
+      : `<button type="button" class="vt-b" onclick="toggleRotationInclude(${t.id})">+ Rotation</button>`}
+    </div>${vtRemplace === t.id ? `<div class="vt-choix"><span>Remplacer par :</span>${list.filter(x => !dans(x) && !isTextFinished(x)).map(x => `<button type="button" onclick="vtRemplace = null; pickReplacementCandidate(${t.id}, ${x.id})">${escapeHtml(x.name)}</button>`).join('') || '<em>Aucun autre texte disponible. Crée-en un avec « Nouveau texte ».</em>'}</div>` : ''}`;
   }).join('');
 }
 /* ---------- Volet « Nouveau texte » ---------- */

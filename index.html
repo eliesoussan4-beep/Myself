@@ -208,15 +208,14 @@ dialog.popup[open]{animation:popin .18s ease}
 .pop-c h3{margin:6px 0 0;font-family:var(--display);font-size:16px}
 /* Cagnotte (Thunes) au-dessus des Dispos et des Courses */
 .cag-h{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:8px;background:var(--sunk);border-radius:16px;padding:10px;margin-bottom:12px}
-.cag-b{width:48px;height:48px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;font:800 26px/1 var(--display);color:var(--surface);padding:0}
-.cag-b.moins{background:#B84A3E} .cag-b.plus{background:#2F7A4A}
+.cag-b{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;font:700 24px/1 var(--display);color:var(--ink);padding:0}
 .cag-c{border:0;background:none;color:var(--ink);display:flex;flex-direction:column;align-items:center;min-width:0;padding:0;font-family:var(--body)}
 .cag-c small{font-size:11.5px;font-weight:700;color:var(--muted)}
 .cag-c b{font-family:var(--display);font-size:28px;font-weight:800;line-height:1.1;white-space:nowrap}
 .cag-c b.neg{color:#B84A3E}
 .cag-c span{font-size:11.5px;font-weight:600;color:var(--muted)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cag-b.moins{background:#E58A84}:root:not([data-theme="light"]) .cag-b.plus{background:#7CC992}:root:not([data-theme="light"]) .cag-c b.neg{color:#E58A84}}
-:root[data-theme="dark"] .cag-b.moins{background:#E58A84}:root[data-theme="dark"] .cag-b.plus{background:#7CC992}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cag-c b.neg{color:#E58A84}}
+:root[data-theme="dark"] .cag-c b.neg{color:#E58A84}
 .tm .champ input{font-size:18px}
 .tm-ch{display:flex;flex-wrap:wrap;gap:6px}
 /* Liste de courses en fenêtre */
@@ -625,6 +624,11 @@ dialog h2:focus{outline:none}
 [data-bloc="duo"] .dp-partager{padding:5px 0;font-size:12px}
 [data-bloc="duo"] .dp-h b{font-size:14px}
 [data-bloc="duo"] .co-slides .slide.resume{padding:8px}
+[data-bloc="duo"] .co-slides .slide-cat{flex:none;line-height:1.3}
+[data-bloc="duo"] .co-slides .liste{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none}
+[data-bloc="duo"] .co-slides .art{min-height:30px;padding:2px 0}
+[data-bloc="duo"] .co-slides .art .coche{width:20px;height:20px;border-radius:6px}
+[data-bloc="duo"] .co-slides .art-n{font-size:13.5px}
 </style>
 <script src="apps.js"></script>
 </head>
@@ -1115,22 +1119,18 @@ function blocDuo(co){
   return (APPS.some(a => a.id === 'thunes' && !a.cache) ? carteThunes(resultats.thunes) : '') + `<div class="gr2 compact tenue-co"><div class="dispo-carre" data-dispo role="button" aria-label="Mes disponibilités"><p class="vide">Calcul…</p></div>${co === undefined ? '<div class="co-carre"><p class="vide">Chargement…</p></div>' : carreCourses(co)}</div>`;
 }
 /* ---------- Thunes : la cagnotte (ce que tu peux dépenser) ----------
-   ⚠ Même calcul que dans thunes/index.html (calcul) : garder les deux pareils.
-   versé ce mois (ou le dernier connu) − charges fixes − mis de côté = à dépenser ; ÷ jours du mois = ce qui tombe chaque jour ;
-   cagnotte = ce qui est tombé jusqu'à aujourd'hui − dépenses + rentrées du mois. */
+   Le calcul est fait par l'app Thunes elle-même (window.quotidienThunes.calcul) ; ici on lit et on note les − / +. */
 const CLE_THUNES = 'thunes_v1';
 function lireThunesData(){ try{ const d = JSON.parse(localStorage.getItem(CLE_THUNES) || 'null'); if(d && typeof d === 'object') return {charges:[], epargne:0, versements:{}, mouvements:[], ...d}; }catch(e){} return null; }
-function calculThunes(d, jour = new Date()){
-  const m = iso(jour).slice(0, 7), nbJ = new Date(jour.getFullYear(), jour.getMonth() + 1, 0).getDate(), j = jour.getDate();
-  let v = d.versements[m]; if(v == null){ const avant = Object.keys(d.versements).filter(k => k < m).sort().pop(); v = avant ? d.versements[avant] : 0; }
-  const budget = v - d.charges.reduce((s, c) => s + (+c.montant || 0), 0) - (+d.epargne || 0), parJour = budget / nbJ;
-  const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m).reduce((s, x) => s + x.m, 0);
-  return {cagnotte:parJour * j + mv, parJour, connu:d.versements[m] != null};
+async function lireThunes(){
+  if(!lireThunesData()) return null;
+  const w = await attendreApp('thunes', w => !!w.quotidienThunes); if(!w) return null;
+  const c = w.quotidienThunes.calcul();
+  return {cagnotte:c.cagnotte, parJour:c.parJour, connu:c.ver.connu, priseCote:c.priseCote};
 }
-async function lireThunes(){ const d = lireThunesData(); return d ? calculThunes(d) : null; }
 const eurT = n => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
 function carteThunes(t){
-  const corps = t ? `<b class="${t.cagnotte < 0 ? 'neg' : ''}">${eurT(t.cagnotte)}</b><span>${t.parJour >= 0 ? '+' : ''}${eurT(t.parJour)} / jour${t.connu ? '' : ' · versement ?'}</span>`
+  const corps = t ? `<b class="${t.cagnotte < 0 ? 'neg' : ''}">${eurT(t.cagnotte)}</b><span>${t.parJour >= 0 ? '+' : ''}${eurT(t.parJour)} / jour${t.priseCote > 0 ? ` · ${Math.round(t.priseCote)} € pris sur le côté` : ''}${t.connu ? '' : ' · versement ?'}</span>`
     : `<b>—</b><span>Touche pour régler ta cagnotte</span>`;
   return `<div class="cag-h" data-aller="thunes" data-action="ouvrir"><button type="button" class="cag-b moins" data-thunes="-1" aria-label="Noter une dépense">−</button>
     <button type="button" class="cag-c" data-aller="thunes" data-action="ouvrir" aria-label="Ouvrir Thunes"><small>Cagnotte</small>${corps}</button>

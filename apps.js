@@ -22,7 +22,7 @@
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 34;
+self.VERSION_QUOTIDIEN = 35;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;

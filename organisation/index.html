@@ -1533,16 +1533,7 @@ function renderHome() {
     </div>`; }).join('')}</div>${tips.length > 1 ? `<div class="ob-points" aria-hidden="true">${tips.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>` : '';
 
   html += dashboardHTML();
-  html += `<nav class="shortcuts" aria-label="Raccourcis">
-    <button type="button" class="sc" data-a="open-todo"><span class="sc-ico">${ic(P.todo, 20, 1.5)}${remaining ? `<span class="badge">${remaining}</span>` : ''}</span><span class="sc-lbl">Planning</span></button>
-    <button type="button" class="sc" data-a="open-lists"><span class="sc-ico">${ic(P.bookmark, 20, 1.5)}</span><span class="sc-lbl">Listes</span></button>
-    <button type="button" class="sc" data-a="open-routines"><span class="sc-ico">${ic('M7 5.5v13l10-6.5z', 20, 1.5)}</span><span class="sc-lbl">Routines</span></button>
-    <button type="button" class="sc" data-a="open-stats"><span class="sc-ico">${ic('M5 20V11M12 20V5M19 20v-6', 20, 1.6)}</span><span class="sc-lbl">Suivi</span></button>
-  </nav>
-  <div class="new-row"><button type="button" class="btn" data-a="new-event" data-d="${t}">${ic(IC.cal, 18, 1.8)}Événement</button><button type="button" class="btn" data-a="new-task" data-d="${t}">${ic(P.todo, 18, 1.8)}Tâche</button>
-    <button type="button" class="btn-ico view-sw" data-a="view-toggle" aria-label="${(S.meta.view || 'week') === 'week' ? 'Passer à la vue du mois' : 'Passer à la vue de la semaine'}">${(S.meta.view || 'week') === 'week' ? ic('M4 5h16v15H4zM4 10h16M9 10v10M15 10v10M4 15h16', 20, 1.6) : ic('M4 6h16M4 12h16M4 18h16', 20, 1.8)}</button></div>`;
-
-  html += (S.meta.view || 'week') === 'month' ? monthHTML() : agendaHTML();
+  // (plus de raccourcis ronds, de boutons d'ajout ni d'agenda ici : l'agenda est sur l'accueil de Mon quotidien)
   html += `<button type="button" class="backup-link" data-a="open-backup">Sauvegarde · version ${VERSION}</button>`;
   app.innerHTML = html;
   const wk = $('.swipe', app);

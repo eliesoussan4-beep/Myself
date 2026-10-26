@@ -60,8 +60,17 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .vide{margin:0;font-size:14px;color:var(--muted)}
 /* La cagnotte */
 .cag{display:grid;grid-template-columns:56px minmax(0,1fr) 56px;align-items:center;gap:8px;padding:16px 12px}
-.cag-b{width:56px;height:56px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;font:800 30px/1 var(--display);color:var(--surface)}
-.cag-b.moins{background:var(--moins)} .cag-b.plus{background:var(--plus)}
+.cag-b{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;font:700 30px/1 var(--display);color:var(--ink)}
+.pris{color:var(--today) !important;font-weight:700 !important}
+.pot{border:0;text-align:left;justify-content:space-between;min-height:132px;color:var(--ink)}
+.pot small{font-size:12px;font-weight:700;color:var(--muted)}
+.pot b{font-family:var(--display);font-size:26px;font-weight:800;line-height:1.1}
+.pot b.neg{color:var(--moins)}
+.pot span{font-size:12px;font-weight:600;color:var(--muted)}
+.su{background:color-mix(in srgb,#7B5CD6 14%,var(--sunk))}
+.virer{border:0;border-radius:10px;background:var(--surface);color:var(--denim);font-size:12.5px;font-weight:700;padding:8px 6px;margin-top:4px}
+.virer:disabled{opacity:.45}
+.it.ro{cursor:default}
 .cag-c{text-align:center;display:flex;flex-direction:column;align-items:center;min-width:0}
 .cag-c small{font-size:12px;font-weight:700;color:var(--muted)}
 .cag-c b{font-family:var(--display);font-size:clamp(32px,10vw,44px);font-weight:800;line-height:1.05;letter-spacing:-.02em;white-space:nowrap}
@@ -133,7 +142,8 @@ dialog[open]{animation:popin .18s ease}
    Divisé par le nombre de jours du mois : chaque jour, la cagnotte gagne cette part.
    Les dépenses (−) et les rentrées (+) notées pendant le mois s'y ajoutent.
    Données : localStorage « thunes_v1 » (la sauvegarde globale de Mon quotidien la prend : préfixe thunes_).
-   ⚠ L'accueil de Mon quotidien refait ce même calcul (calculThunes dans index.html) : garder les deux pareils.
+   L'accueil de Mon quotidien lit la cagnotte ici (window.quotidienThunes.calcul) : un seul calcul.
+   Les scènes de Backstage (localStorage « backstage_scenes_v1 ») : dépenses → cagnotte ; gains → cagnotte stand-up.
    ================================================================ */
 const VERSION = 1, CLE = 'thunes_v1';
 const $ = s => document.querySelector(s);
@@ -143,40 +153,73 @@ const pad = n => String(n).padStart(2, '0');
 const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 const moisDe = d => iso(d).slice(0, 7);
 const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
-const eur = (n, dec = true) => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:dec ? 2 : 0, maximumFractionDigits:dec ? 2 : 0}) + ' €';
+const eur = (n, dec = true) => (Math.abs(n) < 0.005 && (n = 0), n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:dec ? 2 : 0, maximumFractionDigits:dec ? 2 : 0}) + ' €';
 const nombre = v => { const n = parseFloat(String(v || '').replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : null; };
 const nomMois = m => new Date(+m.slice(0, 4), +m.slice(5) - 1, 1).toLocaleDateString('fr-FR', {month:'long'});
 
-function lire(){ try{ const d = JSON.parse(localStorage.getItem(CLE) || 'null'); if(d && typeof d === 'object') return {charges:[], epargne:0, versements:{}, mouvements:[], ...d}; }catch(e){} return {charges:[], epargne:0, versements:{}, mouvements:[]}; }
+function lire(){ let d = null; try{ d = JSON.parse(localStorage.getItem(CLE) || 'null'); }catch(e){}
+  d = {charges:[], epargne:0, versements:{}, mouvements:[], virements:[], ...(d && typeof d === 'object' ? d : {})};
+  if(!d.cote) d.cote = {depart:0, depuis:moisDe(new Date())};
+  return d; }
 function ecrire(d){ try{ localStorage.setItem(CLE, JSON.stringify(d)); }catch(e){ toast('Impossible d’enregistrer.'); } }
 // Ce que tu te verses ce mois : celui du mois, sinon le dernier connu
 function versement(d, m){ if(d.versements[m] != null) return {v:d.versements[m], connu:true}; const avant = Object.keys(d.versements).filter(k => k < m).sort().pop(); return {v:avant ? d.versements[avant] : 0, connu:false, depuis:avant}; }
-function calcul(d, jour = new Date()){
-  const m = moisDe(jour), nbJ = new Date(jour.getFullYear(), jour.getMonth() + 1, 0).getDate(), j = jour.getDate();
-  const ver = versement(d, m), charges = d.charges.reduce((s, c) => s + (+c.montant || 0), 0), ep = +d.epargne || 0;
+// Les scènes notées dans Backstage : leurs dépenses sortent de la cagnotte ; leurs gains vont dans la cagnotte stand-up
+function scenes(){ try{ const l = JSON.parse(localStorage.getItem('backstage_scenes_v1') || '[]'); return Array.isArray(l) ? l.filter(x => x && x.date) : []; }catch(e){ return []; } }
+const moisSuivant = m => { const x = new Date(+m.slice(0, 4), +m.slice(5), 1); return x.getFullYear() + '-' + pad(x.getMonth() + 1); };
+const nbJours = m => new Date(+m.slice(0, 4), +m.slice(5), 0).getDate();
+// Le bilan d'un mois (sans le côté) : jusqu'au jour j inclus
+function bilanMois(d, m, j, sc){
+  const ver = versement(d, m), charges = d.charges.reduce((s, c) => s + (+c.montant || 0), 0), ep = +d.epargne || 0, nbJ = nbJours(m);
   const budget = ver.v - charges - ep, parJour = budget / nbJ;
   const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m);
   const depenses = -mv.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mv.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
-  const cagnotte = parJour * j - depenses + rentrees;
-  return {m, nbJ, j, ver, charges, ep, budget, parJour, depenses, rentrees, cagnotte, finMois:cagnotte + parJour * (nbJ - j), mv};
+  const scM = sc.filter(x => x.date.slice(0, 7) === m), depScenes = scM.reduce((s, x) => s + (+x.depenses || 0), 0);
+  const virs = (d.virements || []).filter(x => x.d.slice(0, 7) === m), vir = virs.reduce((s, x) => s + x.m, 0);
+  const brute = parJour * j - depenses + rentrees - depScenes + vir;
+  return {ver, charges, ep, budget, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, brute, finBrute:brute + parJour * (nbJ - j)};
+}
+function calcul(d, jour = new Date()){
+  const m = moisDe(jour), j = jour.getDate(), sc = scenes();
+  const b = bilanMois(d, m, j, sc);
+  // Si, même en ajoutant ce qui va encore tomber, la cagnotte finirait le mois dans le rouge : la différence est prise sur ton côté
+  const priseCote = Math.max(0, -b.finBrute), cagnotte = b.brute + priseCote;
+  // Le côté : ce qu'il y avait au départ + ce que tu mets de côté chaque mois − ce qui a été pris (mois finis, puis ce mois-ci)
+  const cote = d.cote || {depart:0, depuis:m};
+  let total = +cote.depart || 0, prisAvant = 0;
+  const premier = Object.keys(d.versements).sort()[0];
+  for(let x = cote.depuis; x <= m; x = moisSuivant(x)){
+    total += +d.epargne || 0;
+    if(x < m && premier && x >= premier){ const bx = bilanMois(d, x, nbJours(x), sc); if(bx.brute < 0) prisAvant += -bx.brute; }   // (pas les mois d'avant ton premier versement)
+  }
+  const coteNet = total - prisAvant - priseCote;
+  // Le stand-up : tout ce que les scènes ont rapporté, moins ce que tu as viré dans la cagnotte
+  const gainsSU = sc.reduce((s, x) => s + (+x.gains || 0), 0), viresSU = (d.virements || []).reduce((s, x) => s + x.m, 0);
+  return {m, j, ...b, priseCote, cagnotte, finMois:cagnotte + b.parJour * (b.nbJ - j), cote:coteNet, coteMois:+d.epargne || 0, standup:gainsSU - viresSU, gainsSU, viresSU};
 }
 let D = lire();
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
 
 function render(){
   D = lire();
+  try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && !brut.cote) ecrire(D); }catch(e){}   // le côté démarre le mois où tu commences
   const c = calcul(D), auj = new Date();
-  const mv = c.mv.slice().sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
+  const mv = [...c.mv, ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), l:'🎤 ' + (x.nom || 'Scène'), scene:true})), ...c.virs.map(x => ({...x, l:'↪ Virement du stand-up', vir:true}))]
+    .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
   // dépenses par jour du mois
-  const parJ = Array.from({length:c.nbJ}, (_, k) => -c.mv.filter(x => x.m < 0 && +x.d.slice(8) === k + 1).reduce((s, x) => s + x.m, 0));
+  const parJ = Array.from({length:c.nbJ}, (_, k) => -c.mv.filter(x => x.m < 0 && +x.d.slice(8) === k + 1).reduce((s, x) => s + x.m, 0) + c.scM.filter(x => +x.date.slice(8) === k + 1).reduce((s, x) => s + (+x.depenses || 0), 0));
   const mx = Math.max(c.parJour > 0 ? c.parJour : 1, ...parJ);
-  const prorata = c.parJour * c.j, ratio = prorata > 0 ? c.depenses / prorata : 0;
+  const prorata = c.parJour * c.j, ratio = prorata > 0 ? (c.depenses + c.depScenes) / prorata : 0;
   $('#app').innerHTML = `
     <header class="tete"><h1>${cap(nomMois(c.m))}</h1></header>
     <section class="t cag" aria-label="Cagnotte">
       <button type="button" class="cag-b moins" data-a="moins" aria-label="Noter une dépense">−</button>
-      <div class="cag-c"><small>Cagnotte</small><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><span>${c.parJour >= 0 ? '+' : ''}${eur(c.parJour)} / jour</span></div>
+      <div class="cag-c"><small>Cagnotte</small><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><span>${c.parJour >= 0 ? '+' : ''}${eur(c.parJour)} / jour</span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote)} pris sur ton côté</span>` : ''}</div>
       <button type="button" class="cag-b plus" data-a="plus" aria-label="Noter une rentrée d’argent">+</button>
+    </section>
+    <section class="duo">
+      <button type="button" class="t pot" data-a="cote"><small>De côté</small><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><span>+${eur(c.coteMois, false)} / mois${c.priseCote > 0 ? ` · −${eur(c.priseCote, false)} ce mois` : ''}</span></button>
+      <div class="t pot su"><small>🎤 Stand-up</small><b>${eur(c.standup, false)}</b><span>gagné ${eur(c.gainsSU, false)}${c.viresSU ? ` · viré ${eur(c.viresSU, false)}` : ''}</span><button type="button" class="virer" data-a="virer"${c.standup > 0 ? '' : ' disabled'}>Virer dans la cagnotte →</button></div>
     </section>
     ${!c.ver.connu ? `<section class="t ask"><p>Combien tu te verses en ${nomMois(c.m)} ?</p>${c.ver.depuis ? `<p class="note">En attendant, je compte comme en ${nomMois(c.ver.depuis)} : ${eur(c.ver.v, false)}.</p>` : ''}
       <div class="row"><input class="in" id="ver-in" inputmode="decimal" placeholder="${c.ver.v ? String(c.ver.v).replace('.', ',') : 'ex. 1 800'}" aria-label="Versement du mois"><button type="button" class="btn" data-a="ver">OK</button></div></section>` : ''}
@@ -189,7 +232,7 @@ function render(){
         <div class="l tot"><span>À dépenser dans le mois</span><b>${eur(c.budget)}</b></div>
       </div>
       <div class="jauge" aria-label="Dépensé par rapport à ce qui est déjà tombé"><i class="${ratio > 1 ? 'trop' : ''}" style="width:${Math.min(100, ratio * 100)}%"></i></div>
-      <p class="note">Dépensé ${eur(c.depenses)} sur les ${eur(Math.max(0, prorata))} déjà tombés${c.rentrees ? ` · rentrées ${eur(c.rentrees)}` : ''} · fin du mois si tu ne dépenses plus : <b>${eur(c.finMois)}</b></p>
+      <p class="note">Dépensé ${eur(c.depenses + c.depScenes)}${c.depScenes ? ` (dont ${eur(c.depScenes)} pour la scène)` : ''} sur les ${eur(Math.max(0, prorata))} déjà tombés${c.rentrees ? ` · rentrées ${eur(c.rentrees)}` : ''} · fin du mois si tu ne dépenses plus : <b>${eur(c.finMois)}</b></p>
     </section>
     <section class="t">
       <div class="titre"><b>Dépenses par jour</b><span>${eur(c.depenses / Math.max(1, c.j))} / jour en moyenne</span></div>
@@ -198,7 +241,7 @@ function render(){
     </section>
     <section class="t">
       <div class="titre"><b>Mouvements du mois</b><span>${mv.length}</span></div>
-      <div class="items">${mv.map(x => `<button type="button" class="it" data-a="mv" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.l || (x.m < 0 ? 'Dépense' : 'Rentrée'))}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`).join('') || '<p class="vide">Rien de noté ce mois-ci. Touche − pour une dépense, + pour une rentrée.</p>'}</div>
+      <div class="items">${mv.map(x => `<button type="button" class="it${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.l || (x.m < 0 ? 'Dépense' : 'Rentrée'))}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`).join('') || '<p class="vide">Rien de noté ce mois-ci. Touche − pour une dépense, + pour une rentrée.</p>'}</div>
     </section>
     <section class="t">
       <div class="titre"><b>Charges fixes</b><span>${eur(c.charges)} / mois</span></div>
@@ -242,6 +285,27 @@ function fenetreMouvement(signe, x){
     ecrire(D); dlg.close(); render(); toast(signe < 0 ? `− ${eur(v)} · ${l}` : `+ ${eur(v)}`);
   });
 }
+// Virer de la cagnotte stand-up vers la cagnotte de tous les jours
+function fenetreVirement(x){
+  const dispo = calcul(lire()).standup + (x ? x.m : 0);
+  ouvrir(`<h2>${x ? 'Virement' : 'Virer du stand-up'}</h2>
+    <p class="note">Disponible : ${eur(dispo)}</p>
+    <label>Montant<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(x.m).replace('.', ',') : ''}"></label>
+    ${!x ? `<div class="chips"><button type="button" class="chip" data-v="${Math.floor(dispo)}">Tout (${eur(Math.floor(dispo), false)})</button>${dispo >= 100 ? '<button type="button" class="chip" data-v="50">50 €</button><button type="button" class="chip" data-v="100">100 €</button>' : ''}</div>` : ''}
+    <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Annuler ce virement</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Virer</button></div>`,
+  (e, dlg) => {
+    const f = dlg.querySelector('form'), ch = e.target.closest('[data-v]'); if(ch){ f.m.value = ch.dataset.v; return; }
+    const b = e.target.closest('[data-f]'); if(!b) return;
+    if(b.dataset.f === 'non'){ dlg.close(); return; }
+    D = lire(); D.virements = D.virements || [];
+    if(b.dataset.f === 'sup'){ D.virements = D.virements.filter(v => v.id !== x.id); ecrire(D); dlg.close(); render(); return; }
+    const v = nombre(f.m.value); if(!v || v <= 0){ f.m.focus(); return; }
+    if(v > dispo + 0.005){ f.m.value = String(Math.floor(dispo * 100) / 100).replace('.', ','); return; }
+    const vir = {id:x ? x.id : uid(), d:x ? x.d : iso(new Date()), m:Math.round(v * 100) / 100, t:x ? x.t : Date.now()};
+    D.virements = x ? D.virements.map(y => y.id === x.id ? vir : y) : [...D.virements, vir];
+    ecrire(D); dlg.close(); render(); toast(`+ ${eur(v)} dans la cagnotte`);
+  });
+}
 function fenetreCharge(x){
   ouvrir(`<h2>${x ? 'Charge fixe' : 'Nouvelle charge fixe'}</h2>
     <label>Nom<input class="in" name="n" placeholder="ex. Loyer, Netflix…" value="${x ? esc(x.nom) : ''}" autocomplete="off"></label>
@@ -273,16 +337,19 @@ $('#app').addEventListener('click', e => {
   else if(a === 'plus') fenetreMouvement(1);
   else if(a === 'mv'){ const x = D.mouvements.find(y => y.id === b.dataset.id); if(x) fenetreMouvement(Math.sign(x.m) || -1, x); }
   else if(a === 'charge') fenetreCharge(b.dataset.id ? D.charges.find(y => y.id === b.dataset.id) : null);
+  else if(a === 'cote') fenetreNombre('Ce que tu as de côté aujourd’hui', Math.round(calcul(lire()).cote * 100) / 100, (d, v) => { const avant = calcul(d).cote; d.cote = {...d.cote, depart:(+d.cote.depart || 0) + (v - avant)}; });
+  else if(a === 'virer') fenetreVirement();
+  else if(a === 'vir'){ const x = (D.virements || []).find(y => y.id === b.dataset.id); if(x) fenetreVirement(x); }
   else if(a === 'reg-ep') fenetreNombre('Mis de côté chaque mois', D.epargne, (d, v) => { d.epargne = v; });
   else if(a === 'reg-ver') fenetreNombre(`Je me verse en ${nomMois(m)}`, versement(D, m).v, (d, v) => { d.versements[m] = v; });
   else if(a === 'ver'){ const v = nombre($('#ver-in').value); if(v == null || v < 0){ $('#ver-in').focus(); return; } D = lire(); D.versements[m] = Math.round(v * 100) / 100; ecrire(D); render(); }
 });
 // Si l'accueil de Mon quotidien note quelque chose, on se redessine
-window.addEventListener('storage', e => { if(e.key === CLE) render(); });
+window.addEventListener('storage', e => { if(e.key === CLE || e.key === 'backstage_scenes_v1') render(); });
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') render(); });
 // Mon quotidien : toucher l'onglet ramène en haut ; et l'accueil peut ouvrir la fenêtre − / +
 window.quotidienAccueil = () => { const d = $('#pop'); if(d.open) d.close(); render(); window.scrollTo(0, 0); };
-window.quotidienThunes = {calcul:() => calcul(lire())};
+window.quotidienThunes = {calcul:() => calcul(lire())};   // l'accueil de Mon quotidien lit la cagnotte ici (un seul calcul)
 render();
 </script>
 </body>

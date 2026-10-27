@@ -1452,17 +1452,22 @@
   .jc-b button{background:var(--accent);color:var(--on-accent)}
   .jc-b svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   /* Le mois */
-  .tb-mois{flex-direction:row !important;align-items:stretch;gap:10px}
-  .tb-m-g{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  /* Carte du mois : titre + 4 chiffres + une ligne « belles · sympas · nulles » (comme les autres stats) */
+  .tb-mois{justify-content:space-between}
   .tb-mois .tb-c{align-items:center;text-align:center}
-  .tb-mois .tb-c > span{order:-1;font-size:11.5px !important;font-weight:800 !important;color:var(--text) !important;margin-bottom:3px}
-  .tb-qual-v{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;padding:0 4px 0 12px;min-width:34px;border-left:1px solid var(--border)}
-  .tb-qual-v > span{font-family:var(--display);font-size:17px;font-weight:800;line-height:1.1;text-align:center;white-space:nowrap}
-  .tb-qual-v i{font-style:normal;color:var(--accent);margin-left:6px;display:none}
-  .tb-mois.ouvert .tb-qual-v i{display:inline}
+  .tb-mois .tb-c span{font-size:11px;font-weight:600;color:var(--text-dim)}
+  .tb-mois .tb-c i{font-size:11px;font-family:var(--body);font-weight:700}
+  .tb-mois.ouvert .tb-c span{display:none}
+  .tb-vs{pointer-events:none}
+  .tb-mois.ouvert .tb-vs{background:var(--accent);color:var(--bg)}
+  .tb-qual-l{display:flex;justify-content:center;gap:14px;font-size:11.5px;font-weight:600;color:var(--text-dim);white-space:nowrap}
+  .tb-q::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--qc);margin-right:5px;vertical-align:1px}
+  .tb-q b{color:var(--qc);font-family:var(--display);font-weight:800;font-size:13px}
+  .tb-q i{font-style:normal;color:var(--accent);font-weight:700;display:none}
+  .tb-mois.ouvert .tb-q i{display:inline}
   .tb-chiffres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 6px;flex:1;align-content:center}
   .tb-c{display:flex;flex-direction:column;min-width:0}
-  .tb-c b{font-family:var(--display);font-size:21px;font-weight:800;line-height:1.1;white-space:nowrap}
+  .tb-c b{font-family:var(--display);font-size:22px;font-weight:800;line-height:1.1;white-space:nowrap}
   .tb-mois{gap:10px}
   .tb-c span{font-size:11px;font-weight:600;color:var(--text-dim)}
   .tb-c i{font-style:normal;font-family:var(--display);font-size:21px;font-weight:800;line-height:1.1;color:var(--accent);white-space:nowrap;display:none}
@@ -5174,20 +5179,21 @@ function renderHomeWeekSummary(){
   // Couleur du chiffre du mois : mieux que le mois précédent au même stade → vert ; à peu près pareil → orange ; moins bien → rouge
   // (« à peu près » : moins de 10 % d'écart, et au moins 1)
   const allure = (cur, prev) => { const ecart = cur - prev, marge = Math.max(1, Math.abs(prev) * .1); return ecart >= marge ? 'var(--s2)' : ecart <= -marge ? 'var(--s0)' : 'var(--s1)'; };
-  const c = (val, lab, prev, cur, pv) => `<div class="tb-c"><span>${lab}</span><b style="color:${allure(cur, pv)}">${val}</b><i>${prev}</i></div>`;
-  const q = (n, p, col) => `<span style="color:${col}">${n}<i>${p}</i></span>`;
+  // Même mise en page que les autres stats : un titre en haut, les 4 chiffres (libellé dessous), puis la qualité des plateaux en une ligne.
+  // Toucher : sous chaque chiffre, celui du mois précédent au même stade (à la place du libellé)
+  const c = (val, lab, prev, cur, pv) => `<div class="tb-c"><b style="color:${allure(cur, pv)}">${val}</b><span>${lab}</span><i>${prev}</i></div>`;
+  const q = (n, p, col, lab) => `<span class="tb-q" style="--qc:${col}"><b>${n}</b> ${lab}<i> · ${p}</i></span>`;
   wrap.innerHTML = `
     <div class="tb-tuile tb-mois" id="week-summary-card" role="button" onclick="toggleMonthComparison()" aria-label="${monthName} : toucher pour comparer avec ${prevMonthName}">
-      <div class="tb-m-g">
-        <div class="tb-chiffres">
-          ${c(sceneCount, sceneCount > 1 ? 'scènes' : 'scène', prevScenes.length, sceneCount, prevScenes.length)}
-          ${c(sign + Math.round(netMoney) + '€', 'bénéfice', prevSign + Math.round(prevNet) + '€', netMoney, prevNet)}
-          ${c(tested, tested > 1 ? 'testées' : 'testée', prevTested, tested, prevTested)}
-          ${c(validated, validated > 1 ? 'validées' : 'validée', prevValidated, validated, prevValidated)}
-        </div>
+      <div class="tb-titre"><b>${monthName}</b><span class="tb-per tb-vs">vs ${prevMonthName.toLowerCase()}</span></div>
+      <div class="tb-chiffres">
+        ${c(sceneCount, sceneCount > 1 ? 'scènes' : 'scène', prevScenes.length, sceneCount, prevScenes.length)}
+        ${c(sign + Math.round(netMoney) + '€', 'bénéfice', prevSign + Math.round(prevNet) + '€', netMoney, prevNet)}
+        ${c(tested, tested > 1 ? 'testées' : 'testée', prevTested, tested, prevTested)}
+        ${c(validated, validated > 1 ? 'validées' : 'validée', prevValidated, validated, prevValidated)}
       </div>
-      <div class="tb-qual-v" aria-label="Plateaux belles, sympas, nulles">
-        ${q(belles, prevQuality.belles, 'var(--s2)')}${q(sympas, prevQuality.sympas, 'var(--s1)')}${q(nulles, prevQuality.nulles, 'var(--s0)')}
+      <div class="tb-qual-l" aria-label="Plateaux : belles, sympas, nulles">
+        ${q(belles, prevQuality.belles, 'var(--s2)', belles > 1 ? 'belles' : 'belle')}${q(sympas, prevQuality.sympas, 'var(--s1)', sympas > 1 ? 'sympas' : 'sympa')}${q(nulles, prevQuality.nulles, 'var(--s0)', nulles > 1 ? 'nulles' : 'nulle')}
       </div>
     </div>
   `;

@@ -50,6 +50,13 @@ h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
 :root{--plus:#2F7A4A;--moins:#B84A3E}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--plus:#7CC992;--moins:#E58A84}}
 :root[data-theme="dark"]{--plus:#7CC992;--moins:#E58A84}
+/* une couleur par carte de charges fixes */
+:root{--k0:#C26A12;--k1:#2F7A4A;--k2:#7B5CD6;--k3:#2F4C78;--k4:#B84A3E;--k5:#1F7A6A;--k6:#A3477F;--k7:#8A6D1F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k0:#F0A648;--k1:#7CC992;--k2:#A58CF0;--k3:#8FB0E3;--k4:#E58A84;--k5:#5CCBB7;--k6:#E48CC4;--k7:#D9BC62}}
+:root[data-theme="dark"]{--k0:#F0A648;--k1:#7CC992;--k2:#A58CF0;--k3:#8FB0E3;--k4:#E58A84;--k5:#5CCBB7;--k6:#E48CC4;--k7:#D9BC62}
+.carte-c.ch{background:color-mix(in srgb,var(--k) 17%,var(--sunk))}
+.carte-c.ch small,.carte-c.ch b{color:var(--k)}
+.carte-c.ch .ch-l button{border-bottom:1px solid color-mix(in srgb,var(--k) 22%,transparent)}
 main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;flex-direction:column;gap:12px}
 .tete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
 .tete h1{font-size:clamp(26px,7vw,38px);font-weight:800;letter-spacing:-.025em}
@@ -151,6 +158,7 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .it .n{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it .m{font-weight:800;white-space:nowrap}
 .it .m.plus{color:var(--plus)} .it .m.moins{color:var(--ink)}
+.it.ajl .m,.it.ajl .n{color:var(--muted)}
 .ajout{border:1.5px dashed var(--line);border-radius:12px;background:none;color:var(--denim);font-weight:700;padding:11px}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .chif{display:flex;flex-direction:column;gap:2px}
@@ -228,14 +236,19 @@ const nbJours = m => new Date(+m.slice(0, 4), +m.slice(5), 0).getDate();
 // Le bilan d'un mois (sans le côté) : jusqu'au jour j inclus
 function bilanMois(d, m, j, sc){
   const ver = versement(d, m), charges = d.charges.reduce((s, c) => s + (+c.montant || 0), 0), ep = +d.epargne || 0, nbJ = nbJours(m);
-  const budget = ver.v - charges - ep, parJour = budget / nbJ;
+  const budget = ver.v - charges - ep;
+  // Palier : quand tu changes ton versement, tes charges ou ton épargne en cours de mois, ce qui est déjà gagné ne bouge pas :
+  // le reste du budget est réparti sur les jours qui restent (c'est le « par jour » qui change, pas la cagnotte).
+  const p = d.paliers && d.paliers[m], reste = p ? nbJ - p.j : 0;
+  const parJour = p ? (reste > 0 ? (budget - p.acquis) / reste : 0) : budget / nbJ;
+  const acquis = x => !p ? parJour * x : x >= p.j ? (reste > 0 ? p.acquis + parJour * (x - p.j) : budget) : p.acquis * x / Math.max(1, p.j);
   const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m);
   const depenses = -mv.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mv.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
   const scM = sc.filter(x => x.date.slice(0, 7) === m), depScenes = scM.reduce((s, x) => s + (+x.depenses || 0), 0);
   const virs = (d.virements || []).filter(x => x.d.slice(0, 7) === m), vir = virs.reduce((s, x) => s + x.m, 0);
   const ajs = (d.ajustements || []).filter(x => x.d.slice(0, 7) === m), aj = ajs.reduce((s, x) => s + x.m, 0);   // « je réajuste ma cagnotte »
-  const brute = parJour * j - depenses + rentrees - depScenes + vir + aj;
-  return {ver, charges, ep, budget, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, ajs, brute, finBrute:brute + parJour * (nbJ - j)};
+  const brute = acquis(j) - depenses + rentrees - depScenes + vir + aj;
+  return {ver, charges, ep, budget, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, ajs, brute, acq:acquis(j), finBrute:brute + acquis(nbJ) - acquis(j)};
 }
 function calcul(d, jour = new Date()){
   const m = moisDe(jour), j = jour.getDate(), sc = scenes();
@@ -253,7 +266,12 @@ function calcul(d, jour = new Date()){
   const coteNet = total - prisAvant - priseCote;
   // Le stand-up : tout ce que les scènes ont rapporté, moins ce que tu as viré dans la cagnotte
   const gainsSU = sc.reduce((s, x) => s + (+x.gains || 0), 0), viresSU = (d.virements || []).reduce((s, x) => s + x.m, 0);
-  return {m, j, ...b, priseCote, cagnotte, finMois:cagnotte + b.parJour * (b.nbJ - j), cote:coteNet, coteMois:+d.epargne || 0, standup:gainsSU - viresSU, gainsSU, viresSU};
+  return {m, j, ...b, priseCote, cagnotte, finMois:cagnotte + b.finBrute - b.brute, cote:coteNet, coteMois:+d.epargne || 0, standup:gainsSU - viresSU, gainsSU, viresSU};
+}
+// À appeler AVANT de changer versement, charges ou épargne : on fige ce qui est déjà gagné ce mois-ci (jusqu'à aujourd'hui inclus)
+function palier(d, jour = new Date()){
+  const m = moisDe(jour), j = jour.getDate(), b = bilanMois(d, m, j, []);
+  d.paliers = {...(d.paliers || {}), [m]:{j, acquis:Math.round(b.acq * 100) / 100}};
 }
 let D = lire();
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
@@ -262,11 +280,10 @@ const pointsH = n => n > 1 ? `<div class="pts" aria-hidden="true">${Array.from({
 function tousMouvements(c){
   return [...c.mv.map(x => ({...x, lib:libelle(D, x)})),
     ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), lib:'🎤 ' + (x.nom || 'Scène'), scene:true})),
-    ...c.virs.map(x => ({...x, lib:'↪ Virement du stand-up', vir:true})),
-    ...c.ajs.map(x => ({...x, lib:'↕ Réajustement', aj:true}))]
+    ...c.virs.map(x => ({...x, lib:'↪ Virement du stand-up', vir:true}))]   // (les réajustements ne sont pas des mouvements : ils n'apparaissent pas ici)
     .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
 }
-const ligneMv = x => `<button type="button" class="it${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.aj ? 'aj' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.lib)}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`;
+const ligneMv = x => `<button type="button" class="it${x.scene ? ' ro' : ''}${x.aj || x.ajc ? ' ajl' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.aj ? 'aj' : x.ajc ? 'ajc' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.lib)}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`;
 function render(){
   D = lire();
   try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && (!brut.cote || !brut.categories || !brut.catCharges)) ecrire(D); }catch(e){}
@@ -306,7 +323,7 @@ function render(){
       </div>${pointsH(catsTri.length + 1)}</div>
       <div class="carre"><div class="car" data-car="charges">
         <div class="t carte-c info"><small>Charges fixes</small><b>${eur(c.charges, false)}</b><span>par mois · ${plur(D.charges.length, 'charge', 'charges')}</span><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
-        ${chCat.map(g => `<div class="t carte-c ch"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
+        ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${i % 8})"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
       </div>${pointsH(chCat.length + 1)}</div>
     </section>
     <section class="t">
@@ -393,6 +410,7 @@ function fenetreTousMouvements(){
     dlg.close();
     const x = b.dataset.a === 'mv' ? D.mouvements.find(y => y.id === b.dataset.id) : null;
     if(x) fenetreMouvement(Math.sign(x.m) || -1, x);
+    else if(b.dataset.a === 'aj' || b.dataset.a === 'ajc') annulerAjustement(b.dataset.a, b.dataset.id);
     else if(b.dataset.a === 'vir'){ const v = (D.virements || []).find(y => y.id === b.dataset.id); if(v) fenetreVirement(v); }
   });
 }
@@ -435,10 +453,11 @@ function fenetreCharge(x){
     const b = e.target.closest('[data-f]'); if(!b) return;
     if(b.dataset.f === 'non'){ dlg.close(); return; }
     D = lire();
-    if(b.dataset.f === 'sup'){ D.charges = D.charges.filter(c => c.id !== x.id); ecrire(D); dlg.close(); render(); return; }
+    if(b.dataset.f === 'sup'){ palier(D); D.charges = D.charges.filter(c => c.id !== x.id); ecrire(D); dlg.close(); render(); return; }
     const n = f.n.value.trim(), v = nombre(f.m.value);
     if(!n){ f.n.focus(); return; } if(v == null || v < 0){ f.m.focus(); return; }
     const c = {id:x ? x.id : uid(), nom:n, montant:Math.round(v * 100) / 100, cat};
+    if(!x || c.montant !== +x.montant) palier(D);
     D.charges = x ? D.charges.map(y => y.id === x.id ? c : y) : [...D.charges, c];
     ecrire(D); dlg.close(); render();
   });
@@ -449,23 +468,31 @@ function fenetreNombre(titre, val, poser, negatif){
   (e, dlg) => { const b = e.target.closest('[data-f]'); if(!b) return; if(b.dataset.f === 'non'){ dlg.close(); return; }
     const v = nombre(String(dlg.querySelector('form').m.value).replace('−', '-')); if(v == null || (v < 0 && !negatif)) return; D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
 }
+// Annuler un réajustement (de la cagnotte « aj », ou du côté « ajc ») depuis l'historique
+function annulerAjustement(a, id){
+  D = lire(); const l = a === 'aj' ? D.ajustements : (D.ajCote || []), x = l.find(y => y.id === id); if(!x) return;
+  if(!confirm(`Annuler ce réajustement (${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}) ?`)) return;
+  if(a === 'aj') D.ajustements = l.filter(y => y.id !== id);
+  else { D.ajCote = l.filter(y => y.id !== id); D.cote = {...D.cote, depart:(+D.cote.depart || 0) - x.m}; }
+  ecrire(D); render(); toast('Réajustement annulé');
+}
 $('#app').addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if(!b || !b.dataset.a) return;
   const a = b.dataset.a, m = moisDe(new Date());
   if(a === 'tous-mv'){ fenetreTousMouvements(); return; }
-  if(a === 'ajuster'){ fenetreNombre('Ta cagnotte aujourd’hui', Math.round(calcul(lire()).cagnotte * 100) / 100, (d, v) => { const diff = Math.round((v - calcul(d).cagnotte) * 100) / 100; if(diff) d.ajustements = [...(d.ajustements || []), {id:uid(), d:iso(new Date()), m:diff, t:Date.now()}]; }, true); return; }
-  if(a === 'aj'){ const x = (D.ajustements || []).find(y => y.id === b.dataset.id); if(x && confirm(`Annuler ce réajustement de ${eur(x.m)} ?`)){ D = lire(); D.ajustements = D.ajustements.filter(y => y.id !== x.id); ecrire(D); render(); } return; }
+  if(a === 'ajuster'){ fenetreNombre('Ta cagnotte aujourd’hui', Math.round(calcul(lire()).cagnotte * 100) / 100, (d, v) => { const diff = Math.round((v - calcul(d).cagnotte) * 100) / 100; if(diff) d.ajustements = [...(d.ajustements || []), {id:uid(), d:iso(new Date()), m:diff, v, t:Date.now()}]; }, true); return; }
+  if(a === 'aj' || a === 'ajc'){ annulerAjustement(a, b.dataset.id); return; }
   if(a === 'moins') fenetreMouvement(-1);
   else if(a === 'plus') fenetreMouvement(1);
   else if(a === 'mv'){ const x = D.mouvements.find(y => y.id === b.dataset.id); if(x) fenetreMouvement(Math.sign(x.m) || -1, x); }
   else if(a === 'charge') fenetreCharge(b.dataset.id ? D.charges.find(y => y.id === b.dataset.id) : null);
-  else if(a === 'cote') fenetreNombre('Ce que tu as de côté aujourd’hui', Math.round(calcul(lire()).cote * 100) / 100, (d, v) => { const avant = calcul(d).cote; d.cote = {...d.cote, depart:(+d.cote.depart || 0) + (v - avant)}; });
+  else if(a === 'cote') fenetreNombre('Ce que tu as de côté aujourd’hui', Math.round(calcul(lire()).cote * 100) / 100, (d, v) => { const diff = Math.round((v - calcul(d).cote) * 100) / 100; if(!diff) return; d.cote = {...d.cote, depart:(+d.cote.depart || 0) + diff}; d.ajCote = [...(d.ajCote || []), {id:uid(), d:iso(new Date()), m:diff, v, t:Date.now()}]; });
   else if(a === 'virer') fenetreVirement();
   else if(a === 'cat') fenetreCategorie(b.dataset.id ? D.categories.find(y => y.id === b.dataset.id) : null);
   else if(a === 'vir'){ const x = (D.virements || []).find(y => y.id === b.dataset.id); if(x) fenetreVirement(x); }
-  else if(a === 'reg-ep') fenetreNombre('Mis de côté chaque mois', D.epargne, (d, v) => { d.epargne = v; });
-  else if(a === 'reg-ver') fenetreNombre(`Je me verse en ${nomMois(m)}`, versement(D, m).v, (d, v) => { d.versements[m] = v; });
-  else if(a === 'ver'){ const v = nombre($('#ver-in').value); if(v == null || v < 0){ $('#ver-in').focus(); return; } D = lire(); D.versements[m] = Math.round(v * 100) / 100; ecrire(D); render(); }
+  else if(a === 'reg-ep') fenetreNombre('Mis de côté chaque mois', D.epargne, (d, v) => { if(v !== (+d.epargne || 0)){ palier(d); d.epargne = v; } });
+  else if(a === 'reg-ver') fenetreNombre(`Je me verse en ${nomMois(m)}`, versement(D, m).v, (d, v) => { if(v !== versement(d, m).v || !versement(d, m).connu){ palier(d); d.versements[m] = v; } });
+  else if(a === 'ver'){ const v = nombre($('#ver-in').value); if(v == null || v < 0){ $('#ver-in').focus(); return; } D = lire(); palier(D); D.versements[m] = Math.round(v * 100) / 100; ecrire(D); render(); }
 });
 // Si l'accueil de Mon quotidien note quelque chose, on se redessine
 window.addEventListener('storage', e => { if(e.key === CLE || e.key === 'backstage_scenes_v1') render(); });

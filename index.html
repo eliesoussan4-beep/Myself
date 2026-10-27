@@ -418,7 +418,8 @@ dialog.popup[open]{animation:popin .18s ease}
 .slide.apercu{--sc:var(--c);background:var(--sunk);padding:12px 14px;gap:6px;justify-content:space-between;cursor:pointer;border:1px dashed color-mix(in srgb,var(--c) 45%,transparent)}
 .ap-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ap-j{font-family:var(--display);font-size:20px;font-weight:800;color:var(--c)}
-.ap-d{font-size:12px;font-weight:600;color:var(--muted)}
+.ap-d{font-size:12px;font-weight:600;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-j{white-space:nowrap}
 .ap-l{display:flex;flex-direction:column;gap:4px}
 .ap-l div{display:flex;gap:8px;font-size:14px;color:var(--muted);min-width:0}
 .ap-l b{min-width:36px;font-size:12.5px;color:var(--ink)}
@@ -591,6 +592,13 @@ dialog h2:focus{outline:none}
 .ml-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ml b{font-size:13px;color:var(--sc)}
 .ml-r{font-style:normal;font-size:12px;font-weight:700;color:var(--warn);white-space:nowrap}
+/* Agenda : une case à cocher devant chaque tâche (pas devant les événements) */
+.ml-o{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;color:inherit;font:inherit;padding:0;text-align:left}
+.ml .coche{width:24px;height:24px;border-radius:8px;border:2px solid var(--sc);margin:-4px 0;color:var(--on-denim)}
+.ml.faite .coche{background:var(--sc)}
+.ml.faite .ml-t{text-decoration:line-through;color:var(--muted);font-weight:500}
+.ml-ev{flex:none;width:24px;display:flex;justify-content:center}
+.ml-ev::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sc)}
 
 /* ---------- Retours (notes de modifs, temporaire) ---------- */
 #retour-btn{position:fixed;right:14px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);z-index:9;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:0;opacity:.94}
@@ -1143,10 +1151,10 @@ async function lireThunes(){
 }
 const eurT = n => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
 function carteThunes(t){
-  const corps = t ? `<b class="${t.cagnotte < 0 ? 'neg' : ''}">${eurT(t.cagnotte)}</b><span>${t.parJour >= 0 ? '+' : ''}${eurT(t.parJour)} / jour${t.priseCote > 0 ? ` · ${Math.round(t.priseCote)} € pris sur le côté` : ''}${t.connu ? '' : ' · versement ?'}</span>`
-    : `<b>—</b><span>Touche pour régler ta cagnotte</span>`;
+  // Juste le chiffre (le détail est dans Thunes)
+  const corps = t ? `<b class="${t.cagnotte < 0 ? 'neg' : ''}">${eurT(t.cagnotte)}</b>` : `<b>—</b>`;
   return `<div class="cag-h" data-aller="thunes" data-action="ouvrir"><button type="button" class="cag-b moins" data-thunes="-1" aria-label="Noter une dépense">−</button>
-    <button type="button" class="cag-c" data-aller="thunes" data-action="ouvrir" aria-label="Ouvrir Thunes"><small>Cagnotte</small>${corps}</button>
+    <button type="button" class="cag-c" data-aller="thunes" data-action="ouvrir" aria-label="Cagnotte : ouvrir Thunes">${corps}</button>
     <button type="button" class="cag-b plus" data-thunes="1" aria-label="Noter une rentrée d’argent">+</button></div>`;
 }
 // − / + : une petite fenêtre au milieu. Dépense : le montant, une catégorie (celles de Thunes), et préciser si tu veux.
@@ -1420,11 +1428,14 @@ async function lireBackstage(){
   const toutes = w.loadScenes(), plateaux = w.loadPlateaux();
   if(!toutes.length && !plateaux.length && !(await lireScenesAgenda(1, 0)).length) return null;
   const jour = new Date(); jour.setHours(0, 0, 0, 0);
-  let plats = [], fiches = [];
+  const demainJ = new Date(jour); demainJ.setDate(jour.getDate() + 1);
+  let plats = [], platsDemain = [], fiches = [];
   try{
     let ville = 'Paris'; try{ ville = localStorage.getItem('backstage_plateaux_city_v1') || 'Paris'; }catch(e){}   // la ville choisie dans Backstage
-    plats = w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === ville && w.isPlateauComplete(p) && w.doesPlateauOccur(p, jour)), jour.getDay())
+    const platsDu = j => w.sortByEffectiveTime(plateaux.filter(p => (p.city || 'Paris') === ville && w.isPlateauComplete(p) && w.doesPlateauOccur(p, j)), j.getDay())
       .map(({p, slot}) => ({nom:p.name, heure:(slot && w.formatPlateauTime(slot.time)) || '', type:slot && slot.type != null ? slot.type : null, adresse:p.address || '', instagram:p.instagram || ''}));
+    plats = platsDu(jour);
+    try{ platsDemain = platsDu(demainJ); }catch(e){ console.warn(e); }   // pour la carte « Demain » au bout des plateaux
     // pour les scènes de l'agenda : l'adresse et l'Instagram du plateau du même nom (même s'il ne joue pas ce jour-là)
     fiches = plateaux.map(p => ({nom:p.name || '', adresse:p.address || '', instagram:p.instagram || '', type:null}));
   }catch(e){ console.warn(e); }
@@ -1432,9 +1443,9 @@ async function lireBackstage(){
   const scenes = toutes.filter(s => s.date && s.date.slice(0, 7) === mois);
   const net = scenes.reduce((a, s) => a + ((s.gains || 0) - (s.depenses || 0)), 0);
   let etoiles = null; try{ etoiles = w.computeStarRating().stars; }catch(e){}
-  let agenda = []; try{ agenda = await lireScenesAgenda(1, 0); }catch(e){}
+  let agenda = [], agendaDemain = []; try{ agenda = await lireScenesAgenda(1, 0); agendaDemain = await lireScenesAgenda(0, 1); }catch(e){}
   let notion = []; try{ notion = typeof w.quotidienNotion === 'function' ? w.quotidienNotion() : []; }catch(e){}
-  return {plats, fiches, agenda, nb:scenes.length, net, etoiles, notion};
+  return {plats, fiches, agenda, nb:scenes.length, net, etoiles, notion, demain:{plats:platsDemain, agenda:agendaDemain}};
 }
 // Scènes prévues dans l'Organisation (catégorie « Scène » ou 🎤), sur une période
 const SCENE_RE = /sc[eè]ne/i;   // pas « Stand-up » (écriture…) : seulement les scènes
@@ -1453,6 +1464,18 @@ async function lireScenesAgenda(avant, apres){
   });
   return r || [];
 }
+let jourBS = 0;   // 0 : plateaux d'aujourd'hui, 1 : ceux de demain (carte Stand-up de l'accueil)
+function basculerBS(j){
+  jourBS = j;
+  const el = $('[data-bloc="backstage"]'), app = APPS.find(a => a.id === 'backstage');
+  if(!el || !app) return;
+  delete positions['backstage0'];
+  el.innerHTML = carte(app, '', blocBackstage(dernierBS)); brancherSlides(el);
+  const s = el.querySelector('.pl-col .slides'); if(!s) return;
+  // Demain : on arrive sur le premier plateau (« Aujourd'hui » juste à gauche) ; retour : sur le dernier d'aujourd'hui
+  s.scrollLeft = j ? s.clientWidth + 10 : Math.max(0, s.scrollWidth - 2 * s.clientWidth - 10);
+  s.dispatchEvent(new Event('scroll'));
+}
 let filtrePl = (() => { try{ return localStorage.getItem('quotidien-filtre-plateaux') || ''; }catch(e){ return ''; } })();
 let dernierBS = null;
 // Boutons Maps et Instagram d'un plateau (s'ouvrent dans l'app correspondante)
@@ -1468,14 +1491,27 @@ function blocBackstage(d){
   if(!d) return `<div class="bande">${btns}<div class="bande-car"><p class="vide">Pas encore de scènes ni de plateaux.</p></div></div>`;
   // Une diapo par scène du jour : d'abord celles de ton agenda (là où tu joues), puis les plateaux de Backstage
   const memes = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
-  const slides = [
-    ...d.agenda.map(a => { const p = d.plats.find(x => memes(x.nom, a.titre)) || (d.fiches || []).find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : null, adresse:p ? p.adresse : '', instagram:p ? p.instagram : '', prevu:true}; }),
-    ...d.plats.filter(p => !d.agenda.some(a => memes(a.titre, p.nom)))
+  const scenesDu = (plats, agenda) => [
+    ...agenda.map(a => { const p = plats.find(x => memes(x.nom, a.titre)) || (d.fiches || []).find(x => memes(x.nom, a.titre)); return {nom:a.titre, heure:a.heure || (p && p.heure) || '', type:p ? p.type : null, adresse:p ? p.adresse : '', instagram:p ? p.instagram : '', prevu:true}; }),
+    ...plats.filter(p => !agenda.some(a => memes(a.titre, p.nom)))
   ].filter(s => filtrePl === '' || String(s.type) === filtrePl);   // filtre par couleur (rouge, jaune, vert)
+  const dm = d.demain || {plats:[], agenda:[]};
+  const jourD = new Date(); jourD.setDate(jourD.getDate() + jourBS); const dateBS = iso(jourD);
+  const slides = jourBS ? scenesDu(dm.plats, dm.agenda) : scenesDu(d.plats, d.agenda);
+  // La carte de l'autre jour : au bout des plateaux d'aujourd'hui « Demain → », au début de ceux de demain « ← Aujourd'hui »
+  const versBS = j => {
+    const l = j ? scenesDu(dm.plats, dm.agenda) : scenesDu(d.plats, d.agenda), dj = new Date(); dj.setDate(dj.getDate() + j);
+    return `<div class="slide apercu" data-bascule-bs="${j}" role="button" aria-label="Voir les plateaux ${j ? 'de demain' : 'd’aujourd’hui'}">
+      <div class="ap-h"><span class="ap-j">${j ? 'Demain' : '← Aujourd’hui'}</span><span class="ap-d">${esc(cap(dj.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'})))}</span></div>
+      <div class="ap-l">${l.slice(0, 2).map(x => `<div><b>${esc(x.heure)}</b><span>${esc(x.nom)}</span></div>`).join('')}</div>
+      <div class="ap-pied"><span>${l.length ? plur(l.length, 'plateau', 'plateaux') : 'Pas de plateau'}</span>${j ? `<span class="ap-fl">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</span>` : ''}</div></div>`;
+  };
   const filtres = `<div class="filtres-pl" role="group" aria-label="Filtrer les plateaux">${['0', '1', '2'].map(k => `<button type="button" class="fpl t${k}${filtrePl === k ? ' on' : ''}" data-filtre-pl="${k}" aria-pressed="${filtrePl === k}" aria-label="${['Seulement les rouges', 'Seulement les jaunes', 'Seulement les verts'][+k]}"></button>`).join('')}</div>`;
-  const pl = slides.length
-    ? `<div class="slides" data-ouvrir="backstage">${slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(iso(new Date()))}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || 'Ce soir')}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}${liensPlateau(s)}</div>`).join('')}</div>${slides.length > 1 ? `<div class="points" aria-hidden="true">${slides.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`
-    : `<div class="slides"><div class="slide nav-jour"><p class="vide">${filtrePl ? 'Aucun plateau de cette couleur aujourd’hui.' : 'Pas de plateau prévu aujourd’hui.'}</p></div></div>`;
+  const quand = jourBS ? 'demain' : 'aujourd’hui';
+  const diapos = slides.length ? slides.map(s => `<div class="slide${s.type != null ? ' t' + s.type : ''}" data-aller="backstage" data-action="plateau" data-nom="${esc(s.nom)}" data-date="${esc(dateBS)}"><div class="slide-n">${esc(s.nom)}</div><div class="slide-h"><b>${esc(s.heure || (jourBS ? 'Demain soir' : 'Ce soir'))}</b>${s.prevu ? '<span class="slide-tag">🎤 Dans ton agenda</span>' : ''}</div>${s.adresse ? `<div class="slide-a">${esc(s.adresse)}</div>` : ''}${liensPlateau(s)}</div>`)
+    : [`<div class="slide nav-jour"><p class="vide">${filtrePl ? `Aucun plateau de cette couleur ${quand}.` : `Pas de plateau prévu ${quand}.`}</p></div>`];
+  const toutes = jourBS ? [versBS(0), ...diapos] : [...diapos, versBS(1)];
+  const pl = `<div class="slides" data-ouvrir="backstage">${toutes.join('')}</div>${toutes.length > 1 ? `<div class="points" aria-hidden="true">${toutes.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}`;
   // Toutes les pages Notion de Backstage : Textes, Vrac, Sujets, Notes, Impros d'abord, puis les autres (on fait glisser)
   const voulus = ['texte', 'vrac', 'sujet', 'note', 'impro'];
   const tous = d.notion || [];
@@ -1653,7 +1689,7 @@ $('#accueil').addEventListener('click', e => {
   if(ac){ const sl = ac.closest('.slides'), cible = sl && sl.querySelector(`.slide[data-cat="${CSS.escape(ac.dataset.allerCat)}"]`); if(cible) sl.scrollTo({left:cible.offsetLeft - sl.firstElementChild.offsetLeft, behavior:'smooth'}); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
   const go = e.target.closest('[data-aller]');
-  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule], a.pl-act')){
+  if(go && !e.target.closest('[data-coche], [data-choisir], [data-sale], [data-coche-co], [data-coche-item], [data-bascule], [data-bascule-bs], a.pl-act')){
     const x = go.dataset, params = {action:x.action, id:x.id || null, d:x.d || null, nom:x.nom || null, date:x.date || null};
     if(x.action === 'mois'){ ouvrirMois(); return; }
     const dessus = (x.aller === 'organisation' && ['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(x.action)) || (x.aller === 'backstage' && ['ajouterPlateau', 'noter'].includes(x.action));
@@ -1692,6 +1728,7 @@ $('#accueil').addEventListener('click', e => {
     return;
   }
   const jr = e.target.closest('[data-bascule]'); if(jr){ basculerJour(+jr.dataset.bascule); return; }
+  const jb = e.target.closest('[data-bascule-bs]'); if(jb){ basculerBS(+jb.dataset.basculeBs); return; }
   const cc = e.target.closest('[data-coche-co]'); if(cc){ cocherCourse(cc); return; }
   const ci = e.target.closest('[data-coche-item]'); if(ci){ cocherItem(ci); return; }
   const c = e.target.closest('[data-coche]'); if(c){ cocherOrganisation(c); return; }
@@ -1829,6 +1866,30 @@ function elementsDu(d){
   const retard = lateEntries(moisDonnees.tasks, d).filter(e => !isDone(e.t, e.d) && !els.includes(e.t)).map(e => ({...e.t, __retard:e.d}));
   return [...retard, ...els];
 }
+// Une ligne de l'agenda (mois ou semaine) : case à cocher pour les tâches, point pour les événements ; toucher le texte = ouvrir
+function ligneAgenda(x, d, coul, retardTxt){
+  const dr = x.__retard || d, fait = !x.__retard && isDone(x, dr);
+  const gauche = isEvent(x) ? '<span class="ml-ev" aria-hidden="true"></span>'
+    : `<button type="button" class="coche" data-ag-coche="${esc(x.id)}" data-d="${esc(dr)}"${x.__retard ? ' data-late="1"' : ''} aria-label="Cocher ${esc(x.title)}">${fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button>`;
+  return `<div class="ml${fait ? ' faite' : ''}" style="--sc:${coul(x)}">${gauche}<button type="button" class="ml-o" data-mt="${esc(x.id)}" data-md="${d}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? `<em class="ml-r">${retardTxt(x)}</em>` : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button></div>`;
+}
+// Cocher depuis l'agenda : c'est l'Organisation qui coche (mêmes règles que partout)
+async function cocherAgenda(btn){
+  const l = btn.closest('.ml'); if(!l || l.dataset.attente) return;
+  l.dataset.attente = '1';
+  const fait = !l.classList.contains('faite');
+  l.classList.toggle('faite', fait); btn.innerHTML = fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : '';
+  try{
+    const app = APPS.find(a => a.id === 'organisation'), f = creerFrame(app);
+    await f.charge;
+    let w = f.contentWindow;
+    for(let i = 0; i < 30 && !(w.document.querySelector('#app .hero, #app .ob')); i++){ await pause(150); w = f.contentWindow; }
+    w.toggleTask(btn.dataset.agCoche, btn.dataset.d, !!btn.dataset.late);
+  }catch(err){ l.classList.toggle('faite', !fait); btn.innerHTML = ''; toast('Impossible de cocher pour l’instant.'); delete l.dataset.attente; return; }
+  delete l.dataset.attente;
+  // on relit l'Organisation un peu après (une tâche en retard cochée disparaît, etc.)
+  clearTimeout(cocherAgenda.t); cocherAgenda.t = setTimeout(async () => { if($('#mois').open){ const sc = ($('#mois .sem, #mois .mliste') || {}).scrollTop || 0; await chargerMois(); dessinerMois(); const z = $('#mois .sem, #mois .mliste'); if(z) z.scrollTop = sc; } planifierAccueil(0); }, 900);
+}
 let agendaVue = (() => { try{ return localStorage.getItem('quotidien-agenda-vue') || 'mois'; }catch(e){ return 'mois'; } })(), semDecalage = 0;
 const btnVue = () => `<button type="button" class="rond petit vue-sw" data-vue aria-label="${agendaVue === 'mois' ? 'Vue de la semaine' : 'Vue du mois'}">${agendaVue === 'mois' ? svg('<path d="M4 6h16M4 12h16M4 18h16"/>', 18) : svg('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 10v10M15 10v10M4 15h16"/>', 18)}</button>`;
 function dessinerSemaine(){
@@ -1841,7 +1902,7 @@ function dessinerSemaine(){
     <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Semaine précédente">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${titre}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Semaine suivante">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button>${btnVue()}</div>
     <div class="sem">${jours.map(d => { const els = elementsDu(d), dj = parseD(d); return `<div class="sem-j${d === t0 ? ' auj' : ''}${d < t0 ? ' passe' : ''}">
       <div class="sem-h"><b>${cap(dj.toLocaleDateString('fr-FR', {weekday:'short'}))} ${dj.getDate()}</b><button type="button" class="sem-plus" data-mf="ajouter" data-md="${d}" aria-label="Ajouter le ${dj.getDate()}">${svg('<path d="M12 5v14M5 12h14"/>', 14)}</button></div>
-      ${els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" data-md="${d}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? '<em class="ml-r">en retard</em>' : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') || '<p class="hint">—</p>'}</div>`; }).join('')}</div>
+      ${els.map(x => ligneAgenda(x, d, coul, () => 'en retard')).join('') || '<p class="hint">—</p>'}</div>`; }).join('')}</div>
   </div>`;
 }
 function dessinerMois(){
@@ -1862,7 +1923,7 @@ function dessinerMois(){
     <div class="mois-h"><button type="button" class="rond petit" data-mn="-1" aria-label="Mois précédent">${svg('<path d="M15 6l-6 6 6 6"/>', 18)}</button><h2>${cap(MOIS_N[m])} ${y}</h2><button type="button" class="rond petit" data-mn="1" aria-label="Mois suivant">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</button>${btnVue()}</div>
     <div class="mgrille">${['L','M','M','J','V','S','D'].map(x => `<em>${x}</em>`).join('')}${cases}</div>
     <h3>${cap(jd.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}))}</h3>
-    <div class="mliste">${els.length ? els.map(x => `<button type="button" class="ml" data-mt="${esc(x.id)}" style="--sc:${coul(x)}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? `<em class="ml-r">en retard · ${esc(shortDate(x.__retard))}</em>` : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button>`).join('') : '<p class="hint">Rien de prévu ce jour-là.</p>'}</div>
+    <div class="mliste">${els.length ? els.map(x => ligneAgenda(x, moisJour, coul, x => 'en retard · ' + esc(shortDate(x.__retard)))).join('') : '<p class="hint">Rien de prévu ce jour-là.</p>'}</div>
     <button type="button" class="btn" data-mf="ajouter">${svg('<path d="M12 5v14M5 12h14"/>', 16)} Ajouter ce jour-là</button>
   </div>`;
 }
@@ -1878,6 +1939,7 @@ $('#mois').addEventListener('click', e => {
   if(e.target.closest('[data-vue]')){ agendaVue = agendaVue === 'mois' ? 'semaine' : 'mois'; try{ localStorage.setItem('quotidien-agenda-vue', agendaVue); }catch(_){} dessinerMois(); return; }
   const mn = e.target.closest('[data-mn]'); if(mn){ if(agendaVue === 'semaine') semDecalage += +mn.dataset.mn; else { moisDecalage += +mn.dataset.mn; moisJour = null; } dessinerMois(); return; }
   const mj = e.target.closest('[data-mj]'); if(mj){ moisJour = mj.dataset.mj; dessinerMois(); return; }
+  const ag = e.target.closest('[data-ag-coche]'); if(ag){ cocherAgenda(ag); return; }
   const mt = e.target.closest('[data-mt]'); if(mt){ const d = mt.dataset.md || moisJour; dlg.close(); superposer('organisation', {action:'tache', id:mt.dataset.mt, d}); return; }
   const mf = e.target.closest('[data-mf="ajouter"]'); if(mf){ const d = mf.dataset.md || moisJour; dlg.close(); superposer('organisation', {action:'ajouter', d}); }
 });

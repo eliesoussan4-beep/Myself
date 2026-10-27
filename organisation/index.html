@@ -249,8 +249,12 @@ dialog.ob-pop::backdrop{background:rgba(10,14,22,.5)}
 .ob-dates span.passe{opacity:.5;text-decoration:line-through}
 .ob-dates em{font-style:normal;font-size:13px;color:var(--muted)}
 .ob-remettre{position:absolute;right:12px;bottom:10px;display:flex;align-items:center;gap:4px;border:0;border-radius:99px;background:var(--c,var(--denim));color:var(--surface);font-size:12.5px;font-weight:700;padding:6px 11px;font-family:inherit}
-.ob-ev2.verso{animation:obflip .25s ease}
-@keyframes obflip{from{transform:rotateY(90deg)}to{transform:none}}
+.ob-ev2.anim > :not(.ob-titre){animation:obmonte .3s cubic-bezier(.2,.8,.2,1) both}
+.ob-ev2.anim .ob-dates span{animation:obpuce .32s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 40ms + 60ms)}
+.ob-ev2.anim .ob-remettre{animation-delay:.12s}
+@keyframes obmonte{from{opacity:0;transform:translateY(16px)}}
+@keyframes obpuce{from{opacity:0;transform:translateY(10px) scale(.85)}}
+@media (prefers-reduced-motion: reduce){.ob-ev2.anim > *,.ob-ev2.anim .ob-dates span{animation:none}}
 .task-body{flex:1;min-width:0;min-height:48px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px}
 .t-title{font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task.done .t-title{color:var(--muted);text-decoration:line-through}
@@ -1602,6 +1606,8 @@ function renderHome() {
 }
 
 /* ---------- Tableau de bord : routines, tâches par catégorie, événements (même esprit que l'accueil) ---------- */
+// Une tâche « une fois » cochée reste rayée jusqu'au soir, puis quitte les listes par catégorie (elle reste dans la Liste, « faites », et les stats)
+const rangee = (t, t0) => !t.rep && !!t.done && (t.doneAt ? iso(new Date(t.doneAt)) : (t.date || '')) < t0;
 function dashboardHTML() {
   const t0 = today();
   const pts = n => n > 1 ? `<div class="ob-points" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
@@ -1619,7 +1625,7 @@ function dashboardHTML() {
   });
   const routines = `<div class="ob-bloc ob-carre"><button type="button" class="ob-mini-plus" data-a="new-routine" aria-label="Nouvelle routine">${ic(P.plus, 16, 2.4)}</button>${rDiapos.length ? `<div class="ob-car sq" data-car="routines">${rDiapos.join('')}</div>${pts(rDiapos.length)}` : `<button type="button" class="ob-t ob-rout" data-a="new-routine"><p class="ob-vide">Pas encore de routine. Touche pour en créer une.</p></button>`}</div>`;
   // Tâches par catégorie : une diapo par catégorie (avec ses sous-catégories)
-  const estTache = t => !t.srcId && !t.fromRep && !t.info && t.kind !== 'event';   // (pas les copies d'un jour reporté d'une tâche répétée)
+  const estTache = t => !t.srcId && !t.fromRep && !t.info && t.kind !== 'event' && !rangee(t, t0);   // (pas les copies d'un jour reporté d'une tâche répétée, ni les tâches « une fois » faites avant aujourd'hui)
   const cats = topThemes().map(th => {
     const ids = [th.id, ...childrenOf(th.id).map(c => c.id)];
     const ts = S.tasks.filter(t => estTache(t) && ids.includes(t.themeId)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
@@ -1642,14 +1648,16 @@ function dashboardHTML() {
   const eDiapos = tpls.map(tpl => {
     const th = themeOf(tpl), col = th ? th.color || 'slate' : 'slate', ds = datesDe(tpl), n = ds.length, verso = U.evVerso && U.evVerso.has(tpl.id);
     const proch = ds.find(x => x.d >= t0);
-    return `<div class="ob-t ob-ev2 c-${col}${verso ? ' verso' : ''}" data-a="ev-flip" data-id="${tpl.id}" role="button" aria-label="${h(tpl.title)} : ${n} fois ce mois. Toucher pour ${verso ? 'revenir' : 'voir les dates'}">
+    const anim = U.evAnim === tpl.id ? ' anim' : '';   // l'animation ne joue qu'au moment où on touche la carte
+    return `<div class="ob-t ob-ev2 c-${col}${verso ? ' verso' : ''}${anim}" data-a="ev-flip" data-id="${tpl.id}" role="button" aria-label="${h(tpl.title)} : ${n} fois ce mois. Toucher pour ${verso ? 'revenir' : 'voir les dates'}">
       <div class="ob-titre"><b>${th ? h(th.emoji) + ' ' : ''}${h(tpl.title)}</b>${tpl.time ? `<span>${h(evWhen(tpl))}</span>` : ''}</div>
-      ${verso ? `<div class="ob-dates">${ds.map(x => `<span class="${x.d < t0 ? 'passe' : ''}">${h(cap(JC[dow(x.d)]))} ${parse(x.d).getDate()}${x.t.time ? ' · ' + h(evWhen(x.t)) : ''}</span>`).join('') || '<em>Pas prévu ce mois-ci.</em>'}</div>
+      ${verso ? `<div class="ob-dates">${ds.map((x, i) => `<span class="${x.d < t0 ? 'passe' : ''}" style="--i:${i}">${h(cap(JC[dow(x.d)]))} ${parse(x.d).getDate()}${x.t.time ? ' · ' + h(evWhen(x.t)) : ''}</span>`).join('') || '<em>Pas prévu ce mois-ci.</em>'}</div>
         <button type="button" class="ob-remettre" data-a="plan-other" data-id="${tpl.id}">${ic(P.plus, 14, 2.4)}Remettre</button>`
       : `<div class="ob-n"><b>${n}</b><span>fois en ${h(MOIS[parse(t0).getMonth()])}</span></div>
         <span class="ob-sous">${proch ? 'Prochain : ' + h(dayMonth(proch.d)) : n ? 'Tout est passé ce mois-ci' : 'Pas prévu ce mois-ci'}</span>`}
     </div>`;
   });
+  U.evAnim = null;
   const evs = `<div class="ob-bloc ob-carre">${eDiapos.length ? `<div class="ob-car sq" data-car="evs">${eDiapos.join('')}</div>${pts(eDiapos.length)}` : `<div class="ob-t"><p class="ob-vide">Pas encore d’événement à remettre. Quand tu crées un événement, coche « à garder » pour le retrouver ici.</p></div>`}</div>`;
   return `<div class="ob"><div class="ob-duo">${routines}${evs}</div>${taches}${statsHTML()}</div>`;
 }
@@ -1689,7 +1697,7 @@ function statsHTML() {
 
 // Fenêtre au milieu : toutes les catégories en liste dépliante (celle touchée ouverte) ; toucher une tâche l'ouvre
 function ouvrirCategories(ouverte) {
-  const t0 = today(), estTache = t => !t.srcId && !t.fromRep && !t.info && t.kind !== 'event';
+  const t0 = today(), estTache = t => !t.srcId && !t.fromRep && !t.info && t.kind !== 'event' && !rangee(t, t0);
   const quand = t => { const n = t.rep ? nextOcc(t, t0) : t.date; return t.rep ? repShort(t) : t.done ? 'fait ✓' : n ? (n < t0 ? 'en retard' : dayMonth(n)) : 'sans date'; };
   const groupes = topThemes().map(th => ({ th, ts: S.tasks.filter(t => estTache(t) && [th.id, ...childrenOf(th.id).map(c => c.id)].includes(t.themeId)) }));
   const orph = S.tasks.filter(t => estTache(t) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
@@ -3469,7 +3477,7 @@ const A = {
     const el = document.getElementById('day-' + tom); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
   'cats-pop': (el, c) => ouvrirCategories(c.id),
-  'ev-flip': (el, c) => { if (!U.evVerso) U.evVerso = new Set(); U.evVerso.has(c.id) ? U.evVerso.delete(c.id) : U.evVerso.add(c.id); refresh(); },
+  'ev-flip': (el, c) => { if (!U.evVerso) U.evVerso = new Set(); U.evVerso.has(c.id) ? U.evVerso.delete(c.id) : U.evVerso.add(c.id); U.evAnim = c.id; refresh(); },
   'place-on': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, c.d); if (stack.length) closeTop(); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`); },
   'open-events': () => { U.todoView = 'events'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Planning' }); },

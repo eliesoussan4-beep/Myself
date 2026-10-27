@@ -56,6 +56,7 @@ h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
 :root[data-theme="dark"]{--k0:#F0A648;--k1:#7CC992;--k2:#A58CF0;--k3:#8FB0E3;--k4:#E58A84;--k5:#5CCBB7;--k6:#E48CC4;--k7:#D9BC62}
 .carte-c.ch{background:color-mix(in srgb,var(--k) 17%,var(--sunk))}
 .carte-c.ch small,.carte-c.ch b{color:var(--k)}
+.carte-c.ch .virer{background:color-mix(in srgb,var(--k) 20%,var(--surface));color:var(--k)}
 .carte-c.ch .ch-l button{border-bottom:1px solid color-mix(in srgb,var(--k) 22%,transparent)}
 main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;flex-direction:column;gap:12px}
 .tete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
@@ -322,8 +323,8 @@ function render(){
         ${catsTri.map(k => { const v = parCat.get(k.id) || 0; return `<button type="button" class="t carte-c" data-a="cat" data-id="${k.id}"><span class="emo">${esc(k.emoji)}</span><small>${esc(k.nom)}</small><b>${eur(v, false)}</b><span>${totDep ? Math.round(v / totDep * 100) + ' % du mois' : 'ce mois'}</span></button>`; }).join('')}
       </div>${pointsH(catsTri.length + 1)}</div>
       <div class="carre"><div class="car" data-car="charges">
-        <div class="t carte-c info"><small>Charges fixes</small><b>${eur(c.charges, false)}</b><span>par mois · ${plur(D.charges.length, 'charge', 'charges')}</span><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
-        ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${i % 8})"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
+        <div class="t carte-c info ch" style="--k:var(--k0)"><small>Charges fixes</small><b>${eur(c.charges, false)}</b><span>par mois · ${plur(D.charges.length, 'charge', 'charges')}</span><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
+        ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${(i + 1) % 8})"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
       </div>${pointsH(chCat.length + 1)}</div>
     </section>
     <section class="t">

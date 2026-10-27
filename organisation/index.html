@@ -717,6 +717,9 @@ body.has-tbar .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .pick-row:last-child{border-bottom:0}
 .btn-row.trois{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .btn-row.trois .btn{padding-left:6px;padding-right:6px;font-size:14px}
+.btn-row.quatre{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:6px}
+.btn-row.quatre .btn{padding-left:6px;padding-right:6px;font-size:14px}
+.att.att-g{max-height:none;overflow:visible}
 .pl-res{display:flex;flex-direction:column;gap:8px}
 .task-wrap.big .t-title{font-size:17px;font-weight:600}
 .sub-cat{margin:10px 0 2px;padding-top:8px;border-top:1px dashed var(--line)}
@@ -1454,14 +1457,21 @@ function openDayAdd(d) {
     const rs = S.routines.slice().sort(byOrder).filter(r => routineSteps(r).some(z => !z.info.done));
     // Ce qui attend déjà : les tâches sans date et les événements gardés pour être remis
     const attente = S.tasks.filter(t => !t.rep && !t.date && !t.done && !t.info && t.kind !== 'event' && !t.srcId).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
-    // (les plateaux ne comptent pas : ils ont leur propre bouton « Plateau »)
-    const evTpl = S.tasks.filter(t => t.info && t.free && !isSceneTheme(themeOf(t))).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-    const ligne = t => { const th = themeOf(t); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="place-on" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${th ? h(th.emoji) + ' ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
+    // … les événements gardés pour être remis, et les plateaux (rangés dans leur catégorie, ex. Stand-up)
+    const evTpl = S.tasks.filter(t => t.info && t.free);
+    // Tout est rangé par catégorie (la catégorie du haut, sous-catégories comprises), dans l'ordre de tes catégories
+    const groupes = [];
+    [...attente, ...evTpl.sort((a, b) => a.title.localeCompare(b.title, 'fr'))].forEach(t => {
+      // les plateaux vont dans ta catégorie Stand-up (s'il y en a une), sinon dans leur catégorie
+      const su = t.info && isSceneTheme(themeOf(t)) ? topThemes().find(x => /stand.?up/i.test(x.name || '')) : null;
+      const th0 = themeOf(t), th = su || (th0 ? parentOf(th0) || th0 : null), k = th ? th.id : '_';
+      let g = groupes.find(y => y.k === k); if (!g) { g = { k, th, ts: [] }; groupes.push(g); } g.ts.push(t);
+    });
+    groupes.sort((a, b) => (a.th ? a.th.order || 0 : 999) - (b.th ? b.th.order || 0 : 999));
+    const ligne = t => { const th = themeOf(t), pl = t.info && isSceneTheme(th); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="${pl ? 'place-pl' : 'place-on'}" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${pl ? '🎤 ' : t.info ? '📅 ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
     return `<h2 class="sheet-title">${h(name)}</h2>
-      <div class="btn-row trois"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button></div>
-      ${attente.length ? `<h3 class="sec-sub">Tâches en attente · ${attente.length}</h3><div class="att">${attente.map(ligne).join('')}</div>` : ''}
-      ${evTpl.length ? `<h3 class="sec-sub">Événements à remettre · ${evTpl.length}</h3><div class="att">${evTpl.map(ligne).join('')}</div>` : ''}
-      ${rs.length ? `<h3 class="sec-sub">Routine</h3><div class="chips">${rs.map(r => `<button type="button" class="chip" data-a="routine-launch-on" data-id="${r.id}" data-d="${d}">${PLAY}${h(r.emoji + ' ' + r.name)}${routineTotal(r) ? `<span class="muted">${fmtMin(routineTotal(r))}</span>` : ''}</button>`).join('')}</div>` : ''}
+      <div class="btn-row quatre"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button><button type="button" class="btn" data-a="dayadd-routine" data-d="${d}">${PLAY}Routine</button></div>
+      ${groupes.map(g => `<h3 class="grp-h c-${g.th ? g.th.color || 'slate' : 'slate'}"><span class="cdot"></span>${g.th ? h(g.th.emoji + ' ' + g.th.name) : '📌 Sans catégorie'}<span class="muted">${g.ts.length}</span></h3><div class="att att-g">${g.ts.map(ligne).join('')}</div>`).join('') || '<p class="panel-note">Rien en attente : tout est déjà placé.</p>'}
       `;
   } });
   sh.kind = 'dayadd';
@@ -1625,7 +1635,9 @@ function dashboardHTML() {
   });
   const routines = `<div class="ob-bloc ob-carre"><button type="button" class="ob-mini-plus" data-a="new-routine" aria-label="Nouvelle routine">${ic(P.plus, 16, 2.4)}</button>${rDiapos.length ? `<div class="ob-car sq" data-car="routines">${rDiapos.join('')}</div>${pts(rDiapos.length)}` : `<button type="button" class="ob-t ob-rout" data-a="new-routine"><p class="ob-vide">Pas encore de routine. Touche pour en créer une.</p></button>`}</div>`;
   // Tâches par catégorie : une diapo par catégorie (avec ses sous-catégories)
-  const estTache = t => !t.srcId && !t.fromRep && !t.info && t.kind !== 'event' && !rangee(t, t0);   // (pas les copies d'un jour reporté d'une tâche répétée, ni les tâches « une fois » faites avant aujourd'hui)
+  // Juste ce qu'il reste à faire : pas les tâches « Libre » (à remettre autant de fois qu'on veut), pas les copies d'un jour,
+  // et une tâche disparaît dès qu'elle est faite (une répétée revient à sa prochaine fois)
+  const estTache = t => !t.srcId && !t.fromRep && !t.info && !t.free && t.kind !== 'event' && !rangee(t, t0) && !isDone(t, t0);
   const cats = topThemes().map(th => {
     const ids = [th.id, ...childrenOf(th.id).map(c => c.id)];
     const ts = S.tasks.filter(t => estTache(t) && ids.includes(t.themeId)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
@@ -1697,7 +1709,7 @@ function statsHTML() {
 
 // Fenêtre au milieu : toutes les catégories en liste dépliante (celle touchée ouverte) ; toucher une tâche l'ouvre
 function ouvrirCategories(ouverte) {
-  const t0 = today(), estTache = t => !t.srcId && !t.fromRep && !t.info && t.kind !== 'event' && !rangee(t, t0);
+  const t0 = today(), estTache = t => !t.srcId && !t.fromRep && !t.info && !t.free && t.kind !== 'event' && !rangee(t, t0) && !isDone(t, t0);
   const quand = t => { const n = t.rep ? nextOcc(t, t0) : t.date; return t.rep ? repShort(t) : t.done ? 'fait ✓' : n ? (n < t0 ? 'en retard' : dayMonth(n)) : 'sans date'; };
   const groupes = topThemes().map(th => ({ th, ts: S.tasks.filter(t => estTache(t) && [th.id, ...childrenOf(th.id).map(c => c.id)].includes(t.themeId)) }));
   const orph = S.tasks.filter(t => estTache(t) && (!t.themeId || !S.themes.some(th => th.id === t.themeId)));
@@ -3478,6 +3490,24 @@ const A = {
   },
   'cats-pop': (el, c) => ouvrirCategories(c.id),
   'ev-flip': (el, c) => { if (!U.evVerso) U.evVerso = new Set(); U.evVerso.has(c.id) ? U.evVerso.delete(c.id) : U.evVerso.add(c.id); U.evAnim = c.id; refresh(); },
+  'place-pl': (el, c) => {   // un plateau gardé, placé sur le jour (sans heure : la soirée)
+    const t = S.tasks.find(x => x.id === c.id); if (!t) return;
+    makeInstance(t, c.d, t.time || (t.creneaux || []).length ? {} : { creneaux: ['soir'] });
+    if (stack.length) closeTop(); refresh(); toast(`🎤 ${t.title} ${whenLabel(c.d)}`);
+  },
+  'dayadd-routine': (el, c) => {   // choisir une routine à lancer ce jour-là (ou en créer une)
+    const rs = S.routines.slice().sort(byOrder);
+    const s = openSheet({ isStatic: true, label: 'Routines', bar: '<button type="button" class="btn" data-f="cancel">Fermer</button>' });
+    s.body.innerHTML = `<h2 class="sheet-title">Routine · ${h(whenLabel(c.d))}</h2>
+      <div class="pick-list">${rs.map(r => `<button type="button" class="pick-row" data-f="r" data-v="${r.id}">${h(r.emoji + ' ' + r.name)}<span class="muted">${plural(routineSteps(r).length, 'étape', 'étapes')}${routineTotal(r) ? ' · ' + fmtMin(routineTotal(r)) : ''}</span></button>`).join('') || '<p class="panel-note">Pas encore de routine.</p>'}</div>
+      <button type="button" class="dashed-add" data-f="nouvelle">${ic(P.plus, 18, 2)}Nouvelle routine</button>`;
+    s.el.addEventListener('click', e => {
+      const b = e.target.closest('[data-f]'); if (!b) return;
+      if (b.dataset.f === 'cancel') closeTop();
+      if (b.dataset.f === 'nouvelle') { closeTop(); setTimeout(() => openRoutineForm(), 380); }
+      if (b.dataset.f === 'r') { closeTop(); if (stack.length && stack[stack.length - 1].kind === 'dayadd') closeTop(); launchRoutine(b.dataset.v, c.d); }
+    });
+  },
   'place-on': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, c.d); if (stack.length) closeTop(); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`); },
   'open-events': () => { U.todoView = 'events'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Planning' }); },

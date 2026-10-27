@@ -420,6 +420,10 @@ dialog.popup[open]{animation:popin .18s ease}
 .ap-j{font-family:var(--display);font-size:20px;font-weight:800;color:var(--c)}
 .ap-d{font-size:12px;font-weight:600;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ap-j{white-space:nowrap}
+.slide.ap-bs{justify-content:flex-start;gap:6px;overflow:hidden}
+.ap-bs .ap-j{font-size:18px}
+.ap-bs .ap-d{font-size:12.5px;font-weight:700;color:var(--c)}
+.ap-bs .ap-l div{font-size:13px}
 .ap-l{display:flex;flex-direction:column;gap:4px}
 .ap-l div{display:flex;gap:8px;font-size:14px;color:var(--muted);min-width:0}
 .ap-l b{min-width:36px;font-size:12.5px;color:var(--ink)}
@@ -587,6 +591,11 @@ dialog h2:focus{outline:none}
 .mj.sel.auj b{color:var(--on-denim)}
 .mpts{display:flex;gap:2px;height:6px}
 .mpts i{width:6px;height:6px;border-radius:50%}
+.mj{min-width:0}
+.mev{display:block;max-width:calc(100% - 4px);box-sizing:border-box;padding:1px 3px;border-radius:5px;background:var(--ec);color:var(--surface);font-size:9px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mev-n{font-size:9px;font-weight:700;line-height:1;color:var(--muted);margin-top:-2px}
+.mj.sel .mev{box-shadow:0 0 0 1px var(--on-denim)}
+.mj.sel .mev-n{color:var(--on-denim)}
 .mliste{display:flex;flex-direction:column;gap:6px;max-height:30dvh;overflow-y:auto}
 .ml{--sc:var(--muted);display:flex;align-items:center;gap:10px;border:0;border-left:4px solid var(--sc);background:var(--sunk);border-radius:10px;padding:10px 12px;color:var(--ink);text-align:left;font:600 15px/1.3 var(--body)}
 .ml-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1501,10 +1510,10 @@ function blocBackstage(d){
   // La carte de l'autre jour : au bout des plateaux d'aujourd'hui « Demain → », au début de ceux de demain « ← Aujourd'hui »
   const versBS = j => {
     const l = j ? scenesDu(dm.plats, dm.agenda) : scenesDu(d.plats, d.agenda), dj = new Date(); dj.setDate(dj.getDate() + j);
-    return `<div class="slide apercu" data-bascule-bs="${j}" role="button" aria-label="Voir les plateaux ${j ? 'de demain' : 'd’aujourd’hui'}">
-      <div class="ap-h"><span class="ap-j">${j ? 'Demain' : '← Aujourd’hui'}</span><span class="ap-d">${esc(cap(dj.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'})))}</span></div>
-      <div class="ap-l">${l.slice(0, 2).map(x => `<div><b>${esc(x.heure)}</b><span>${esc(x.nom)}</span></div>`).join('')}</div>
-      <div class="ap-pied"><span>${l.length ? plur(l.length, 'plateau', 'plateaux') : 'Pas de plateau'}</span>${j ? `<span class="ap-fl">${svg('<path d="M9 6l6 6-6 6"/>', 18)}</span>` : ''}</div></div>`;
+    // compacte (pas de pied) : le titre, le nombre, puis 2 plateaux au plus — rien ne déborde
+    return `<div class="slide apercu ap-bs" data-bascule-bs="${j}" role="button" aria-label="Voir les plateaux ${j ? 'de demain' : 'd’aujourd’hui'}">
+      <div class="ap-h"><span class="ap-j">${j ? 'Demain' : '← Aujourd’hui'}</span><span class="ap-d">${l.length ? plur(l.length, 'plateau', 'plateaux') : 'Rien'}${j ? ' ›' : ''}</span></div>
+      <div class="ap-l">${l.slice(0, 2).map(x => `<div><b>${esc(x.heure)}</b><span>${esc(x.nom)}</span></div>`).join('') || `<div><span>Pas de plateau prévu ${j ? 'demain' : 'aujourd’hui'}.</span></div>`}</div></div>`;
   };
   const filtres = `<div class="filtres-pl" role="group" aria-label="Filtrer les plateaux">${['0', '1', '2'].map(k => `<button type="button" class="fpl t${k}${filtrePl === k ? ' on' : ''}" data-filtre-pl="${k}" aria-pressed="${filtrePl === k}" aria-label="${['Seulement les rouges', 'Seulement les jaunes', 'Seulement les verts'][+k]}"></button>`).join('')}</div>`;
   const quand = jourBS ? 'demain' : 'aujourd’hui';
@@ -1916,7 +1925,9 @@ function dessinerMois(){
   for(let i = 0; i < dec; i++) cases += '<span></span>';
   for(let j = 1; j <= nb; j++){
     const d = iso(new Date(y, m, j)), els = elementsDu(d);
-    cases += `<button type="button" class="mj${d === t0 ? ' auj' : ''}${d === moisJour ? ' sel' : ''}" data-mj="${d}"><b>${j}</b><span class="mpts">${els.slice(0, 3).map(x => `<i style="background:${coul(x)}"></i>`).join('')}</span></button>`;
+    // Les événements se voient : leur nom en petite étiquette de couleur ; les tâches restent en points
+    const evs = els.filter(isEvent), tks = els.filter(x => !isEvent(x));
+    cases += `<button type="button" class="mj${d === t0 ? ' auj' : ''}${d === moisJour ? ' sel' : ''}${evs.length ? ' a-ev' : ''}" data-mj="${d}"><b>${j}</b>${evs.length ? `<span class="mev" style="--ec:${coul(evs[0])}">${esc(evs[0].title)}</span>${evs.length > 1 ? `<span class="mev-n">+${evs.length - 1}</span>` : ''}` : ''}<span class="mpts">${tks.slice(0, 3).map(x => `<i style="background:${coul(x)}"></i>`).join('')}</span></button>`;
   }
   const els = elementsDu(moisJour), jd = parseD(moisJour);
   dlg.innerHTML = `<div class="feuille mois-f"><div class="poignee" aria-hidden="true"></div>

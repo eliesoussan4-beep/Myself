@@ -163,6 +163,8 @@ button.ob-t{width:100%}
 .ob-l span{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ob-l small{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
 .ob-l.fait span{text-decoration:line-through;color:var(--muted)}
+.ob-l.prog{background:color-mix(in srgb,var(--c,var(--denim)) 30%,var(--surface));box-shadow:inset 3px 0 0 var(--c,var(--denim))}
+.ob-l.prog small{color:var(--c,var(--denim));font-weight:800}
 .ob-prio{font-style:normal;flex:none;width:16px;height:16px;border-radius:50%;background:var(--today);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .ob-evs{height:230px}
 .ob-lien{border:0;background:none;color:var(--denim);font-size:12.5px;font-weight:700;padding:0}
@@ -1617,6 +1619,8 @@ function renderHome() {
 
 /* ---------- Tableau de bord : routines, tâches par catégorie, événements (même esprit que l'accueil) ---------- */
 // Une tâche « une fois » cochée reste rayée jusqu'au soir, puis quitte les listes par catégorie (elle reste dans la Liste, « faites », et les stats)
+// Déjà programmée : une date à venir (ou aujourd'hui), ou une tâche qui se répète → une autre couleur dans les listes par catégorie
+const progr = (t, t0) => !!t.rep || (!!t.date && t.date >= t0);
 const rangee = (t, t0) => !t.rep && !!t.done && (t.doneAt ? iso(new Date(t.doneAt)) : (t.date || '')) < t0;
 function dashboardHTML() {
   const t0 = today();
@@ -1648,7 +1652,7 @@ function dashboardHTML() {
   const quand = t => { const n = t.rep ? nextOcc(t, t0) : t.date; return t.rep ? repShort(t) : t.done ? 'fait ✓' : n ? (n < t0 ? 'en retard' : dayMonth(n)) : 'sans date'; };
   const cDiapos = cats.map(({ th, ts }) => `<div class="ob-t ob-cat c-${th.color || 'slate'}" data-a="cats-pop" data-id="${th.id || '_'}" role="button">
       <div class="ob-titre"><b>${h(th.emoji + ' ' + th.name)}</b><span>${ts.length}</span></div>
-      <div class="ob-liste">${ts.map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}" data-a="edit" data-id="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('')}</div>
+      <div class="ob-liste">${ts.map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}${progr(t, t0) ? ' prog' : ''}" data-a="edit" data-id="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('')}</div>
     </div>`);
   const taches = `<div class="ob-bande ob-bande-t"><div class="ob-btns"><button type="button" class="ob-bbtn" data-a="new-task">${ic(P.plus, 20, 2)}<span>Ajouter</span></button><button type="button" class="ob-bbtn" data-a="open-todo">${ic(P.todo, 20, 1.8)}<span>Liste</span></button></div>
     <div class="ob-bloc">${cDiapos.length ? `<div class="ob-car" data-car="cats">${cDiapos.join('')}</div>${pts(cDiapos.length)}` : `<div class="ob-t ob-cat"><p class="ob-vide">Pas encore de tâche.</p></div>`}</div></div>`;
@@ -1717,7 +1721,7 @@ function ouvrirCategories(ouverte) {
   const d = document.createElement('dialog'); d.className = 'ob-pop';
   d.innerHTML = `<div class="ob-pop-in"><div class="ob-pop-h"><h2>Tâches</h2><button type="button" class="ob-pop-x" aria-label="Fermer">✕</button></div>
     <div class="ob-pop-c">${groupes.filter(g => g.ts.length || g.th.id === ouverte).map(({ th, ts }) => `<details class="ob-pr c-${th.color || 'slate'}"${th.id === ouverte ? ' open' : ''}><summary><b>${h(th.emoji + ' ' + th.name)}</b><span>${ts.length}</span>${th.id !== '_' ? `<button type="button" class="ob-pr-plus" data-new="${th.id}" aria-label="Nouvelle tâche dans ${h(th.name)}">+</button>` : ''}</summary>
-      <div class="ob-pr-l">${ts.sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr')).map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}" data-edit="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('') || '<p class="ob-vide">Rien ici.</p>'}</div></details>`).join('')}</div></div>`;
+      <div class="ob-pr-l">${ts.sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr')).map(t => `<button type="button" class="ob-l${isDone(t, t0) ? ' fait' : ''}${progr(t, t0) ? ' prog' : ''}" data-edit="${t.id}">${t.prio ? '<i class="ob-prio">!</i>' : ''}<span>${h(t.title)}</span><small>${h(quand(t))}</small></button>`).join('') || '<p class="ob-vide">Rien ici.</p>'}</div></details>`).join('')}</div></div>`;
   document.body.appendChild(d); d.showModal();
   const o = d.querySelector('details[open]'); if (o) setTimeout(() => o.scrollIntoView({ block: 'start' }), 30);
   d.addEventListener('click', e => {

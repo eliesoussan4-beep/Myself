@@ -117,6 +117,8 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .pts.cache{visibility:hidden}
 .reg-l{display:flex;flex-direction:column;gap:6px}
 .reg-l .it{background:var(--sunk)}
+.coche-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.coche-l input{width:18px;height:18px;margin:0}
 /* Octobre / Charges : le titre en haut, le chiffre en grand au milieu, les boutons dessous */
 .carte-c.tot{align-items:stretch;justify-content:space-between !important;overflow:hidden}
 .carte-c.tot > *{flex:none}
@@ -331,12 +333,12 @@ const nbJours = m => new Date(+m.slice(0, 4), +m.slice(5), 0).getDate();
 // Le bilan d'un mois (sans le côté) : jusqu'au jour j inclus
 function bilanMois(d, m, j, sc){
   const ver = versement(d, m), charges = d.charges.reduce((s, c) => s + (+c.montant || 0), 0), ep = +d.epargne || 0, nbJ = nbJours(m);
-  const budget = ver.v - charges - ep;
+  const budgetBrut = ver.v - charges - ep, budget = Math.max(0, budgetBrut);   // (versement 0, ou plus petit que charges + épargne : 0 par jour, jamais négatif)
   // Palier : quand tu changes ton versement, tes charges ou ton épargne en cours de mois, ce qui est déjà gagné ne bouge pas :
   // le reste du budget est réparti sur les jours qui restent (c'est le « par jour » qui change, pas la cagnotte).
   const p = d.paliers && d.paliers[m], reste = p ? nbJ - p.j : 0;
-  const parJour = p ? (reste > 0 ? (budget - p.acquis) / reste : 0) : budget / nbJ;
-  const acquis = x => !p ? parJour * x : x >= p.j ? (reste > 0 ? p.acquis + parJour * (x - p.j) : budget) : p.acquis * x / Math.max(1, p.j);
+  const parJour = p ? (reste > 0 ? Math.max(0, (budget - p.acquis) / reste) : 0) : budget / nbJ;
+  const acquis = x => !p ? parJour * x : x >= p.j ? p.acquis + parJour * Math.max(0, x - p.j) : p.acquis * x / Math.max(1, p.j);
   const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m);
   const mvC = mv.filter(x => !x.su);   // (une dépense payée avec la cagnotte stand-up ne touche pas la cagnotte : elle compte quand même dans les stats)
   const depenses = -mvC.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mvC.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
@@ -344,7 +346,7 @@ function bilanMois(d, m, j, sc){
   const virs = (d.virements || []).filter(x => x.d.slice(0, 7) === m), vir = virs.reduce((s, x) => s + x.m, 0);
   const ajs = (d.ajustements || []).filter(x => x.d.slice(0, 7) === m), aj = ajs.reduce((s, x) => s + x.m, 0);   // « je réajuste ma cagnotte »
   const brute = acquis(j) - depenses + rentrees - depScenes + vir + aj;
-  return {ver, charges, ep, budget, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, ajs, brute, acq:acquis(j), finBrute:brute + acquis(nbJ) - acquis(j)};
+  return {ver, charges, ep, budget, budgetBrut, parJour, nbJ, mv, depenses, rentrees, scM, depScenes, virs, vir, ajs, brute, acq:acquis(j), finBrute:brute + acquis(nbJ) - acquis(j)};
 }
 function calcul(d, jour = new Date()){
   const m = moisDe(jour), j = jour.getDate(), sc = scenes();
@@ -416,7 +418,7 @@ function render(){
     <header class="tete"><h1>${esc(cap(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h1><button type="button" class="reg" data-a="reglages" aria-label="Réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>
     <section class="duo hautes">
       <button type="button" class="t chif ac1" data-a="reg-ep"><small>Mis de côté / mois</small><b>${eur(+D.epargne || 0, false)}</b></button>
-      <button type="button" class="t chif ac2${c.ver.connu ? '' : ' manque'}" data-a="reg-ver"><small>Je me verse</small><b>${eur(c.ver.v, false)}</b>${c.ver.connu ? '' : '<span class="note">à confirmer</span>'}</button>
+      <button type="button" class="t chif ac2${c.ver.connu ? '' : ' manque'}" data-a="reg-ver"><small>Je me verse</small><b>${eur(c.ver.v, false)}</b>${!c.ver.connu ? '<span class="note">à confirmer</span>' : c.ver.v > 0 && c.budgetBrut < 0 ? '<span class="note">moins que tes charges</span>' : ''}</button>
     </section>
     <section class="duo pots2">
       <div class="carre"><div class="car" data-car="pots">
@@ -579,6 +581,33 @@ function fenetreNombre(titre, val, poser, negatif){
   (e, dlg) => { const b = e.target.closest('[data-f]'); if(!b) return; if(b.dataset.f === 'non'){ dlg.close(); return; }
     const v = nombre(String(dlg.querySelector('form').m.value).replace('−', '-')); if(v == null || (v < 0 && !negatif)) return; D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
 }
+// Mettre la cagnotte à une valeur précise (un réajustement : la différence, qu'on corrige si le calcul bouge encore)
+function poserCagnotte(d, v){
+  for(let k = 0; k < 4; k++){
+    const diff = Math.round((v - calcul(d).cagnotte) * 100) / 100; if(!diff) break;
+    d.ajustements = [...(d.ajustements || []), {id:uid(), d:iso(new Date()), m:diff, v, t:Date.now()}];
+  }
+}
+// Repartir de zéro : on garde tes catégories et tes charges, on efface le reste, et on part de ce que tu as aujourd'hui
+function fenetreZero(){
+  ouvrir(`<h2>Repartir de zéro</h2>
+    <p class="note">Ce que tu te verses ce mois-ci et ce que tu mets de côté passent à 0 : rien ne tombe dans la cagnotte d’ici la fin du mois. Tes catégories et tes charges sont gardées. Le mois prochain, tu indiqueras ce que tu te verses.</p>
+    <label>Ta cagnotte aujourd’hui<input class="in" name="c" inputmode="decimal" placeholder="0,00"></label>
+    <label>Ce que tu as de côté aujourd’hui<input class="in" name="k" inputmode="decimal" placeholder="0,00"></label>
+    <label class="coche-l"><input type="checkbox" name="mv" checked> Effacer aussi les mouvements et virements déjà notés</label>
+    <div class="btns"><button type="button" class="btn sec" data-f="non">Annuler</button><button type="button" class="btn" data-f="ok">Repartir de zéro</button></div>`,
+  (e, dlg) => {
+    const b = e.target.closest('[data-f]'); if(!b) return;
+    if(b.dataset.f === 'non'){ dlg.close(); return; }
+    const f = dlg.querySelector('form'), vc = nombre(f.c.value) || 0, vk = nombre(f.k.value) || 0, m = moisDe(new Date());
+    D = lire();
+    D.versements = {[m]:0}; D.epargne = 0; D.paliers = {}; D.ajustements = []; D.ajCote = [];
+    D.cote = {depart:Math.round(vk * 100) / 100, depuis:m};
+    if(f.mv.checked){ D.mouvements = []; D.virements = []; }
+    poserCagnotte(D, Math.round(vc * 100) / 100);
+    ecrire(D); dlg.close(); render(); toast('C’est reparti de zéro');
+  });
+}
 // Annuler un réajustement (de la cagnotte « aj », ou du côté « ajc ») depuis l'historique
 function annulerAjustement(a, id){
   D = lire(); const l = a === 'aj' ? D.ajustements : (D.ajCote || []), x = l.find(y => y.id === id); if(!x) return;
@@ -603,16 +632,17 @@ $('#app').addEventListener('click', e => {
     return;
   }
   if(a === 'reglages'){   // les réglages : raccourcis vers ce qui se règle, et la version
-    const L = [['reg-ver', 'Ce que je me verse ce mois-ci'], ['reg-ep', 'Ce que je mets de côté chaque mois'], ['ajuster', 'Réajuster la cagnotte'], ['cote', 'Réajuster le côté'], ['cat', 'Nouvelle catégorie de dépenses'], ['charge', 'Nouvelle charge fixe']];
+    const L = [['reg-ver', 'Ce que je me verse ce mois-ci'], ['reg-ep', 'Ce que je mets de côté chaque mois'], ['ajuster', 'Réajuster la cagnotte'], ['cote', 'Réajuster le côté'], ['cat', 'Nouvelle catégorie de dépenses'], ['charge', 'Nouvelle charge fixe'], ['zero', 'Repartir de zéro…']];
     ouvrir(`<h2>Réglages</h2><div class="reg-l">${L.map(([k, l]) => `<button type="button" class="it" data-r="${k}"><span class="n">${l}</span><span class="m">›</span></button>`).join('')}</div>
       <p class="pied">Thunes · version ${VERSION} · tes données sont dans la sauvegarde de Mon quotidien</p>
       <div class="btns"><button type="button" class="btn sec" data-f="non">Fermer</button></div>`,
       (e, dlg) => { if(e.target.closest('[data-f="non"]')){ dlg.close(); return; }
         const r = e.target.closest('[data-r]'); if(!r) return; dlg.close();
+        if(r.dataset.r === 'zero'){ setTimeout(fenetreZero, 60); return; }
         const cible = $('#app').querySelector(`[data-a="${r.dataset.r}"]:not([data-id])`); if(cible) setTimeout(() => cible.click(), 60); });
     return;
   }
-  if(a === 'ajuster'){ fenetreNombre('Ta cagnotte aujourd’hui', Math.round(calcul(lire()).cagnotte * 100) / 100, (d, v) => { const diff = Math.round((v - calcul(d).cagnotte) * 100) / 100; if(diff) d.ajustements = [...(d.ajustements || []), {id:uid(), d:iso(new Date()), m:diff, v, t:Date.now()}]; }, true); return; }
+  if(a === 'ajuster'){ fenetreNombre('Ta cagnotte aujourd’hui', Math.round(calcul(lire()).cagnotte * 100) / 100, (d, v) => poserCagnotte(d, v), true); return; }
   if(a === 'aj' || a === 'ajc'){ annulerAjustement(a, b.dataset.id); return; }
   if(a === 'moins') fenetreMouvement(-1);
   else if(a === 'plus') fenetreMouvement(1);

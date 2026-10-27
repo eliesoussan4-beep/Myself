@@ -129,7 +129,7 @@ h1,h2,h3,.title{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif
 [data-drag-l].drag{transition:none;position:relative;z-index:2;box-shadow:0 8px 22px rgba(0,0,0,.3)}
 .task.simple{padding-left:10px}
 /* ---------- Tableau de bord ---------- */
-.ob{display:flex;flex-direction:column;gap:12px;margin:0 0 16px}
+.ob{display:flex;flex-direction:column;gap:12px;margin:0 0 19px}
 .ob-t{background:var(--sunk);border:0;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;color:var(--ink);text-align:left;font-family:inherit;position:relative}
 button.ob-t{width:100%}
 .ob-titre{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}
@@ -1586,7 +1586,7 @@ function renderHome() {
 
   html += dashboardHTML();
   // (plus de raccourcis ronds, de boutons d'ajout ni d'agenda ici : l'agenda est sur l'accueil de Mon quotidien)
-  html += `<button type="button" class="backup-link" data-a="open-backup">Sauvegarde · version ${VERSION}</button>`;
+  // (la sauvegarde et la version sont dans le bouton réglages, en haut)
   app.innerHTML = html;
   const wk = $('.swipe', app);
   const isMonth = (S.meta.view || 'week') === 'month';
@@ -3733,6 +3733,8 @@ window.toggleTask = (id, d, late) => toggleTask(id, d, late);
 window.quotidienPret = () => !!document.querySelector('#app .ob');   // l'accueil est dessiné
 // Cocher un élément d'une liste depuis l'accueil (même règle que dans l'app)
 window.quotidienCocherItem = id => { A['item-check'](null, { id }); return true; };
+// Ajouter un élément à une liste depuis une autre app (ex. la liste « To Buy » dans Courses)
+window.quotidienAjouterItem = (listId, name) => { name = String(name || '').trim(); if (!name || !S.lists.some(l => l.id === listId)) return false; save('items', { id: uid(), listId, name, emoji: guessEmoji('items', name), note: '', done: false, createdAt: Date.now() }); refresh(); return true; };
 // Mon quotidien : ouvrir une fenêtre de l'Organisation par-dessus l'accueil (sans changer d'onglet)
 window.quotidienSuperpose = p => {
   if (!p || !['ajouter', 'tache', 'listes', 'liste-ajout', 'nouvelle-liste'].includes(p.action)) return false;

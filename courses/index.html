@@ -155,6 +155,14 @@ button.cb-tbr:first-child{border-top:0}
 .cb-tbw{min-height:0}
 .cb-tbw .cb-tobuy{flex:1;min-height:0}
 .cb-esp{visibility:hidden}
+.cb-tobuy{cursor:pointer}
+.tbp-a{display:flex;gap:8px;margin:0 0 4px}
+.tbp-in{flex:1;min-width:0;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);font:500 16px var(--body);padding:0 12px}
+.tbp-ok{flex:none;width:44px;height:44px;border-radius:12px;border:0;background:var(--denim);color:var(--on-denim);font:700 22px/1 var(--body)}
+.tbp-h{display:flex;justify-content:space-between;margin:8px 2px 2px;font-family:var(--display);font-size:15px}
+.tbp-h span{font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--muted)}
+.tbp-l{display:flex;flex-direction:column}
+.tbp-l .cb-tbr{padding:9px 2px}
 /* Historique en carte carrée */
 .cb-carre .cb-tk .cb-tk-tot{font-size:24px}
 .cb-carre .cb-tk{gap:4px}
@@ -1152,7 +1160,7 @@ function render(){
     ${mTot > 0 ? `<div class="cb-rl">${rs.slice(0, 4).map(([r, v]) => `<div class="rc-${r}"><i></i><span>${SH[r]}</span><b>${Math.round(v / mTot * 100)}%</b></div>`).join('')}</div>` : '<p class="cb-vide">Pas encore de courses ce mois-ci.</p>'}</div>`;
   // À droite de l'historique : ta liste « To Buy » de l'Organisation (celle de la carte Listes de l'accueil), à cocher
   const tb = toBuy, tbOk = tb && !tb.absente;
-  const tuileToBuy = `<div class="cb-bloc cb-tbw"><div class="cb-t cb-tobuy"><div class="cb-titre"><b>${tbOk ? esc((tb.emoji ? tb.emoji + ' ' : '') + tb.nom) : 'To Buy'}</b><span>${tbOk && !tb.simple ? tb.items.length : ''}</span></div>
+  const tuileToBuy = `<div class="cb-bloc cb-tbw"><div class="cb-t cb-tobuy" data-act="tb-pop" role="button"><div class="cb-titre"><b>${tbOk ? esc((tb.emoji ? tb.emoji + ' ' : '') + tb.nom) : 'To Buy'}</b><span>${tbOk && !tb.simple ? tb.items.length : ''}</span></div>
     <div class="cb-tbl">${!tb ? '<p class="cb-vide">…</p>' : tb.absente ? '<p class="cb-vide">Crée une liste « To Buy » dans l’Organisation : elle s’affichera ici.</p>'
       : tb.items.map(i => tb.simple ? `<div class="cb-tbr simple"><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></div>`
         : `<button type="button" class="cb-tbr" data-act="tb-coche" data-id="${esc(i.id)}"><i class="cb-box"></i><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></button>`).join('') || '<p class="cb-vide">Rien à acheter.</p>'}</div></div><div class="cb-points cb-esp" aria-hidden="true"><span></span></div></div>`;
@@ -1191,6 +1199,7 @@ $('#app').addEventListener('click', e => {
   else if(a === 'rayons') ouvrirRayons(b.dataset.r);
   else if(a === 'backup') openBackup();
   else if(a === 'tb-coche') cocherToBuy(b);
+  else if(a === 'tb-pop') ouvrirTbPop();
 });
 // Carrousel « Tous les produits » : les points suivent la diapo visible, et on garde la position
 let posProduits = 0;
@@ -1662,24 +1671,60 @@ async function chargerToBuy(){
     const tout = st => new Promise((res, rej) => { const q = db.transaction(st).objectStore(st).getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); });
     const [lists, items] = await Promise.all([tout('lists'), tout('items')]); db.close();
     const l = lists.find(x => /^\W*to\s*-?\s*buy\b/i.test(x.name || '')) || lists.find(x => /to\s*-?\s*buy/i.test(x.name || ''));
-    const nv = l ? {id:l.id, nom:l.name, emoji:l.emoji || '', simple:l.type === 'simple', items:items.filter(i => i.listId === l.id && (l.type === 'simple' || !i.done)).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))} : {absente:true};
-    const k = JSON.stringify(nv); if(k !== chargerToBuy.k){ chargerToBuy.k = k; toBuy = nv; render(); }
+    const tous = l ? items.filter(i => i.listId === l.id).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)) : [];
+    const nv = l ? {id:l.id, nom:l.name, emoji:l.emoji || '', simple:l.type === 'simple', items:tous.filter(i => l.type === 'simple' || !i.done), faits:l.type === 'simple' ? [] : tous.filter(i => i.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0))} : {absente:true};
+    const k = JSON.stringify(nv); if(k !== chargerToBuy.k){ chargerToBuy.k = k; toBuy = nv; render(); if(tbPop && tbPop.open) dessinerTbPop(); }
   }catch(e){ if(!toBuy){ toBuy = {absente:true}; render(); } }
+}
+const coque = () => { try{ const q = window.parent && window.parent !== window && window.parent.quotidien; return q || null; }catch(e){ return null; } };
+async function basculerItem(id){
+  const q = coque();
+  if(q && typeof q.cocherItemListe === 'function') return q.cocherItemListe(id);   // l'Organisation coche / décoche (et l'accueil suit)
+  const db = await ouvrirOrga(), t = db.transaction('items', 'readwrite'), st = t.objectStore('items');   // Courses ouvert seul
+  const g = st.get(id); g.onsuccess = () => { const i = g.result; if(i) st.put({...i, done:!i.done, doneAt:i.done ? null : Date.now()}); };
+  await new Promise(r => { t.oncomplete = r; t.onerror = r; }); db.close();
+}
+async function ajouterItem(listId, nom){
+  const q = coque();
+  if(q && typeof q.ajouterItemListe === 'function') return q.ajouterItemListe(listId, nom);
+  const db = await ouvrirOrga(), t = db.transaction('items', 'readwrite');
+  t.objectStore('items').put({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 7), listId, name:nom, emoji:'', note:'', done:false, createdAt:Date.now()});
+  await new Promise(r => { t.oncomplete = r; t.onerror = r; }); db.close();
 }
 async function cocherToBuy(b){
   if(b.classList.contains('fait')) return;
   b.classList.add('fait');
-  const id = b.dataset.id;
-  try{
-    const q = window.parent && window.parent !== window && window.parent.quotidien;
-    if(q && typeof q.cocherItemListe === 'function') await q.cocherItemListe(id);   // l'Organisation coche (et l'accueil suit)
-    else {   // Courses ouvert seul : on écrit directement dans la base de l'Organisation
-      const db = await ouvrirOrga(), t = db.transaction('items', 'readwrite'), st = t.objectStore('items');
-      const g = st.get(id); g.onsuccess = () => { const i = g.result; if(i) st.put({...i, done:true, doneAt:Date.now()}); };
-      await new Promise(r => { t.oncomplete = r; t.onerror = r; }); db.close();
-    }
-  }catch(e){ b.classList.remove('fait'); toast('Impossible de cocher pour l’instant.'); return; }
+  try{ await basculerItem(b.dataset.id); }catch(e){ b.classList.remove('fait'); toast('Impossible de cocher pour l’instant.'); return; }
   setTimeout(chargerToBuy, 1000);
+}
+// La fenêtre To Buy : ajouter, voir ce qui est déjà pris et le décocher
+let tbPop = null;
+function dessinerTbPop(){
+  const tb = toBuy; if(!tbPop || !tb || tb.absente) return;
+  const ligne = (i, fait) => `<button type="button" class="cb-tbr${fait ? ' fait' : ''}" data-tb="${esc(i.id)}"><i class="cb-box"></i><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></button>`;
+  tbPop.querySelector('.tbp-l').innerHTML = `<h3 class="tbp-h">À acheter<span>${tb.items.length}</span></h3>${tb.items.map(i => ligne(i, false)).join('') || '<p class="cb-vide">Rien à acheter.</p>'}
+    ${tb.faits.length ? `<h3 class="tbp-h">Déjà pris<span>${tb.faits.length}</span></h3>${tb.faits.map(i => ligne(i, true)).join('')}` : ''}`;
+}
+function ouvrirTbPop(){
+  const tb = toBuy; if(!tb || tb.absente){ toast('Crée d’abord une liste « To Buy » dans l’Organisation.'); return; }
+  const d = tbPop = document.createElement('dialog'); d.className = 'pop-co';
+  d.innerHTML = `<div class="pop-in"><div class="pop-h"><h2>${esc((tb.emoji ? tb.emoji + ' ' : '') + tb.nom)}</h2><button type="button" class="pop-x" aria-label="Fermer">✕</button></div>
+    <div class="pop-c"><form class="tbp-a"><input class="tbp-in" name="n" placeholder="Ajouter…" autocomplete="off" enterkeyhint="done"><button type="submit" class="tbp-ok" aria-label="Ajouter">+</button></form><div class="tbp-l"></div></div></div>`;
+  document.body.appendChild(d); d.showModal(); dessinerTbPop();
+  d.querySelector('form').addEventListener('submit', async e => {
+    e.preventDefault(); const inp = d.querySelector('.tbp-in'), nom = inp.value.trim(); if(!nom) return;
+    inp.value = '';
+    try{ await ajouterItem(toBuy.id, nom); toast(`${nom} ajouté`); }catch(err){ toast('Impossible d’ajouter pour l’instant.'); }
+    setTimeout(chargerToBuy, 700); inp.focus();
+  });
+  d.addEventListener('click', async e => {
+    if(e.target === d || e.target.closest('.pop-x')){ d.close(); return; }
+    const b = e.target.closest('[data-tb]'); if(!b) return;
+    b.classList.toggle('fait');
+    try{ await basculerItem(b.dataset.tb); }catch(err){ b.classList.toggle('fait'); toast('Impossible pour l’instant.'); return; }
+    setTimeout(chargerToBuy, 700);
+  });
+  d.addEventListener('close', () => { d.remove(); tbPop = null; });
 }
 chargerToBuy();
 setInterval(() => { if(!document.hidden) chargerToBuy(); }, 4000);

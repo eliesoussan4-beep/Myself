@@ -138,11 +138,11 @@ main{min-height:100dvh;box-sizing:border-box}
 .mvts .it .d{white-space:nowrap;width:50px}
 .duo.hautes .chif,.duo.pots2 .chif{min-height:74px;padding:12px 14px}
 .duo.hautes .chif b,.duo.pots2 .chif b{font-size:23px !important}
-.duo.cd{flex:1.35 1 0;min-height:130px}
+.duo.cd{flex:.9 1 0;min-height:126px}
 .duo.cd .carre{min-height:0}
 .duo.cd .car{flex:1;min-height:0}
 .duo.cd .carre .t{aspect-ratio:auto;height:auto}
-.jours{flex:.75 1 0;min-height:136px;gap:6px}
+.jours{flex:1.2 1 0;min-height:150px;gap:6px}
 /* petits écrans : tout se resserre pour tenir sans défiler */
 @media (max-height:740px){
   main{gap:8px}
@@ -161,10 +161,11 @@ main{min-height:100dvh;box-sizing:border-box}
 }
 .jours .bars{flex:1;height:auto;min-height:36px}
 /* Le carrousel des stats */
-.jours{padding:0;overflow:hidden}
-.jours .car{flex:1;min-height:0;border-radius:16px}
+/* (les points sous la carte, comme les autres carrousels) */
+.jours{display:flex;flex-direction:column;gap:6px;padding:0;min-width:0}
+.jours .car{flex:1;min-height:0;border-radius:16px;padding:0;gap:0;flex-direction:row;display:flex}
 .jours .car > .sd{display:flex;flex-direction:column;gap:6px;padding:12px 14px;box-sizing:border-box;min-height:0}
-.jours > .pts{padding-bottom:8px}
+
 .hb{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:0}
 .hb > div{display:grid;grid-template-columns:minmax(0,7em) minmax(0,1fr) auto;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
 .hb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -186,7 +187,10 @@ main{gap:10px}
 .ch-r em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--a);white-space:nowrap}
 .duo.pots2 .chif .ch-r b{white-space:nowrap;color:var(--ink)}
 .duo.pots2 .chif .ch-r b.neg{color:var(--moins)}
-.carte-c.tot .tot-m b{font-size:32px !important}
+.carte-c.tot .tot-m b{font-size:27px !important}
+.carte-c.tot{padding:10px 12px;gap:2px !important}
+.carte-c.tot .virer{padding:6px;margin-top:2px}
+.carte-c.tot .seg{margin:3px 0 1px}
 .mvts .pg{display:flex;flex-direction:column;gap:4px}
 .mini-b{display:flex;gap:6px}
 .mini{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 18px/1 var(--display);padding:0;display:flex;align-items:center;justify-content:center}
@@ -435,7 +439,7 @@ function render(){
         ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${(i + 1) % 8})"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
       </div>${pointsH(chCat.length + 1)}</div>
     </section>
-    <section class="t jours"><div class="car" data-car="stats">${statsDiapos.join('')}</div>${pointsH(statsDiapos.length)}</section>
+    <section class="jours"><div class="car t" data-car="stats">${statsDiapos.join('')}</div>${pointsH(statsDiapos.length)}</section>
 `;
   // carrousels : les points suivent, et on garde la position
   document.querySelectorAll('.car').forEach(car => {

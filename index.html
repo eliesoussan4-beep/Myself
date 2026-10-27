@@ -176,7 +176,7 @@ main{gap:12px;padding-top:8px}   /* serré : tout l’accueil tient sur un écra
 .dliste small{display:block;font-size:11.5px;font-weight:600;color:var(--today);margin-top:2px}
 .dp-h{display:flex;flex-direction:column}
 /* 1re carte de l'agenda : combien à faire + les catégories */
-.slide.resume-j{justify-content:center;align-items:center;gap:6px;text-align:center}
+.slide.resume-j{justify-content:center;align-items:center;gap:6px;text-align:center;cursor:pointer}
 .rj-n{display:flex;flex-direction:column;align-items:center;border:0;background:none;color:var(--ink);padding:0;cursor:pointer}
 .rj-n b{font-family:var(--display);font-size:40px;font-weight:800;line-height:1;color:var(--sc,var(--ink))}
 .rj-n span{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
@@ -809,7 +809,9 @@ function montrer(id, {query = '', historique = false} = {}){
   }
 }
 function construireBarre(){
-  const items = [{id:'accueil', nom:'Accueil', icone:ICONE_ACCUEIL}, ...APPS.filter(a => !a.cache)];
+  // Ordre de la barre : Backstage tout à gauche, l'Accueil au milieu, les autres apps dans l'ordre d'apps.js
+  const apps = APPS.filter(a => !a.cache).sort((a, b) => (b.id === 'backstage') - (a.id === 'backstage'));
+  const items = [...apps]; items.splice(Math.floor((apps.length + 1) / 2), 0, {id:'accueil', nom:'Accueil', icone:ICONE_ACCUEIL});
   const o = $('#onglets');
   o.style.gridTemplateColumns = `repeat(${items.length}, minmax(0, 1fr))`;
   o.classList.toggle('serre', items.length > 4);
@@ -1005,6 +1007,12 @@ async function lireOrganisation(){
     const restantes = [...lateEntries(tasks, t).map(e => ({...e, retard:true})),
       ...taches.filter(x => !isDone(x, t)).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0)).map(x => ({t:x, d:t}))];
     const faitesL = taches.filter(x => isDone(x, t)).map(x => ({t:x, d:t, fait:true}));
+    // Une tâche en retard cochée aujourd'hui reste rayée aujourd'hui (comme les autres), au lieu de disparaître
+    tasks.forEach(x => {
+      if(x.info || x.kind === 'event' || x.free || taches.includes(x)) return;
+      if(x.rep) Object.entries(x.caught || {}).forEach(([k, v]) => { if(v === t && k < t && isDone(x, k)) faitesL.push({t:x, d:k, fait:true, retard:true}); });
+      else if(x.done && x.date && x.date < t && x.doneAt && iso(new Date(x.doneAt)) === t) faitesL.push({t:x, d:x.date, fait:true, retard:true});
+    });
     // Demain : mêmes règles, sans les retards
     const dm = new Date(); dm.setDate(dm.getDate() + 1); const t1 = iso(dm), jour1 = tasks.filter(x => occursOn(x, t1));
     const demain = {d:t1, evts:jour1.filter(isEvent).sort((a, b) => cleH(a) < cleH(b) ? -1 : 1),
@@ -1057,7 +1065,7 @@ function blocOrganisation(d0){
   if(diapos.length){
     // 1re carte : combien il reste (tâches et événements ensemble) et les catégories, dans l'ordre des cartes ; toucher le chiffre ouvre le récap
     const n = d.restantes.length + d.evts.length;
-    diapos.unshift(`<div class="slide resume-j"><button type="button" class="rj-n" data-recap="${jourOrga}" aria-label="Voir tout ce qu’il y a à faire ${jourOrga ? 'demain' : 'aujourd’hui'}"><b>${n}</b><span>${n ? (n > 1 ? 'choses à faire' : 'chose à faire') : 'tout est fait 🎉'}</span></button>
+    diapos.unshift(`<div class="slide resume-j" data-recap="${jourOrga}" role="button"><button type="button" class="rj-n" data-recap="${jourOrga}" aria-label="Voir tout ce qu’il y a à faire ${jourOrga ? 'demain' : 'aujourd’hui'}"><b>${n}</b><span>${n ? (n > 1 ? 'choses à faire' : 'chose à faire') : 'tout est fait 🎉'}</span></button>
       <div class="rj-c">${ordreCats.map(c => `<button type="button" data-aller-cat="${esc(c.k)}" aria-label="Voir ${esc(c.nom)}">${esc(c.emoji)}</button>`).join('')}</div></div>`);
   }
   if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
@@ -1691,10 +1699,10 @@ async function choisirTenue(btn){
 }
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
-  const rc = e.target.closest('[data-recap]'); if(rc){ ouvrirRecapJour(+rc.dataset.recap); return; }
+  const ac = e.target.closest('[data-aller-cat]');
+  if(!ac){ const rc = e.target.closest('[data-recap]'); if(rc){ ouvrirRecapJour(+rc.dataset.recap); return; } }   // (toute la carte « choses à faire » ouvre le récap, sauf les pastilles de catégories)
   if(e.target.closest('[data-recap-co]')){ ouvrirRecapCourses(); return; }
   const th = e.target.closest('[data-thunes]'); if(th){ ouvrirMouvement(+th.dataset.thunes); return; }
-  const ac = e.target.closest('[data-aller-cat]');
   if(ac){ const sl = ac.closest('.slides'), cible = sl && sl.querySelector(`.slide[data-cat="${CSS.escape(ac.dataset.allerCat)}"]`); if(cible) sl.scrollTo({left:cible.offsetLeft - sl.firstElementChild.offsetLeft, behavior:'smooth'}); return; }
   // Aller directement au bon endroit dans l'app (tâche, vêtement, produit, plateau…)
   const go = e.target.closest('[data-aller]');
@@ -1873,14 +1881,21 @@ function elementsDu(d){
   if(d !== iso(new Date())) return els;
   // Aujourd'hui : les tâches pas faites d'un jour précédent, reportées automatiquement
   const retard = lateEntries(moisDonnees.tasks, d).filter(e => !isDone(e.t, e.d) && !els.includes(e.t)).map(e => ({...e.t, __retard:e.d}));
-  return [...retard, ...els];
+  // … et celles rattrapées aujourd'hui, qui restent rayées jusqu'à ce soir
+  const rattrapees = [];
+  moisDonnees.tasks.forEach(x => {
+    if(x.info || x.free || els.includes(x)) return;
+    if(x.rep) Object.entries(x.caught || {}).forEach(([k, v]) => { if(v === d && k < d && isDone(x, k)) rattrapees.push({...x, __retard:k, __rattrape:true}); });
+    else if(x.done && x.date && x.date < d && x.doneAt && iso(new Date(x.doneAt)) === d) rattrapees.push({...x, __retard:x.date, __rattrape:true});
+  });
+  return [...retard, ...els, ...rattrapees];
 }
 // Une ligne de l'agenda (mois ou semaine) : case à cocher pour les tâches, point pour les événements ; toucher le texte = ouvrir
 function ligneAgenda(x, d, coul, retardTxt){
-  const dr = x.__retard || d, fait = !x.__retard && isDone(x, dr);
+  const dr = x.__retard || d, fait = x.__rattrape || (!x.__retard && isDone(x, dr));
   const gauche = isEvent(x) ? '<span class="ml-ev" aria-hidden="true"></span>'
     : `<button type="button" class="coche" data-ag-coche="${esc(x.id)}" data-d="${esc(dr)}"${x.__retard ? ' data-late="1"' : ''} aria-label="Cocher ${esc(x.title)}">${fait ? svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14) : ''}</button>`;
-  return `<div class="ml${fait ? ' faite' : ''}" style="--sc:${coul(x)}">${gauche}<button type="button" class="ml-o" data-mt="${esc(x.id)}" data-md="${d}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? `<em class="ml-r">${retardTxt(x)}</em>` : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button></div>`;
+  return `<div class="ml${fait ? ' faite' : ''}" style="--sc:${coul(x)}">${gauche}<button type="button" class="ml-o" data-mt="${esc(x.id)}" data-md="${d}"><span class="ml-t">${esc(x.title)}</span>${x.__retard ? `<em class="ml-r">${x.__rattrape ? 'rattrapée' : retardTxt(x)}</em>` : x.time ? `<b>${esc(x.time.replace(':', 'h').replace(/h00$/, 'h'))}</b>` : ''}</button></div>`;
 }
 // Cocher depuis l'agenda : c'est l'Organisation qui coche (mêmes règles que partout)
 async function cocherAgenda(btn){
@@ -2433,6 +2448,11 @@ window.quotidien = {
     const w = await attendreApp('organisation', w => typeof w.quotidienCocherItem === 'function' && w.quotidienPret());
     if(!w) throw new Error('Organisation indisponible');
     w.quotidienCocherItem(id); setTimeout(rafraichirListes, 900); return true;
+  },
+  async ajouterItemListe(listId, nom){
+    const w = await attendreApp('organisation', w => typeof w.quotidienAjouterItem === 'function' && w.quotidienPret());
+    if(!w) throw new Error('Organisation indisponible');
+    const ok = w.quotidienAjouterItem(listId, nom); setTimeout(rafraichirListes, 600); return ok;
   },
   // Demande à une app (chargée en arrière-plan si besoin) : ex. Backstage → Organisation
   async demander(id, params){

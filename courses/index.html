@@ -106,7 +106,7 @@ button.cb-t{cursor:pointer;width:100%}
 .cb-car.pleine{margin:0 -16px;padding:0 16px;scroll-padding:0 16px}
 .cb-tk,.cb-st{flex:0 0 100%;scroll-snap-align:start;height:190px;box-sizing:border-box}
 /* ---- Page Courses : en-tête + 4 rangées qui remplissent l'écran, sans défiler ---- */
-.cb-tete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px}
+.cb-tete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-8px 2px 0}
 .cb-tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(22px,7vw,40px);line-height:1;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .cb-reg{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none;padding:0}
 .cb-plein{height:calc(100dvh - 44px - env(safe-area-inset-bottom,0px));min-height:520px;gap:10px}
@@ -148,6 +148,13 @@ button.cb-t{cursor:pointer;width:100%}
 .cb-tbr input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--denim)}
 .cb-tbr span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cb-tbr.fait span{text-decoration:line-through;color:var(--muted)}
+button.cb-tbr{width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);text-align:left;font-family:inherit;cursor:pointer}
+button.cb-tbr:first-child{border-top:0}
+.cb-box{flex:none;width:18px;height:18px;border-radius:6px;border:2px solid var(--denim);box-sizing:border-box}
+.cb-tbr.fait .cb-box{background:var(--denim)}
+.cb-tbw{min-height:0}
+.cb-tbw .cb-tobuy{flex:1;min-height:0}
+.cb-esp{visibility:hidden}
 /* Historique en carte carrée */
 .cb-carre .cb-tk .cb-tk-tot{font-size:24px}
 .cb-carre .cb-tk{gap:4px}
@@ -492,6 +499,7 @@ dialog[open].sheet-d{animation:up .22s ease-out}
 <script>
 'use strict';
 const APP_VERSION = 24;
+var toBuy = null;   // la liste « To Buy » de l'Organisation (voir chargerToBuy)
 const DEMO = false;
 const DB_NAME = 'courses';
 const DAY = 864e5;
@@ -1142,11 +1150,12 @@ function render(){
   const tuileMois2 = `<div class="cb-t cb-mois2"><b class="cb-m-t">${cap(new Date().toLocaleDateString('fr-FR', {month:'long'}))}</b>
     <div class="cb-m-c"><b>${Math.round(months[0].sum)} €</b><span>${avg != null ? `≈ ${Math.round(avg)} € par course` : 'dépensés'}</span></div>
     ${mTot > 0 ? `<div class="cb-rl">${rs.slice(0, 4).map(([r, v]) => `<div class="rc-${r}"><i></i><span>${SH[r]}</span><b>${Math.round(v / mTot * 100)}%</b></div>`).join('')}</div>` : '<p class="cb-vide">Pas encore de courses ce mois-ci.</p>'}</div>`;
-  // À droite de l'historique : la liste To Buy (à cocher)
-  const aAcheter = [...S.list.values()].map(it => ({it, p:S.products.get(it.pid)})).filter(x => x.p).sort((a, b) => (a.it.checked - b.it.checked) || a.p.name.localeCompare(b.p.name, 'fr'));
-  const reste = aAcheter.filter(x => !x.it.checked).length;
-  const tuileToBuy = `<div class="cb-t cb-tobuy"><div class="cb-titre"><b>To Buy</b><span>${reste}</span></div>
-    <div class="cb-tbl">${aAcheter.map(({it, p}) => `<label class="cb-tbr${it.checked ? ' fait' : ''}"><input type="checkbox" data-act="check" data-id="${it.id}"${it.checked ? ' checked' : ''}><span>${nameE(p)}</span></label>`).join('') || '<p class="cb-vide">Rien à acheter.</p>'}</div></div>`;
+  // À droite de l'historique : ta liste « To Buy » de l'Organisation (celle de la carte Listes de l'accueil), à cocher
+  const tb = toBuy, tbOk = tb && !tb.absente;
+  const tuileToBuy = `<div class="cb-bloc cb-tbw"><div class="cb-t cb-tobuy"><div class="cb-titre"><b>${tbOk ? esc((tb.emoji ? tb.emoji + ' ' : '') + tb.nom) : 'To Buy'}</b><span>${tbOk && !tb.simple ? tb.items.length : ''}</span></div>
+    <div class="cb-tbl">${!tb ? '<p class="cb-vide">…</p>' : tb.absente ? '<p class="cb-vide">Crée une liste « To Buy » dans l’Organisation : elle s’affichera ici.</p>'
+      : tb.items.map(i => tb.simple ? `<div class="cb-tbr simple"><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></div>`
+        : `<button type="button" class="cb-tbr" data-act="tb-coche" data-id="${esc(i.id)}"><i class="cb-box"></i><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></button>`).join('') || '<p class="cb-vide">Rien à acheter.</p>'}</div></div><div class="cb-points cb-esp" aria-hidden="true"><span></span></div></div>`;
   const histC = hDiapos.length ? `<div class="cb-bloc cb-carre"><div class="cb-car" data-car="hist">${hDiapos.join('')}${tk.length > 12 ? `<button type="button" class="cb-t cb-tk cb-tout" data-act="tickets"><b>Tout l’historique ›</b><span>${tk.length} courses</span></button>` : ''}</div>${pointsCb(hDiapos.length + (tk.length > 12 ? 1 : 0))}</div>` : '<div class="cb-t cb-carre"><p class="cb-vide">Pas encore de courses notées.</p></div>';
   const tete = `<header class="cb-tete"><h1>${esc(cap(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h1><button type="button" class="cb-reg" data-act="backup" aria-label="Sauvegarde et réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>`;
   $('#app').innerHTML = `
@@ -1181,6 +1190,7 @@ $('#app').addEventListener('click', e => {
   else if(a === 'ticket'){ const t = S.tickets.get(b.dataset.id); if(t) openTicket(t, () => render()); }
   else if(a === 'rayons') ouvrirRayons(b.dataset.r);
   else if(a === 'backup') openBackup();
+  else if(a === 'tb-coche') cocherToBuy(b);
 });
 // Carrousel « Tous les produits » : les points suivent la diapo visible, et on garde la position
 let posProduits = 0;
@@ -1636,6 +1646,44 @@ function openBackup(){
 
 
 boot();
+
+/* ---------- La liste « To Buy » de l'Organisation (lue dans sa base ; cochée par l'Organisation) ---------- */
+function ouvrirOrga(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('organisation');
+    r.onupgradeneeded = () => r.transaction.abort();   // pas de base Organisation : on n'en crée surtout pas une vide
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+async function chargerToBuy(){
+  try{
+    const db = await ouvrirOrga();
+    if(!db.objectStoreNames.contains('lists') || !db.objectStoreNames.contains('items')){ db.close(); return; }
+    const tout = st => new Promise((res, rej) => { const q = db.transaction(st).objectStore(st).getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); });
+    const [lists, items] = await Promise.all([tout('lists'), tout('items')]); db.close();
+    const l = lists.find(x => /^\W*to\s*-?\s*buy\b/i.test(x.name || '')) || lists.find(x => /to\s*-?\s*buy/i.test(x.name || ''));
+    const nv = l ? {id:l.id, nom:l.name, emoji:l.emoji || '', simple:l.type === 'simple', items:items.filter(i => i.listId === l.id && (l.type === 'simple' || !i.done)).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))} : {absente:true};
+    const k = JSON.stringify(nv); if(k !== chargerToBuy.k){ chargerToBuy.k = k; toBuy = nv; render(); }
+  }catch(e){ if(!toBuy){ toBuy = {absente:true}; render(); } }
+}
+async function cocherToBuy(b){
+  if(b.classList.contains('fait')) return;
+  b.classList.add('fait');
+  const id = b.dataset.id;
+  try{
+    const q = window.parent && window.parent !== window && window.parent.quotidien;
+    if(q && typeof q.cocherItemListe === 'function') await q.cocherItemListe(id);   // l'Organisation coche (et l'accueil suit)
+    else {   // Courses ouvert seul : on écrit directement dans la base de l'Organisation
+      const db = await ouvrirOrga(), t = db.transaction('items', 'readwrite'), st = t.objectStore('items');
+      const g = st.get(id); g.onsuccess = () => { const i = g.result; if(i) st.put({...i, done:true, doneAt:Date.now()}); };
+      await new Promise(r => { t.oncomplete = r; t.onerror = r; }); db.close();
+    }
+  }catch(e){ b.classList.remove('fait'); toast('Impossible de cocher pour l’instant.'); return; }
+  setTimeout(chargerToBuy, 1000);
+}
+chargerToBuy();
+setInterval(() => { if(!document.hidden) chargerToBuy(); }, 4000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) chargerToBuy(); });
 </script>
 </body>
 </html>

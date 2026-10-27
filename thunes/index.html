@@ -98,7 +98,7 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .pts span.on{background:var(--denim);width:14px;border-radius:3px}
 .mvts{cursor:pointer;gap:6px}
 /* En-tête comme les autres pages : la date, et les réglages */
-.tete{margin:0 2px}
+.tete{margin:-8px 2px 0}
 .tete h1{font-size:clamp(22px,7vw,40px);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .reg{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none;padding:0}
 /* Les 4 cartes du haut : même taille, chacune sa couleur */
@@ -120,7 +120,12 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 /* Octobre / Charges : le titre en haut, le chiffre en grand au milieu, les boutons dessous */
 .carte-c.tot{align-items:stretch;justify-content:space-between !important;overflow:hidden}
 .carte-c.tot > *{flex:none}
-.carte-c.tot .tot-t{font-family:var(--display);font-size:16px;font-weight:800;color:var(--k);text-align:center}
+.carte-c.tot .tot-t{font-family:var(--display);font-size:16px;font-weight:800;color:var(--ink);text-align:center}
+.carte-c.tot{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.carte-c.tot .tot-m b{color:var(--ink)}
+.carte-c.tot .virer{background:var(--sunk);color:var(--ink)}
+.seg{display:flex;gap:2px;width:100%;height:8px;border-radius:4px;overflow:hidden;background:var(--line);margin:4px 0 2px}
+.seg i{display:block;min-width:3px}
 .tot-m{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .carte-c.tot .tot-m b{font-size:28px;line-height:1.05;white-space:nowrap}
 .tot-m span{font-size:12px;font-weight:600;color:var(--muted)}
@@ -128,28 +133,54 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 /* Tout l'écran, sans défiler : ce qui reste va aux Mouvements et au graphique */
 main{min-height:100dvh;box-sizing:border-box}
 /* Mouvements, Octobre/Charges et le graphique se partagent la hauteur qui reste (pas de défilement) */
-.mvts{flex:1 1 0;min-height:96px;overflow:hidden}
+.mvts{flex:.75 1 0;min-height:136px;overflow:hidden}
+.mvts .it{padding:7px 12px}
+.mvts .it .d{white-space:nowrap;width:50px}
+.duo.hautes .chif,.duo.pots2 .chif{min-height:74px;padding:12px 14px}
+.duo.hautes .chif b,.duo.pots2 .chif b{font-size:23px !important}
 .duo.cd{flex:1.35 1 0;min-height:130px}
 .duo.cd .carre{min-height:0}
 .duo.cd .car{flex:1;min-height:0}
 .duo.cd .carre .t{aspect-ratio:auto;height:auto}
-.jours{flex:.75 1 0;min-height:80px;gap:6px}
+.jours{flex:.75 1 0;min-height:136px;gap:6px}
 /* petits écrans : tout se resserre pour tenir sans défiler */
 @media (max-height:740px){
-  main{gap:8px;padding-top:12px}
-  .tete h1{font-size:26px}
-  .duo.hautes .chif,.duo.pots2 .chif{padding:8px 12px}
+  main{gap:8px}
+  .duo.hautes .chif,.duo.pots2 .chif{padding:8px 12px;min-height:56px}
   .duo.hautes .chif b,.duo.pots2 .chif b{font-size:18px !important}
-  .mvts{min-height:84px}
+  .mvts{min-height:92px}
+  .mvts .it{padding:5px 10px}
   .duo.cd{min-height:124px}
   .tot-m span{display:none}
   .carte-c.tot{padding:8px 10px;gap:2px !important}
   .carte-c.tot .tot-t{font-size:14px}
   .carte-c.tot .tot-m b{font-size:24px !important}
   .carte-c.tot .virer{padding:5px 6px;margin-top:2px}
-  .jours{min-height:72px}
+  .jours{min-height:92px}
+  .jours .axe{display:none}
 }
 .jours .bars{flex:1;height:auto;min-height:36px}
+/* Le carrousel des stats */
+.jours{padding:0;overflow:hidden}
+.jours .car{flex:1;min-height:0;border-radius:16px}
+.jours .car > .sd{display:flex;flex-direction:column;gap:6px;padding:12px 14px;box-sizing:border-box;min-height:0}
+.jours > .pts{padding-bottom:8px}
+.hb{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:0}
+.hb > div{display:grid;grid-template-columns:minmax(0,7em) minmax(0,1fr) auto;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
+.hb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb i{display:block;height:8px;border-radius:4px;background:color-mix(in srgb,var(--k) 18%,transparent);overflow:hidden}
+.hb em{display:block;height:100%;border-radius:4px;background:var(--k)}
+.hb b{font-family:var(--display);font-weight:800;color:var(--k);white-space:nowrap}
+.mb{flex:1;min-height:0;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end}
+.mb > div{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;min-height:0}
+.mb i{display:block;width:100%;max-width:26px;border-radius:4px 4px 2px 2px;background:color-mix(in srgb,var(--denim) 45%,transparent)}
+.mb .on i{background:var(--denim)}
+.mb b{font-size:10.5px;color:var(--muted)}
+.mb span{font-size:10.5px;font-weight:700;color:var(--muted)}
+.b4{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;align-content:center}
+.b4 > div{display:flex;flex-direction:column}
+.b4 b{font-family:var(--display);font-size:17px;font-weight:800;line-height:1.1}
+.b4 span{font-size:11px;font-weight:600;color:var(--muted);line-height:1.2}
 main{gap:10px}
 .ch-r{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0}
 .ch-r em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--a);white-space:nowrap}
@@ -303,7 +334,8 @@ function bilanMois(d, m, j, sc){
   const parJour = p ? (reste > 0 ? (budget - p.acquis) / reste : 0) : budget / nbJ;
   const acquis = x => !p ? parJour * x : x >= p.j ? (reste > 0 ? p.acquis + parJour * (x - p.j) : budget) : p.acquis * x / Math.max(1, p.j);
   const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m);
-  const depenses = -mv.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mv.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
+  const mvC = mv.filter(x => !x.su);   // (une dépense payée avec la cagnotte stand-up ne touche pas la cagnotte : elle compte quand même dans les stats)
+  const depenses = -mvC.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mvC.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
   const scM = sc.filter(x => x.date.slice(0, 7) === m), depScenes = scM.reduce((s, x) => s + (+x.depenses || 0), 0);
   const virs = (d.virements || []).filter(x => x.d.slice(0, 7) === m), vir = virs.reduce((s, x) => s + x.m, 0);
   const ajs = (d.ajustements || []).filter(x => x.d.slice(0, 7) === m), aj = ajs.reduce((s, x) => s + x.m, 0);   // « je réajuste ma cagnotte »
@@ -325,8 +357,8 @@ function calcul(d, jour = new Date()){
   }
   const coteNet = total - prisAvant - priseCote;
   // Le stand-up : tout ce que les scènes ont rapporté, moins ce que tu as viré dans la cagnotte
-  const gainsSU = sc.reduce((s, x) => s + (+x.gains || 0), 0), viresSU = (d.virements || []).reduce((s, x) => s + x.m, 0);
-  return {m, j, ...b, priseCote, cagnotte, finMois:cagnotte + b.finBrute - b.brute, cote:coteNet, coteMois:+d.epargne || 0, standup:gainsSU - viresSU, gainsSU, viresSU};
+  const gainsSU = sc.reduce((s, x) => s + (+x.gains || 0), 0), viresSU = (d.virements || []).reduce((s, x) => s + x.m, 0), payeSU = -d.mouvements.filter(x => x.su).reduce((s, x) => s + x.m, 0);
+  return {m, j, ...b, priseCote, cagnotte, finMois:cagnotte + b.finBrute - b.brute, cote:coteNet, coteMois:+d.epargne || 0, standup:gainsSU - viresSU - payeSU, gainsSU, viresSU, payeSU};
 }
 // À appeler AVANT de changer versement, charges ou épargne : on fige ce qui est déjà gagné ce mois-ci (jusqu'à aujourd'hui inclus)
 function palier(d, jour = new Date()){
@@ -336,9 +368,11 @@ function palier(d, jour = new Date()){
 let D = lire();
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
 
+// Une barre découpée en morceaux de couleur (la part de chaque catégorie)
+const segs = l => { const t = l.reduce((a, x) => a + x[0], 0); return `<div class="seg">${t > 0 ? l.filter(x => x[0] > 0).map(([v, c]) => `<i style="flex:${v / t};background:${c}"></i>`).join('') : ''}</div>`; };
 const pointsH = n => n > 1 ? `<div class="pts" aria-hidden="true">${Array.from({length:n}, (_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
 function tousMouvements(c){
-  return [...c.mv.map(x => ({...x, lib:libelle(D, x)})),
+  return [...c.mv.map(x => ({...x, lib:(x.su ? '🎤 ' : '') + libelle(D, x) + (x.su ? ' · stand-up' : '')})),
     ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), lib:'🎤 ' + (x.nom || 'Scène'), scene:true})),
     ...c.virs.map(x => ({...x, lib:'↪ Virement du stand-up', vir:true}))]   // (les réajustements ne sont pas des mouvements : ils n'apparaissent pas ici)
     .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
@@ -359,7 +393,21 @@ function render(){
   // charges fixes par catégorie
   const catDeCharge = x => D.catCharges.some(y => y.id === x.cat) ? x.cat : (D.catCharges[D.catCharges.length - 1] || {}).id;   // sans catégorie : dans la dernière (« Autre »)
   const chCat = D.catCharges.map(k => ({k, l:D.charges.filter(x => catDeCharge(x) === k.id)})).filter(g => g.l.length);
-  const pages = []; for(let i = 0; i < mvs.length; i += 2) pages.push(mvs.slice(i, i + 2));
+  const parPage = innerHeight < 700 ? 1 : 2;   // petit écran : un mouvement par page, pour que tout tienne sans défiler
+  const pages = []; for(let i = 0; i < mvs.length; i += parPage) pages.push(mvs.slice(i, i + parPage));
+  // Les stats : une diapo par stat (on fait glisser)
+  const statsDiapos = [`<div class="sd">
+      <div class="titre"><b>Dépenses par jour</b><span>≈ ${eur(totDep / Math.max(1, c.j))} / jour</span></div>
+      <div class="bars">${parJ.map((v, k) => `<i class="${k + 1 === c.j ? 'auj' : k + 1 > c.j ? 'fut' : ''}" style="height:${Math.max(2, v / mx * 100)}%" title="${k + 1} : ${eur(v)}"></i>`).join('')}</div>
+      <div class="axe"><span>1</span><span>${Math.round(c.nbJ / 2)}</span><span>${c.nbJ}</span></div></div>`];
+  const topCats = catsTri.filter(k => (parCat.get(k.id) || 0) > 0).slice(0, 4), mxC = Math.max(1, ...topCats.map(k => parCat.get(k.id)));
+  statsDiapos.push(`<div class="sd"><div class="titre"><b>Par catégorie</b><span>${esc(nomMois(c.m))}</span></div>
+      ${topCats.length ? `<div class="hb">${topCats.map((k, i) => `<div style="--k:var(--k${(catsTri.indexOf(k) + 3) % 8})"><span>${esc(k.emoji)} ${esc(k.nom)}</span><i><em style="width:${Math.max(3, parCat.get(k.id) / mxC * 100)}%"></em></i><b>${eur(parCat.get(k.id), false)}</b></div>`).join('')}</div>` : '<p class="vide">Pas encore de dépense ce mois-ci.</p>'}</div>`);
+  const mois6 = [5, 4, 3, 2, 1, 0].map(k => { const x = new Date(); x.setDate(1); x.setMonth(x.getMonth() - k); const mm = iso(x).slice(0, 7); return {mm, v:-D.mouvements.filter(y => y.m < 0 && y.d.slice(0, 7) === mm).reduce((a, y) => a + y.m, 0)}; }), mx6 = Math.max(1, ...mois6.map(x => x.v));
+  statsDiapos.push(`<div class="sd"><div class="titre"><b>Dépenses par mois</b><span>6 derniers mois</span></div>
+      <div class="mb">${mois6.map((x, k) => `<div class="${k === 5 ? 'on' : ''}"><b>${x.v ? Math.round(x.v) : ''}</b><i style="height:${Math.max(3, x.v / mx6 * 100)}%"></i><span>${esc(cap(new Date(+x.mm.slice(0, 4), +x.mm.slice(5) - 1, 1).toLocaleDateString('fr-FR', {month:'short'})))}</span></div>`).join('')}</div></div>`);
+  statsDiapos.push(`<div class="sd"><div class="titre"><b>Bilan de ${esc(nomMois(c.m))}</b><span>jusqu’à aujourd’hui</span></div>
+      <div class="b4"><div><b>${eur(c.ver.v, false)}</b><span>versé</span></div><div><b>${eur(c.charges, false)}</b><span>charges</span></div><div><b>${eur(totDep, false)}</b><span>dépensé</span></div><div><b>${eur(c.rentrees, false)}</b><span>rentrées</span></div></div></div>`);
   $('#app').innerHTML = `
     <header class="tete"><h1>${esc(cap(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h1><button type="button" class="reg" data-a="reglages" aria-label="Réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>
     <section class="duo hautes">
@@ -369,7 +417,7 @@ function render(){
     <section class="duo pots2">
       <div class="carre"><div class="car" data-car="pots">
         <button type="button" class="t chif pot cagc ac3" data-a="ajuster"><small>Cagnotte</small><span class="ch-r"><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><em>${c.parJour >= 0 ? '+' : ''}${Math.round(c.parJour)} €/j</em></span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote, false)} pris sur le côté</span>` : ''}</button>
-        <div class="t chif pot su"><small>🎤 Stand-up · gagné ${eur(c.gainsSU, false)}</small><span class="su-l"><b>${eur(c.standup, false)}</b><button type="button" class="virer" data-a="virer"${c.standup > 0 ? '' : ' disabled'}>Virer →</button></span></div>
+        <div class="t chif pot su"><small>🎤 Stand-up · gagné ${eur(c.gainsSU, false)}</small><span class="su-l"><b>${eur(c.standup, false)}</b><button type="button" class="virer" data-a="su-menu"${c.standup > 0 ? '' : ' disabled'}>Utiliser</button></span></div>
       </div>${pointsH(2)}</div>
       <div class="carre"><button type="button" class="t chif pot ac4" data-a="cote"><small>De côté</small><span class="ch-r"><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><em>+${Math.round(c.coteMois)} €/mois</em></span>${c.priseCote > 0 ? `<span class="pris">−${eur(c.priseCote, false)} ce mois</span>` : ''}</button>${pointsH(2).replace('class="pts"', 'class="pts cache"')}</div>
     </section>
@@ -379,19 +427,15 @@ function render(){
     </section>
     <section class="duo cd">
       <div class="carre"><div class="car" data-car="cats">
-        <div class="t carte-c info tot ch" style="--k:var(--k2)"><small class="tot-t">${esc(cap(nomMois(c.m)))}</small><div class="tot-m"><b>${eur(totDep, false)}</b><span>${plur(D.categories.length, 'catégorie', 'catégories')}${c.depScenes ? ` · 🎤 ${eur(c.depScenes, false)}` : ''}</span></div><button type="button" class="virer" data-a="cat">＋ Catégorie</button></div>
+        <div class="t carte-c info tot"><small class="tot-t">${esc(cap(nomMois(c.m)))}</small><div class="tot-m"><b>${eur(totDep, false)}</b>${segs(catsTri.map((k, i) => [parCat.get(k.id) || 0, `var(--k${(i + 3) % 8})`]).concat([[parCat.get('_') || 0, 'var(--muted)'], [c.depScenes, '#7B5CD6']]))}<span>${plur(D.categories.length, 'catégorie', 'catégories')}${c.depScenes ? ` · 🎤 ${eur(c.depScenes, false)}` : ''}</span></div><button type="button" class="virer" data-a="cat">＋ Catégorie</button></div>
         ${catsTri.map((k, i) => { const v = parCat.get(k.id) || 0; return `<button type="button" class="t carte-c ch" style="--k:var(--k${(i + 3) % 8})" data-a="cat" data-id="${k.id}"><span class="emo">${esc(k.emoji)}</span><small>${esc(k.nom)}</small><b>${eur(v, false)}</b><span>${totDep ? Math.round(v / totDep * 100) + ' % du mois' : 'ce mois'}</span></button>`; }).join('')}
       </div>${pointsH(catsTri.length + 1)}</div>
       <div class="carre"><div class="car" data-car="charges">
-        <div class="t carte-c info tot ch" style="--k:var(--k0)"><small class="tot-t">Charges</small><div class="tot-m"><b>${eur(c.charges, false)}</b><span>${plur(D.charges.length, 'charge', 'charges')}</span></div><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
+        <div class="t carte-c info tot"><small class="tot-t">Charges</small><div class="tot-m"><b>${eur(c.charges, false)}</b>${segs(chCat.map((g, i) => [g.l.reduce((a, x) => a + (+x.montant || 0), 0), `var(--k${(i + 1) % 8})`]))}<span>${plur(D.charges.length, 'charge', 'charges')}</span></div><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
         ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${(i + 1) % 8})"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
       </div>${pointsH(chCat.length + 1)}</div>
     </section>
-    <section class="t jours">
-      <div class="titre"><b>Dépenses par jour</b><span>≈ ${eur(totDep / Math.max(1, c.j))} / jour</span></div>
-      <div class="bars">${parJ.map((v, k) => `<i class="${k + 1 === c.j ? 'auj' : k + 1 > c.j ? 'fut' : ''}" style="height:${Math.max(2, v / mx * 100)}%" title="${k + 1} : ${eur(v)}"></i>`).join('')}</div>
-      <div class="axe"><span>1</span><span>${Math.round(c.nbJ / 2)}</span><span>${c.nbJ}</span></div>
-    </section>
+    <section class="t jours"><div class="car" data-car="stats">${statsDiapos.join('')}</div>${pointsH(statsDiapos.length)}</section>
 `;
   // carrousels : les points suivent, et on garde la position
   document.querySelectorAll('.car').forEach(car => {
@@ -411,12 +455,13 @@ function ouvrir(html, onClick){
   dlg.showModal();
 }
 // Noter une dépense (signe −1 : on choisit une catégorie, et on peut préciser) ou une rentrée (+1 : d'où ça vient)
-function fenetreMouvement(signe, x){
+function fenetreMouvement(signe, x, opts = {}){
   D = lire();
+  const su = !!(opts.su || (x && x.su)), dispoSU = su ? calcul(D).standup + (x ? -x.m : 0) : 0;   // payer avec la cagnotte stand-up
   let cat = x && x.c ? x.c : null;
   const recents = [...new Set(D.mouvements.filter(m => m.m > 0 && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
   const dessinCats = () => D.categories.map(c => `<button type="button" class="cat${c.id === cat ? ' on' : ''}" data-c="${c.id}"><span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small></button>`).join('');
-  ouvrir(`<h2>${x ? 'Modifier' : signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2>
+  ouvrir(`<h2>${su ? '🎤 Payer avec le stand-up' : x ? 'Modifier' : signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2>${su ? `<p class="note">Disponible : ${eur(dispoSU)}</p>` : ''}
     <label>Montant<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(Math.abs(x.m)).replace('.', ',') : ''}"></label>
     ${signe < 0 ? `<div class="cats" id="cats">${dessinCats()}</div>
       <label>Préciser (si tu veux)<input class="in" name="l" placeholder="ex. sushi avec Lou" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>`
@@ -435,8 +480,9 @@ function fenetreMouvement(signe, x){
     if(b.dataset.f === 'sup'){ D.mouvements = D.mouvements.filter(m => m.id !== x.id); ecrire(D); dlg.close(); render(); toast('Supprimé'); return; }
     const v = nombre(f.m.value); if(!v || v <= 0){ dlg.querySelector('#err').textContent = 'Indique un montant.'; f.m.focus(); return; }
     if(signe < 0 && !cat){ dlg.querySelector('#err').textContent = 'Choisis une catégorie.'; return; }
+    if(su && v > dispoSU + 0.005){ dlg.querySelector('#err').textContent = `Il n’y a que ${eur(dispoSU)} dans la cagnotte stand-up.`; return; }
     const l = f.l.value.trim();
-    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now(), ...(signe < 0 ? {c:cat} : {})};
+    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now(), ...(signe < 0 ? {c:cat} : {}), ...(su ? {su:true} : {})};
     D.mouvements = x ? D.mouvements.map(y => y.id === x.id ? m : y) : [...D.mouvements, m];
     ecrire(D); dlg.close(); render(); toast(signe < 0 ? `− ${eur(v)} · ${libelle(D, m)}` : `+ ${eur(v)}`);
   });
@@ -541,6 +587,17 @@ $('#app').addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if(!b || !b.dataset.a) return;
   const a = b.dataset.a, m = moisDe(new Date());
   if(a === 'tous-mv'){ fenetreTousMouvements(); return; }
+  if(a === 'su-menu'){   // la cagnotte stand-up : la virer dans la cagnotte, ou payer directement avec
+    const dispo = calcul(lire()).standup;
+    ouvrir(`<h2>🎤 Cagnotte stand-up</h2><p class="note">Disponible : ${eur(dispo)}</p>
+      <div class="reg-l"><button type="button" class="it" data-r="vir"><span class="n">↪ Virer dans la cagnotte</span><span class="m">›</span></button>
+      <button type="button" class="it" data-r="payer"><span class="n">💳 Payer avec</span><span class="m">›</span></button></div>
+      <div class="btns"><button type="button" class="btn sec" data-f="non">Fermer</button></div>`,
+      (e, dlg) => { if(e.target.closest('[data-f="non"]')){ dlg.close(); return; }
+        const r = e.target.closest('[data-r]'); if(!r) return; dlg.close();
+        setTimeout(() => r.dataset.r === 'vir' ? fenetreVirement() : fenetreMouvement(-1, null, {su:true}), 60); });
+    return;
+  }
   if(a === 'reglages'){   // les réglages : raccourcis vers ce qui se règle, et la version
     const L = [['reg-ver', 'Ce que je me verse ce mois-ci'], ['reg-ep', 'Ce que je mets de côté chaque mois'], ['ajuster', 'Réajuster la cagnotte'], ['cote', 'Réajuster le côté'], ['cat', 'Nouvelle catégorie de dépenses'], ['charge', 'Nouvelle charge fixe']];
     ouvrir(`<h2>Réglages</h2><div class="reg-l">${L.map(([k, l]) => `<button type="button" class="it" data-r="${k}"><span class="n">${l}</span><span class="m">›</span></button>`).join('')}</div>

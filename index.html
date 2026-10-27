@@ -2428,6 +2428,12 @@ window.quotidien = {
     try{ const fn = f.contentWindow.quotidienAction; if(typeof fn === 'function') fn(params || {}); }catch(e){}
   },
   scenesAgenda: jours => lireScenesAgenda(jours || 7, 0),
+  // Cocher un élément d'une liste de l'Organisation depuis une autre app (ex. « To Buy » dans Courses)
+  async cocherItemListe(id){
+    const w = await attendreApp('organisation', w => typeof w.quotidienCocherItem === 'function' && w.quotidienPret());
+    if(!w) throw new Error('Organisation indisponible');
+    w.quotidienCocherItem(id); setTimeout(rafraichirListes, 900); return true;
+  },
   // Demande à une app (chargée en arrière-plan si besoin) : ex. Backstage → Organisation
   async demander(id, params){
     const w = await attendreApp(id, w => typeof w.quotidienAction === 'function' && (!w.quotidienPret || w.quotidienPret()));

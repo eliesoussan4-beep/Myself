@@ -669,6 +669,14 @@ dialog h2:focus{outline:none}
 </div>
 <nav id="barre" aria-label="Applications"><div id="onglets"></div></nav>
 <dialog id="reglages" aria-label="Sauvegarde et réglages"></dialog>
+<style>
+/* le petit cœur discret en bas des réglages, et la page cachée par-dessus tout */
+#reglages .coeur{display:block;margin:2px auto 0;width:32px;height:32px;padding:0;border:0;background:none;color:var(--muted);opacity:.45}
+#reglages .coeur svg{display:block;margin:auto}
+#carnet{position:fixed;inset:0;z-index:1000;background:var(--bg)}
+#carnet iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
+#carnet .carnet-x{position:absolute;left:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:0}
+</style>
 <dialog id="retours" aria-label="Noter une modif"></dialog>
 <dialog id="ajout-course" aria-label="Ajouter aux courses"></dialog>
 <dialog id="mois" aria-label="L’agenda"></dialog>
@@ -810,7 +818,7 @@ function montrer(id, {query = '', historique = false} = {}){
 }
 function construireBarre(){
   // Ordre de la barre : Backstage tout à gauche, l'Accueil au milieu, les autres apps dans l'ordre d'apps.js
-  const apps = APPS.filter(a => !a.cache).sort((a, b) => (b.id === 'backstage') - (a.id === 'backstage'));
+  const apps = APPS.filter(a => !a.cache && !a.secret).sort((a, b) => (b.id === 'backstage') - (a.id === 'backstage'));
   const items = [...apps]; items.splice(Math.floor((apps.length + 1) / 2), 0, {id:'accueil', nom:'Accueil', icone:ICONE_ACCUEIL});
   const o = $('#onglets');
   o.style.gridTemplateColumns = `repeat(${items.length}, minmax(0, 1fr))`;
@@ -823,7 +831,7 @@ function precharger(){
   let i = 0;
   const suite = () => {
     const app = APPS[i++]; if(!app) return;
-    if(app.cache){ suite(); return; }
+    if(app.cache || app.secret){ suite(); return; }
     creerFrame(app).charge.then(() => setTimeout(suite, 600));
   };
   setTimeout(suite, 900);
@@ -1564,7 +1572,7 @@ function squeletteAccueil(){
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     <div data-bloc="jour"><div class="bloc jour"><p class="vide">Chargement…</p></div></div>
-    ${APPS.filter(a => !AVEC[a.id] && !a.cache).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}
+    ${APPS.filter(a => !AVEC[a.id] && !a.cache && !a.secret).sort((a, b) => (a.accueil || 99) - (b.accueil || 99)).map(a => `<div data-bloc="${esc(a.id)}">${carte(a, LECTEURS[a.id] ? esc(LECTEURS[a.id].titre(null)) : esc(a.nom), LECTEURS[a.id] ? '<p class="vide">Chargement…</p>' : '<p class="vide">Ouvrir l’app</p>')}</div>`).join('')}
     <div data-bloc="duo"><div class="bloc"><p class="vide">Chargement…</p></div></div>
 `;
   $('#accueil').dataset.jour = iso(now);
@@ -1654,7 +1662,7 @@ async function rafraichirAccueil(){
   try{
     if(!$('#accueil').firstChild || $('#accueil').dataset.jour !== iso(new Date())) squeletteAccueil();
     rafraichirLigneJour();
-    await Promise.all(APPS.filter(a => LECTEURS[a.id] && !a.cache).map(async a => {
+    await Promise.all(APPS.filter(a => LECTEURS[a.id] && !a.cache && !a.secret).map(async a => {
       const L = LECTEURS[a.id];
       let d = null; try{ d = await L.lire(); }catch(e){ console.warn(a.id, e); }
       resultats[a.id] = d;
@@ -2219,7 +2227,7 @@ function alerteDrive(){
 /* ---------- Feuille « Sauvegarde et réglages » ---------- */
 async function majEtat(){
   const el = $('#etat'); if(!el) return;
-  const lignes = await Promise.all(APPS.filter(a => a.base || estLocale(a)).map(async a => {
+  const lignes = await Promise.all(APPS.filter(a => !a.secret && (a.base || estLocale(a))).map(async a => {
     if(estLocale(a)){
       const ks = clesLocales(a); let n = 0;
       for(const k of ks){ try{ const v = JSON.parse(localStorage.getItem(k)); n += Array.isArray(v) ? v.length : 1; }catch(e){ n++; } }
@@ -2230,6 +2238,20 @@ async function majEtat(){
   }));
   el.innerHTML = lignes.join('');
 }
+// La page cachée (le Carnet) : par-dessus tout, avec un bouton pour revenir
+function ouvrirCarnet(){
+  const app = APPS.find(a => a.secret); if(!app) return;
+  let o = $('#carnet');
+  if(!o){
+    o = document.createElement('div'); o.id = 'carnet';
+    o.innerHTML = `<iframe title="${esc(app.nom)}" src="${esc(app.dossier)}index.html?v=${VERSION}"></iframe><button type="button" class="carnet-x" aria-label="Revenir">${svg('<path d="M15 6l-6 6 6 6"/>', 20)}</button>`;
+    o.querySelector('.carnet-x').addEventListener('click', fermerCarnet);
+    const f = o.querySelector('iframe'); f.addEventListener('load', () => { try{ appliquerTheme(f.contentDocument); }catch(e){} });
+    document.body.appendChild(o);
+  }
+  o.hidden = false;
+}
+function fermerCarnet(){ const o = $('#carnet'); if(o) o.remove(); }
 function ouvrirReglages(){
   const dlg = $('#reglages'), t = themeChoisi();
   dlg.innerHTML = `<div class="feuille">
@@ -2249,6 +2271,7 @@ function ouvrirReglages(){
     <div class="segment" role="group" aria-label="Thème">${[['auto', 'Auto'], ['dark', 'Sombre'], ['light', 'Clair']].map(([v, l]) => `<button type="button" data-theme-choix="${v}" aria-pressed="${t === v}">${l}</button>`).join('')}</div>
     <button type="button" class="btn" data-act="fermer">Fermer</button>
     <p class="version">Mon quotidien · version ${VERSION}</p>
+    <button type="button" class="coeur" data-act="carnet" aria-label="Ouvrir">${svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>', 16)}</button>
   </div>`;
   dlg.showModal();
   majEtat(); majEtatDrive();
@@ -2258,6 +2281,7 @@ $('#reglages').addEventListener('click', e => {
   if(e.target === dlg){ dlg.close(); return; }
   const b = e.target.closest('button'); if(!b) return;
   if(b.dataset.act === 'fermer') dlg.close();
+  else if(b.dataset.act === 'carnet'){ dlg.close(); ouvrirCarnet(); }
   else if(b.dataset.act === 'exporter') exporterTout();
   else if(b.dataset.act === 'importer') $('#fichier').click();
   else if(b.dataset.act === 'drive-tester'){
@@ -2282,7 +2306,7 @@ $('#reglages').addEventListener('click', e => {
 
 /* ---------- Retours : noter une modif pendant l'utilisation (temporaire, voir RETOURS dans apps.js) ---------- */
 const CLE_RETOURS = 'quotidien-retours';
-const NOMS = () => [{id:'accueil', nom:'Accueil'}, ...APPS.map(a => ({id:a.id, nom:a.nom})), {id:'general', nom:'Général'}];
+const NOMS = () => [{id:'accueil', nom:'Accueil'}, ...APPS.filter(a => !a.secret).map(a => ({id:a.id, nom:a.nom})), {id:'general', nom:'Général'}];
 const nomDe = id => (NOMS().find(x => x.id === id) || {nom:id}).nom;
 function lireRetours(){ try{ const v = JSON.parse(localStorage.getItem(CLE_RETOURS) || '[]'); return Array.isArray(v) ? v : []; }catch(e){ return []; } }
 function ecrireRetours(l){ try{ localStorage.setItem(CLE_RETOURS, JSON.stringify(l)); }catch(e){} majPastille(); }
@@ -2488,12 +2512,16 @@ construireBarre();
 {
   const params = new URLSearchParams(location.search), demande = params.get('app'), h = location.hash.slice(1);
   if(demande && APPS.some(a => a.id === demande)){ params.delete('app'); const q = params.toString(); montrer(demande, {query:q ? '?' + q : ''}); }
-  else montrer(APPS.some(a => a.id === h) ? h : 'accueil');
+  else { montrer('accueil'); if(h){ try{ history.replaceState(null, '', location.pathname); }catch(e){} } }   // on rouvre l'app : toujours sur l'Accueil (pas sur le dernier onglet)
 }
 if(actif !== 'accueil') rafraichirAccueil();
 precharger();
+let cacheeA = 0;
 document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState !== 'visible') return;
+  if(document.visibilityState !== 'visible'){ cacheeA = Date.now(); return; }
+  // L'iPhone garde souvent l'app ouverte en arrière-plan : si on la retrouve après 5 min, on repart de l'Accueil
+  if(cacheeA && Date.now() - cacheeA > 5 * 60000 && actif !== 'accueil'){ fermerCarnet(); montrer('accueil'); return; }
+  if(cacheeA && Date.now() - cacheeA > 5 * 60000) fermerCarnet();
   if(actif === 'accueil') rafraichirAccueil();
   setTimeout(verifierDrive, 3000);
 });

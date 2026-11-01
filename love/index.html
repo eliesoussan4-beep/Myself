@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carnet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F1ECF5; --surface:#FFFFFF; --ink:#2A1F3D; --muted:#7A6E8C; --line:#DDD3E6;
+  --me:#3D5AD6; --her:#E2456C; --seen:rgba(226,69,108,.13); --group:#7B61C9; --groupbg:rgba(123,97,201,.14); --invite:#E2456C; --soft:#E7DFEE;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#1A1424; --surface:#251D33; --ink:#F1EAF8; --muted:#A99CBC; --line:#3A2F4C;
+    --me:#7C93F2; --her:#FF6F92; --seen:rgba(255,111,146,.16); --group:#A892F0; --groupbg:rgba(168,146,240,.17); --invite:#FF6F92; --soft:#2F2541;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1A1424; --surface:#251D33; --ink:#F1EAF8; --muted:#A99CBC; --line:#3A2F4C;
+  --me:#7C93F2; --her:#FF6F92; --seen:rgba(255,111,146,.16); --group:#A892F0; --groupbg:rgba(168,146,240,.17); --invite:#FF6F92; --soft:#2F2541;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+main{max-width:560px;margin:0 auto;padding:20px 18px 120px}
+h2{font-size:1.35rem;font-weight:800;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+section{margin-top:34px}
+
+/* Onglets relations */
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:4px 18px 2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:9px 16px;border-radius:999px;background:var(--soft);color:var(--muted);font-weight:600;white-space:nowrap}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.add-tab{width:40px;padding:9px 0;font-size:1.2rem;line-height:1}
+.tabedit{margin-top:10px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:10px}
+.tabedit input{width:100%;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.tabedit-actions{display:flex;gap:8px;margin-top:8px}
+.tabedit-actions button{padding:10px 14px;border-radius:12px;font-weight:600;background:var(--soft)}
+.tabedit-actions .ok{margin-left:auto;background:var(--ink);color:var(--bg)}
+.tabedit-actions .danger{color:var(--her);background:none}
+
+/* Hero: le compteur */
+.hero{padding:22px 0 6px}
+.hero .label{color:var(--muted);font-size:.95rem}
+.count{font-size:clamp(4.6rem,24vw,7.5rem);font-weight:800;line-height:.9;letter-spacing:-.05em;margin:6px 0 2px;
+  font-variant-numeric:tabular-nums}
+.count small{font-size:.32em;letter-spacing:0;font-weight:600;color:var(--muted);margin-left:6px}
+.hero .meta{color:var(--muted);font-size:.95rem}
+.adder{margin-top:18px;background:var(--surface);border:1.5px solid var(--line);border-radius:20px;padding:12px}
+.adder .top{display:flex;gap:10px;align-items:stretch}
+.stepper{display:flex;align-items:center;background:var(--soft);border-radius:14px;flex:none}
+.stepper button{width:40px;height:48px;font-size:1.4rem;font-weight:600;border-radius:14px}
+.stepper button:disabled{opacity:.3}
+.stepper output{min-width:46px;text-align:center;font-weight:800;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.adder input[type=text]{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:0 12px}
+.adder .bottom{display:flex;gap:10px;margin-top:10px;align-items:center}
+.adder input[type=date]{font:inherit;font-size:.9rem;color:var(--muted);background:none;border:0;padding:6px 0;flex:1;min-width:0}
+.adder .add{background:var(--ink);color:var(--bg);font-weight:700;padding:12px 22px;border-radius:14px}
+.who{display:flex;background:var(--soft);border-radius:12px;padding:3px;margin-top:10px}
+.who button{flex:1;padding:9px 6px;border-radius:10px;font-size:.92rem;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
+.who button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700}
+.who i{width:10px;height:10px;border-radius:3px;display:inline-block}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--me);outline-offset:2px}
+.ev[aria-expanded="true"]{border-color:var(--accent)}
+.ask{grid-column:1/-1;background:var(--surface);border:1.5px solid var(--accent);border-radius:18px;padding:14px}
+.ask p{margin:0 0 10px;font-weight:600}
+.ask .r{display:flex;gap:10px;align-items:center}
+.ask .r .stepper output{min-width:56px}
+.ask .ok{margin-left:auto;background:var(--accent);color:#fff;font-weight:700;padding:12px 18px;border-radius:14px}
+.ask .cx{color:var(--muted);padding:12px 6px}
+.msgn{width:58px;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:4px 6px;text-align:center}
+.note{font-size:.85rem;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:8px}
+.lg{display:flex;justify-content:center;gap:22px;margin-top:10px;font-size:.88rem;color:var(--muted)}
+.lg span{display:flex;align-items:center;gap:5px}
+.lg i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.lg svg{margin-right:3px}
+.note i{display:inline-block;width:2px;height:14px;border-radius:2px;background:var(--her)}
+
+/* Boutons d'événements */
+.events{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ev{background:var(--surface);border-radius:18px;padding:14px;text-align:left;border:1.5px solid var(--line);
+  display:flex;flex-direction:column;gap:6px;min-height:92px;position:relative}
+.ev:active{transform:scale(.98)}
+.ev .dot{width:12px;height:12px;border-radius:50%}
+.ev b{font-size:1rem;line-height:1.2}
+.ev span.n{color:var(--muted);font-size:.85rem}
+.ev.flash{animation:flash .5s}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}100%{box-shadow:0 0 0 10px transparent}}
+.when{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--muted);font-size:.9rem}
+.when input{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:6px 8px}
+
+/* Équilibre */
+.balance{margin-top:18px}
+.bar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--soft)}
+.bar div{height:100%;transition:width .4s}
+.balance .legend{display:flex;justify-content:space-between;font-size:.9rem;margin-top:6px}
+.verdict{margin-top:10px;font-size:1rem}
+
+.card{background:var(--surface);border-radius:20px;padding:14px;border:1.5px solid var(--line)}
+.chartwrap{position:relative;height:240px}
+.seg{display:inline-flex;background:var(--soft);border-radius:999px;padding:3px;margin-bottom:12px}
+.seg button{padding:6px 14px;border-radius:999px;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600}
+
+/* Historique */
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.hist li:last-child{border-bottom:0}
+.hist .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.hist .txt{flex:1;min-width:0}
+.hist .txt div:first-child{font-weight:600}
+.hist .txt div:last-child{color:var(--muted);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.del{color:var(--muted);padding:6px 8px;font-size:1.1rem;border-radius:8px}
+.empty{color:var(--muted);padding:10px 0}
+.more{margin-top:8px;color:var(--me);font-weight:600;padding:6px 0}
+
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;
+  background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:14px;display:flex;gap:14px;align-items:center;
+  transition:.25s;z-index:20;max-width:calc(100% - 32px);font-size:.95rem}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.toast button{color:var(--bg);font-weight:800;text-decoration:underline}
+.sync{font-size:.8rem;color:var(--muted);text-align:center;margin-top:40px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <nav class="tabs" id="tabs" aria-label="Relations"></nav>
+  <div class="tabedit" id="tabEdit" hidden>
+    <input type="text" id="tabName" maxlength="30" aria-label="Prénom">
+    <div class="tabedit-actions">
+      <button id="tabDel" class="danger">Supprimer</button>
+      <button id="tabCancel">Annuler</button>
+      <button id="tabOk" class="ok">Créer</button>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="label" id="heroLabel">Temps passé ensemble</div>
+    <div class="count" id="count">0<small>h</small></div>
+    <div class="meta" id="countMeta">Aucun moment noté pour l’instant.</div>
+    <div class="adder">
+      <div class="top">
+        <div class="stepper">
+          <button id="hMinus" aria-label="Une heure de moins">−</button>
+          <output id="hVal" aria-live="polite">2 h</output>
+          <button id="hPlus" aria-label="Une heure de plus">+</button>
+        </div>
+        <input type="text" id="fNote" maxlength="120" placeholder="Café, balade, ciné…" aria-label="Détail de la rencontre">
+      </div>
+      <div class="who" role="group" aria-label="Type de rencontre">
+        <button data-solo="1" aria-pressed="true"><i style="background:var(--her)"></i>En tête-à-tête</button>
+        <button data-solo="0" aria-pressed="false"><i style="background:var(--group)"></i>Avec du monde</button>
+      </div>
+      <div class="bottom">
+        <input type="date" id="fDate" aria-label="Date de la rencontre">
+        <button class="add" id="addBtn">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Qui fait le premier pas ?</h2>
+    <p class="sub">Touche une case à chaque fois que ça arrive.</p>
+    <div class="when">Date
+      <input type="date" id="evDate" aria-label="Date de l’événement">
+    </div>
+    <div class="events" id="events"></div>
+    <div class="balance">
+      <div class="bar" aria-hidden="true"><div id="barMe" style="background:var(--me);width:50%"></div><div id="barHer" style="background:var(--her);width:50%"></div></div>
+      <div class="legend"><span id="lgMe">Toi —</span><span id="lgHer">— Elle</span></div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Évolution</h2>
+    <p class="sub">Barres : nombre de messages échangés après chaque prise de contact, par semaine. Courbes : propositions de se voir.</p>
+    <div class="card">
+      <div class="seg" role="group" aria-label="Période">
+        <button data-range="8" aria-pressed="true">8 sem.</button>
+        <button data-range="16" aria-pressed="false">16 sem.</button>
+        <button data-range="52" aria-pressed="false">1 an</button>
+      </div>
+      <div class="seg" role="group" aria-label="Qui" style="margin-left:4px">
+        <button data-who="all" aria-pressed="true">Les deux</button>
+        <button data-who="her" aria-pressed="false">Elle</button>
+        <button data-who="me" aria-pressed="false">Moi</button>
+      </div>
+      <div class="chartwrap" style="height:260px"><canvas id="chartMsg" aria-label="Graphique des initiatives par semaine"></canvas></div>
+      <div class="lg">
+        <span><i style="background:var(--me)"></i><i style="background:var(--her)"></i>Premier message</span>
+        <span><svg width="36" height="10" aria-hidden="true"><line x1="1" y1="5" x2="15" y2="5" stroke="var(--her)" stroke-width="3" stroke-linecap="round"/><line x1="21" y1="5" x2="35" y2="5" stroke="var(--me)" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Proposition</span>
+      </div>
+      <div class="note"><i></i>♥ Vus en tête-à-tête cette semaine (heures)</div>
+      <div class="note" style="margin-top:4px"><i style="background:var(--group)"></i>● Vus avec du monde cette semaine (heures)</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="sub" style="margin:0 0 8px">Heures cumulées</div>
+      <div class="chartwrap" style="height:180px"><canvas id="chartHours" aria-label="Heures cumulées ensemble"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Historique</h2>
+    <ul class="hist" id="hist"></ul>
+    <button class="more" id="more" hidden>Voir plus</button>
+  </section>
+
+  <div class="sync" id="sync">Chargement…</div>
+  <div class="sync" style="margin-top:6px">Touche l’onglet actif pour le renommer ou le supprimer.</div>
+</main>
+
+
+<div class="toast" id="toast" role="status"><span id="toastTxt"></span><button id="undo">Annuler</button></div>
+
+<script>
+const TYPES = {
+  me_first:  {label:"J’écris en premier",          short:"Tu as écrit en premier",       color:"--me"},
+  her_first: {label:"Elle écrit en premier",       short:"Elle a écrit en premier",      color:"--her"},
+  her_invite:{label:"Elle propose qu’on se voie",  short:"Elle a proposé de se voir",    color:"--invite"},
+  me_invite: {label:"Je propose qu’on se voie",    short:"Tu as proposé de se voir",     color:"--me"}
+};
+const LS_KEY = "carnet-relation-v1";
+let state = {sessions:[], events:[]};
+let dbRef = null, histLimit = 12, range = 8, lastAction = null, saveTimer = null, hours = 2, asking = null, askN = 10, solo = true, who = "all";
+const isMsg = t => t==="me_first" || t==="her_first";
+const msgs = e => Math.max(1, +e.msgs || 1);
+const isSolo = s => s.solo !== false;
+const sumM = arr => arr.reduce((a,x)=>a+(+x.minutes||0),0);
+
+const $ = s => document.querySelector(s);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const fmtDate = iso => new Date(iso+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+const fmtDur = m => { const h = Math.floor(m/60), r = m%60; return h ? (r ? `${h} h ${String(r).padStart(2,"0")}` : `${h} h`) : `${r} min`; };
+
+/* ---------- stockage ---------- */
+// store = { profiles:[{id,name}], current:id, data:{ [id]: {sessions, events} } }
+let store = null;
+function normalize(s){
+  return {sessions:Array.isArray(s?.sessions)?s.sessions:[], events:Array.isArray(s?.events)?s.events:[]};
+}
+const isLegacy = r => !r || !Array.isArray(r.profiles);
+function normStore(r){
+  if (isLegacy(r)) { const id = uid(); return {profiles:[{id, name:"Elle"}], current:id, data:{[id]: normalize(r||{})}}; }
+  const profiles = r.profiles.filter(p => p && p.id).map(p => ({id:p.id, name:String(p.name||"Sans nom")}));
+  if (!profiles.length) return normStore(null);
+  const data = {}; profiles.forEach(p => data[p.id] = normalize(r.data?.[p.id]));
+  return {profiles, current: profiles.some(p=>p.id===r.current) ? r.current : profiles[0].id, data};
+}
+function useProfile(){
+  if (!store.data[store.current]) store.current = store.profiles[0].id;
+  state = store.data[store.current];
+}
+const mergeList = (a,b) => { const m = new Map(); [...a,...b].forEach(x => m.set(x.id,x)); return [...m.values()]; };
+function mergeInto(t, src){ t.sessions = mergeList(t.sessions, src.sessions); t.events = mergeList(t.events, src.events); }
+let localWasLegacy = false;
+function loadLocal(){
+  let raw = null;
+  try { const txt = localStorage.getItem(LS_KEY); if (txt) raw = JSON.parse(txt); } catch(e){}
+  localWasLegacy = !!raw && isLegacy(raw);
+  store = normStore(raw); useProfile();
+}
+function persistLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch(e){} }
+function save(){
+  persistLocal();
+  if (!dbRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try { await dbRef.set({profiles:store.profiles, current:store.current, data:store.data, updated:Date.now()}); setSync(true); }
+    catch(e){ setSync(false); }
+  }, 400);
+}
+function setSync(ok){
+  $("#sync").textContent = dbRef
+    ? (ok ? "Sauvegardé sur ton compte, visible seulement par toi." : "Sauvegarde en ligne impossible pour le moment, gardé sur ce téléphone.")
+    : "Sauvegardé sur ce téléphone.";
+}
+async function initDb(){
+  try {
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!db || !user) { setSync(); return; }
+    const id = await user.id();
+    if (!id) { setSync(); return; }
+    dbRef = db.collection("data/users/"+id).doc("carnet");
+    const snap = await dbRef.get();
+    if (snap.exists) {
+      const r = snap.data();
+      if (isLegacy(r)) {
+        mergeInto(store.data[store.current], normalize(r));
+      } else {
+        const rs = normStore(r);
+        if (localWasLegacy) { mergeInto(rs.data[rs.current], store.data[store.current]); store = rs; }
+        else {
+          rs.profiles.forEach(p => { if (!store.data[p.id]) { store.profiles.push(p); store.data[p.id] = rs.data[p.id]; } else mergeInto(store.data[p.id], rs.data[p.id]); });
+        }
+      }
+      useProfile(); render();
+    }
+    save();
+  } catch(e){ dbRef = null; setSync(); }
+}
+
+/* ---------- profils ---------- */
+let editMode = null, delArmed = false; // "new" | "rename"
+function renderTabs(){
+  const nav = $("#tabs"); nav.innerHTML = "";
+  store.profiles.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "tab"; b.textContent = p.name; b.setAttribute("aria-pressed", p.id===store.current);
+    b.onclick = () => {
+      if (p.id === store.current) { openEdit(editMode==="rename" ? null : "rename"); return; }
+      store.current = p.id; useProfile(); asking = null; histLimit = 12; editMode = null; save(); render();
+    };
+    nav.appendChild(b);
+  });
+  const add = document.createElement("button");
+  add.className = "tab add-tab"; add.textContent = "+"; add.setAttribute("aria-label","Ajouter une relation");
+  add.onclick = () => openEdit(editMode==="new" ? null : "new");
+  nav.appendChild(add);
+  nav.querySelector('[aria-pressed="true"]')?.scrollIntoView({inline:"nearest", block:"nearest"});
+  const cur = store.profiles.find(p=>p.id===store.current);
+  $("#heroLabel").textContent = `Temps passé avec ${cur.name}`;
+  // zone d'édition
+  const ed = $("#tabEdit"); ed.hidden = !editMode;
+  if (editMode){
+    $("#tabName").placeholder = editMode==="new" ? "Prénom" : "";
+    $("#tabDel").hidden = editMode!=="rename" || store.profiles.length < 2;
+    $("#tabDel").textContent = delArmed ? "Vraiment supprimer ?" : "Supprimer";
+    $("#tabOk").textContent = editMode==="new" ? "Créer" : "Renommer";
+  }
+}
+function openEdit(mode){
+  editMode = mode; delArmed = false; renderTabs();
+  if (mode){ const i = $("#tabName"); i.value = mode==="rename" ? store.profiles.find(p=>p.id===store.current).name : ""; i.focus(); }
+}
+function submitEdit(){
+  const name = $("#tabName").value.trim().slice(0,30); if (!name) { $("#tabName").focus(); return; }
+  if (editMode==="new"){
+    const id = uid(); store.profiles.push({id, name}); store.data[id] = {sessions:[], events:[]};
+    store.current = id; useProfile(); asking = null;
+  } else store.profiles.find(p=>p.id===store.current).name = name;
+  editMode = null; save(); render();
+}
+function deleteProfile(){
+  if (!delArmed){ delArmed = true; renderTabs(); return; }
+  const id = store.current;
+  store.profiles = store.profiles.filter(p=>p.id!==id); delete store.data[id];
+  store.current = store.profiles[0].id; useProfile(); editMode = null; save(); render();
+}
+
+/* ---------- actions ---------- */
+function addSession(minutes, date, note, isS){
+  const s = {id:uid(), date:date||today(), minutes, note:note||"", solo:isS!==false};
+  state.sessions.push(s); save(); render();
+  toast(`${fmtDur(minutes)} ajoutée${minutes>=120?"s":""}`, () => { state.sessions = state.sessions.filter(x=>x.id!==s.id); save(); render(); });
+}
+function addEvent(type, n){
+  const e = {id:uid(), date:$("#evDate").value||today(), type, t:Date.now()};
+  if (isMsg(type)) e.msgs = n;
+  asking = null;
+  state.events.push(e); save(); render();
+  const btn = document.querySelector(`.ev[data-type="${type}"]`);
+  if (btn){ btn.classList.remove("flash"); void btn.offsetWidth; btn.classList.add("flash"); }
+  toast(TYPES[type].short + (isMsg(type) ? ` · ${n} message${n>1?"s":""}` : ""), () => { state.events = state.events.filter(x=>x.id!==e.id); save(); render(); });
+}
+function remove(kind,id){
+  const list = kind==="s" ? state.sessions : state.events;
+  const item = list.find(x=>x.id===id); if(!item) return;
+  if (kind==="s") state.sessions = state.sessions.filter(x=>x.id!==id); else state.events = state.events.filter(x=>x.id!==id);
+  save(); render();
+  toast("Supprimé", () => { (kind==="s"?state.sessions:state.events).push(item); save(); render(); });
+}
+let toastTimer;
+function toast(txt, undo){
+  lastAction = undo; $("#toastTxt").textContent = txt; $("#toast").classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>$("#toast").classList.remove("show"), 3500);
+}
+$("#undo").onclick = () => { if (lastAction) lastAction(); lastAction = null; $("#toast").classList.remove("show"); };
+
+/* ---------- rendu ---------- */
+function weekStart(iso){
+  const d = new Date(iso+"T12:00:00"); const day = (d.getDay()+6)%7; d.setDate(d.getDate()-day);
+  return d.toISOString().slice(0,10);
+}
+function render(){
+  renderTabs();
+  // compteur
+  const total = state.sessions.reduce((a,s)=>a+(+s.minutes||0),0);
+  const h = Math.floor(total/60), m = total%60;
+  $("#count").innerHTML = `${h}<small>h${m?` ${String(m).padStart(2,"0")}`:""}</small>`;
+  if (state.sessions.length){
+    const last = [...state.sessions].sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const n = state.sessions.length;
+    const soloM = sumM(state.sessions.filter(isSolo));
+    $("#countMeta").textContent = `Dont ${fmtDur(soloM)} en tête-à-tête, sur ${n} rencontre${n>1?"s":""}. Dernière le ${fmtDate(last.date)}.`;
+  } else $("#countMeta").textContent = "Aucun moment noté pour l’instant.";
+
+  // boutons
+  const counts = {}; state.events.forEach(e=>counts[e.type]=(counts[e.type]||0)+1);
+  const cards = Object.entries(TYPES).map(([k,t]) =>
+    `<button class="ev" data-type="${k}" style="--accent:var(${t.color})" ${isMsg(k)?`aria-expanded="${asking===k}"`:""}>
+       <span class="dot" style="background:var(${t.color})${k==="me_invite"?";background:transparent;border:2.5px solid var(--me)":""}"></span>
+       <b>${t.label}</b><span class="n">${counts[k]||0} fois</span></button>`);
+  if (asking){
+    const t = TYPES[asking];
+    cards.splice(2, 0, `<div class="ask" style="--accent:var(${t.color})">
+      <p>${t.short}. Combien de messages dans l’échange ?</p>
+      <div class="r">
+        <div class="stepper"><button id="aMinus" aria-label="Un message de moins">−</button>
+          <input class="msgn" id="aVal" type="number" inputmode="numeric" min="1" value="${askN}" aria-label="Nombre de messages" style="background:none;border:0;width:56px;font-weight:800;font-size:1.1rem">
+          <button id="aPlus" aria-label="Un message de plus">+</button></div>
+        <button class="cx" id="aCancel">Annuler</button>
+        <button class="ok" id="aOk">Enregistrer</button>
+      </div></div>`);
+  }
+  $("#events").innerHTML = cards.join("");
+  document.querySelectorAll(".ev").forEach(b => b.onclick = () => {
+    const k = b.dataset.type;
+    if (isMsg(k)) { asking = asking===k ? null : k; askN = 10; render(); }
+    else addEvent(k);
+  });
+  if (asking){
+    const inp = $("#aVal");
+    const setN = v => { askN = Math.max(1, Math.min(999, v|0)); inp.value = askN; };
+    $("#aMinus").onclick = () => setN(askN-1);
+    $("#aPlus").onclick = () => setN(askN+1);
+    inp.oninput = () => { askN = Math.max(1, parseInt(inp.value)||1); };
+    $("#aCancel").onclick = () => { asking = null; render(); };
+    $("#aOk").onclick = () => addEvent(asking, askN);
+  }
+
+  // équilibre sur 30 jours
+  const since = new Date(); since.setDate(since.getDate()-30); const sinceIso = since.toISOString().slice(0,10);
+  const recent = state.events.filter(e=>e.date>=sinceIso);
+  const me = recent.filter(e=>e.type==="me_first"||e.type==="me_invite").length;
+  const her = recent.filter(e=>e.type==="her_first"||e.type==="her_invite").length;
+  const tot = me+her; const pMe = tot?Math.round(me/tot*100):50;
+  $("#barMe").style.width = pMe+"%"; $("#barHer").style.width = (100-pMe)+"%";
+  $("#lgMe").textContent = tot?`Toi ${pMe} %`:"Toi"; $("#lgHer").textContent = tot?`Elle ${100-pMe} %`:"Elle";
+  let v = "";
+  if (!tot) v = "Rien sur les 30 derniers jours. Note les prochains messages pour voir l’équilibre.";
+  else if (tot < 4) v = "Encore trop peu de données pour tirer une tendance.";
+  else if (pMe >= 70) v = "Sur 30 jours, c’est surtout toi qui vas vers elle.";
+  else if (pMe <= 40) v = "Sur 30 jours, elle vient vers toi au moins autant que toi.";
+  else v = "Sur 30 jours, c’est plutôt équilibré.";
+  $("#verdict").textContent = v;
+
+  renderHist(); renderCharts();
+}
+function renderHist(){
+  const items = [
+    ...state.sessions.map(s=>({k:"s",id:s.id,date:s.date,t:0,title:`${fmtDur(+s.minutes)} ${isSolo(s)?"en tête-à-tête":"avec du monde"}`,sub:s.note,color:isSolo(s)?"var(--her)":"var(--group)"})),
+    ...state.events.map(e=>({k:"e",id:e.id,date:e.date,t:e.t||0,title:TYPES[e.type]?.short||e.type,sub:"",msg:isMsg(e.type),ev:e,color:`var(${TYPES[e.type]?.color||"--muted"})`}))
+  ].sort((a,b)=> b.date.localeCompare(a.date) || b.t-a.t);
+  const ul = $("#hist");
+  if (!items.length){ ul.innerHTML = `<li class="empty">Tout ce que tu notes apparaîtra ici.</li>`; $("#more").hidden = true; return; }
+  ul.innerHTML = "";
+  items.slice(0,histLimit).forEach(it => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="dot"></span><div class="txt"><div></div><div></div></div><button class="del" aria-label="Supprimer">✕</button>`;
+    li.querySelector(".dot").style.background = it.color;
+    li.querySelector(".txt div:first-child").textContent = it.title;
+    li.querySelector(".txt div:last-child").textContent = fmtDate(it.date) + (it.sub ? " — " + it.sub : "");
+    li.querySelector(".del").onclick = () => remove(it.k, it.id);
+    if (it.msg){
+      const inp = document.createElement("input");
+      inp.type = "number"; inp.min = 1; inp.inputMode = "numeric"; inp.className = "msgn";
+      inp.value = msgs(it.ev); inp.setAttribute("aria-label","Nombre de messages");
+      inp.onchange = () => { it.ev.msgs = Math.max(1, parseInt(inp.value)||1); inp.value = it.ev.msgs; save(); renderCharts(); };
+      const lab = document.createElement("span"); lab.textContent = "msg"; lab.style.cssText = "color:var(--muted);font-size:.85rem;margin-left:-6px";
+      li.insertBefore(lab, li.querySelector(".del")); li.insertBefore(inp, lab);
+    }
+    ul.appendChild(li);
+  });
+  $("#more").hidden = items.length <= histLimit;
+}
+$("#more").onclick = () => { histLimit += 20; renderHist(); };
+
+let chMsg, chHours;
+function renderCharts(){
+  if (!window.Chart) return;
+  const ink = css("--ink"), muted = css("--muted"), line = css("--line");
+  Chart.defaults.font.family = '"Bricolage Grotesque", system-ui, sans-serif';
+  Chart.defaults.color = muted;
+
+  // semaines
+  const weeks = []; const start = new Date(weekStart(today())+"T12:00:00");
+  for (let i=range-1;i>=0;i--){ const d = new Date(start); d.setDate(d.getDate()-7*i); weeks.push(d.toISOString().slice(0,10)); }
+  const byWeek = t => weeks.map(w => state.events.filter(e=>e.type===t && weekStart(e.date)===w).length);
+  const msgWeek = t => weeks.map(w => state.events.filter(e=>e.type===t && weekStart(e.date)===w).reduce((a,e)=>a+msgs(e),0));
+  const seen = weeks.map(w => state.sessions.filter(x=>weekStart(x.date)===w));
+  const exch = {me_first:byWeek("me_first"), her_first:byWeek("her_first")};
+  const labels = weeks.map(w => new Date(w+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}));
+
+  const dataMsg = {labels, datasets:[
+    {type:"bar",label:"Toi en premier",key:"me_first",data:msgWeek("me_first"),backgroundColor:css("--me"),borderRadius:4,maxBarThickness:9,barPercentage:.55,categoryPercentage:.6,order:2,yAxisID:"y"},
+    {type:"bar",label:"Elle en premier",key:"her_first",data:msgWeek("her_first"),backgroundColor:css("--her"),borderRadius:4,maxBarThickness:9,barPercentage:.55,categoryPercentage:.6,order:2,yAxisID:"y"},
+    {type:"line",label:"Elle propose de se voir",yAxisID:"y2",data:byWeek("her_invite"),borderColor:css("--invite"),backgroundColor:css("--invite"),
+      tension:.35,pointRadius:c=>c.raw>0?2.5:0,pointHoverRadius:c=>c.raw>0?4:0,pointHitRadius:c=>c.raw>0?8:0,borderWidth:2.5,order:1},
+    {type:"line",label:"Tu proposes de se voir",yAxisID:"y2",data:byWeek("me_invite"),borderColor:css("--me"),backgroundColor:css("--surface"),
+      borderDash:[5,4],tension:.35,pointRadius:c=>c.raw>0?2.5:0,pointHoverRadius:c=>c.raw>0?4:0,pointHitRadius:c=>c.raw>0?8:0,pointBackgroundColor:css("--me"),borderWidth:2,order:1}
+  ]};
+  dataMsg.datasets.forEach(d => { const isHer = d.label.startsWith("Elle"); d.hidden = who !== "all" && (who === "her") !== isHer; });
+  const maxInv = Math.max(2, ...byWeek("her_invite"), ...byWeek("me_invite"));
+  const opts = {responsive:true,maintainAspectRatio:false,animation:{duration:300},layout:{padding:{top:34}},
+    interaction:{mode:"index",intersect:false},
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{
+        title: items => "Semaine du " + labels[items[0].dataIndex],
+        label: c => {
+          const ds = c.dataset, v = c.parsed.y;
+          if (ds.key){ const n = exch[ds.key][c.dataIndex]; return n ? `${ds.label} : ${n} échange${n>1?"s":""}, ${v} messages` : null; }
+          return v ? `${ds.label} : ${v} fois` : null;
+        },
+        afterBody: items => { const s = seen[items[0].dataIndex]; if (!s.length) return "";
+          return ["", "Vous vous êtes vus :", ...s.map(x => `${isSolo(x)?"♥ en tête-à-tête":"● avec du monde"}, ${fmtDate(x.date)} (${fmtDur(+x.minutes||0)})`)]; }
+      }}},
+    scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:8}},
+            y:{beginAtZero:true,ticks:{precision:0},grid:{color:line},border:{display:false},title:{display:true,text:"messages"}},
+            y2:{beginAtZero:true,position:"right",max:maxInv+1,ticks:{precision:0},grid:{display:false},border:{display:false},title:{display:true,text:"propositions"}}}};
+  const seenPlugin = {id:"seen", beforeDatasetsDraw(chart){
+    const {ctx, chartArea:a, scales:{x}} = chart; const n = seen.length; if (!n) return;
+    const w = (a.right - a.left) / n;
+    ctx.save();
+    seen.forEach((s,i) => { if (!s.length) return;
+      const cx = x.getPixelForValue(i);
+      const sm = sumM(s.filter(isSolo)), gm = sumM(s.filter(y=>!isSolo(y)));
+      const both = sm && gm;
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.font = `700 ${n>20?9:10}px "Bricolage Grotesque", system-ui, sans-serif`;
+      const lab = (sym, m) => n>20 ? sym : `${sym}${Math.round(m/60)}${n>10?"":"h"}`;
+      const mark = (color, dx, y, txt) => {
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(cx+dx, a.top - 2); ctx.lineTo(cx+dx, a.bottom); ctx.stroke();
+        ctx.fillStyle = color; ctx.fillText(txt, cx+dx, y);
+      };
+      if (sm) mark(css("--her"), both ? -3 : 0, both ? a.top - 30 : a.top - 16, lab("♥", sm));
+      if (gm) mark(css("--group"), both ? 3 : 0, a.top - 16, lab("●", gm));
+    });
+    ctx.restore();
+  }};
+  chMsg?.destroy();
+  chMsg = new Chart($("#chartMsg"), {data:dataMsg, options:opts, plugins:[seenPlugin]});
+
+  // heures cumulées
+  const sorted = [...state.sessions].sort((a,b)=>a.date.localeCompare(b.date));
+  let accG = 0, accS = 0; const ptsG = {}, ptsS = {};
+  sorted.forEach(s => { if (isSolo(s)) accS += +s.minutes||0; else accG += +s.minutes||0;
+    ptsG[s.date] = +(accG/60).toFixed(1); ptsS[s.date] = +(accS/60).toFixed(1); });
+  const pts = ptsS;
+  const hl = Object.keys(pts);
+  const dataH = {labels: hl.map(d=>new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})),
+    datasets:[
+      {label:"Tête-à-tête",data:Object.values(ptsS),borderColor:css("--her"),backgroundColor:css("--seen"),fill:true,tension:.3,pointRadius:3,borderWidth:2.5},
+      {label:"En groupe",data:Object.values(ptsG),borderColor:css("--group"),backgroundColor:css("--groupbg"),fill:true,tension:.3,pointRadius:3,borderWidth:2.5}]};
+  const optsH = {responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{position:"bottom",labels:{boxWidth:10,boxHeight:10,usePointStyle:true,padding:12}}},
+    scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:6}},
+            y:{beginAtZero:true,grid:{color:line},border:{display:false},ticks:{callback:v=>v+" h"}}}};
+  if (chHours){ chHours.data = dataH; chHours.options = optsH; chHours.update(); }
+  else chHours = new Chart($("#chartHours"), {type:"line", data:dataH, options:optsH});
+}
+document.querySelectorAll(".seg button[data-range]").forEach(b => b.onclick = () => {
+  range = +b.dataset.range;
+  document.querySelectorAll(".seg button[data-range]").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderCharts();
+});
+document.querySelectorAll(".seg button[data-who]").forEach(b => b.onclick = () => {
+  who = b.dataset.who;
+  document.querySelectorAll(".seg button[data-who]").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderCharts();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { chHours?.destroy(); chHours=null; renderCharts(); });
+
+/* ---------- ajout d'une rencontre ---------- */
+function setHours(v){ hours = Math.max(1, Math.min(48, v)); $("#hVal").textContent = hours + " h"; $("#hMinus").disabled = hours<=1; }
+$("#hMinus").onclick = () => setHours(hours-1);
+$("#hPlus").onclick = () => setHours(hours+1);
+document.querySelectorAll(".who button").forEach(b => b.onclick = () => {
+  solo = b.dataset.solo === "1";
+  document.querySelectorAll(".who button").forEach(x => x.setAttribute("aria-pressed", x===b));
+});
+$("#addBtn").onclick = () => { addSession(hours*60, $("#fDate").value || today(), $("#fNote").value.trim(), solo); $("#fNote").value = ""; };
+$("#fNote").addEventListener("keydown", e => { if (e.key==="Enter") $("#addBtn").click(); });
+
+/* ---------- démarrage ---------- */
+$("#tabOk").onclick = submitEdit;
+$("#tabCancel").onclick = () => openEdit(null);
+$("#tabDel").onclick = deleteProfile;
+$("#tabName").addEventListener("keydown", e => { if (e.key==="Enter") submitEdit(); if (e.key==="Escape") openEdit(null); });
+$("#evDate").value = today(); $("#fDate").value = today(); setHours(2);
+loadLocal(); render(); setSync();
+if (window.claude && typeof claude.use === "function") initDb();
+</script>
+</body>
+</html>

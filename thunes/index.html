@@ -346,8 +346,25 @@ function scenes(){ try{ const l = JSON.parse(localStorage.getItem('backstage_sce
 const moisSuivant = m => { const x = new Date(+m.slice(0, 4), +m.slice(5), 1); return x.getFullYear() + '-' + pad(x.getMonth() + 1); };
 const nbJours = m => new Date(+m.slice(0, 4), +m.slice(5), 0).getDate();
 // Le bilan d'un mois (sans le côté) : jusqu'au jour j inclus
+// Les mois finis gardent les charges et l'épargne qu'ils avaient (voir figerMois) ; le mois en cours prend les réglages actuels
+const figeDe = (d, m) => (d.figes || {})[m] || null;
+const epDe = (d, m) => { const f = figeDe(d, m); return f ? +f.ep || 0 : +d.epargne || 0; };
+const chargesDe = (d, m) => { const f = figeDe(d, m); return f ? +f.charges || 0 : d.charges.reduce((s, c) => s + (+c.montant || 0), 0); };
+// Ce qui est mis de côté un mois donné jusqu'au jour j : un peu chaque jour (et, si tu as changé ton épargne en cours de mois, le nouveau rythme à partir de ce jour-là)
+function epAcquis(d, m, j){
+  const n = nbJours(m), e = epDe(d, m), p = (d.paliers || {})[m];
+  const pj = p && p.epA != null ? (p.epJ != null ? p.epJ : p.j) : null;   // (le jour du changement compte déjà au nouveau rythme)
+  return pj != null && j >= pj ? p.epA + e * (Math.min(j, n) - pj) / n : e * Math.min(j, n) / n;
+}
+// À chaque ouverture : on fige les mois finis (charges + épargne d'alors), pour qu'un changement plus tard ne soit pas rétroactif
+function figerMois(d){
+  const m = moisDe(new Date()), debut = d.debut || (d.cote && d.cote.depuis) || m; let chg = false;
+  d.figes = d.figes || {};
+  for(let x = debut; x < m; x = moisSuivant(x)) if(!d.figes[x]){ d.figes[x] = {charges:chargesDe(d, m), ep:+d.epargne || 0}; chg = true; }
+  return chg;
+}
 function bilanMois(d, m, j, sc){
-  const ver = versement(d, m), charges = d.charges.reduce((s, c) => s + (+c.montant || 0), 0), ep = +d.epargne || 0, nbJ = nbJours(m);
+  const ver = versement(d, m), charges = chargesDe(d, m), ep = epDe(d, m), nbJ = nbJours(m);
   const budgetBrut = ver.v - charges - ep, budget = Math.max(0, budgetBrut);   // (versement 0, ou plus petit que charges + épargne : 0 par jour, jamais négatif)
   // Palier : quand tu changes ton versement, tes charges ou ton épargne en cours de mois, ce qui est déjà gagné ne bouge pas :
   // le reste du budget est réparti sur les jours qui restent (c'est le « par jour » qui change, pas la cagnotte).
@@ -375,7 +392,8 @@ function calcul(d, jour = new Date()){
   const priseCote = 0, cagnotte = report + b.brute;
   // Le côté : ce qu'il y avait au départ + ce que tu mets de côté chaque mois − ce que tu as choisi d'y piocher
   let total = +cote.depart || 0;
-  for(let x = cote.depuis; x <= m; x = moisSuivant(x)) total += +d.epargne || 0;
+  for(let x = cote.depuis; x < m; x = moisSuivant(x)) total += epAcquis(d, x, nbJours(x));
+  if(cote.depuis <= m) total += epAcquis(d, m, j);
   const coteNet = total - (d.pioches || []).reduce((a, x) => a + x.m, 0);
   // Le stand-up : tout ce que les scènes ont rapporté, moins ce que tu as viré dans la cagnotte
   const gainsSU = sc.reduce((s, x) => s + (+x.gains || 0), 0), viresSU = (d.virements || []).reduce((s, x) => s + x.m, 0), payeSU = -d.mouvements.filter(x => x.su).reduce((s, x) => s + x.m, 0);
@@ -384,7 +402,7 @@ function calcul(d, jour = new Date()){
 // À appeler AVANT de changer versement, charges ou épargne : on fige ce qui est déjà gagné ce mois-ci (jusqu'à aujourd'hui inclus)
 function palier(d, jour = new Date()){
   const m = moisDe(jour), j = jour.getDate(), b = bilanMois(d, m, j, []);
-  d.paliers = {...(d.paliers || {}), [m]:{j, acquis:Math.round(b.acq * 100) / 100}};
+  d.paliers = {...(d.paliers || {}), [m]:{j, acquis:Math.round(b.acq * 100) / 100, epA:Math.round(epAcquis(d, m, j - 1) * 100) / 100, epJ:j - 1}};
 }
 let D = lire();
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
@@ -406,7 +424,7 @@ const bilanDe = (c, mm) => !mm || mm === c.m ? c : {...bilanMois(D, mm, nbJours(
 const premierMois = c => [D.debut || (D.cote && D.cote.depuis) || c.m, ...D.mouvements.map(x => x.d.slice(0, 7))].sort()[0];
 const navMois = (mm, c, k, long) => `<span class="mnav"><button type="button" class="mini nav" data-a="${k}-prec" aria-label="Mois d’avant"${mm <= premierMois(c) ? ' disabled' : ''}>‹</button><em${long ? ' class="tot-t"' : ''}>${esc(cap(long ? nomMois(mm) : new Date(+mm.slice(0, 4), +mm.slice(5) - 1, 1).toLocaleDateString('fr-FR', {month:'short'})))}</em><button type="button" class="mini nav" data-a="${k}-suiv" aria-label="Mois d’après"${mm >= c.m ? ' disabled' : ''}>›</button></span>`;
 function render(){
-  D = lire();
+  D = lire(); if(figerMois(D)) ecrire(D);
   try{ const brut = JSON.parse(localStorage.getItem(CLE) || 'null'); if(brut && (!brut.cote || !brut.categories || !brut.catCharges)) ecrire(D); }catch(e){}
   const c = calcul(D), cMv = bilanDe(c, moisMv), cCat = bilanDe(c, moisCat);
   const mvs = tousMouvements(cMv);

@@ -16,13 +16,15 @@
         accueil : place de sa carte sur l'accueil (la carte Listes / Bientôt est toujours la 1re)
         toujoursAccueil : true pour que l'onglet ramène toujours à l'accueil de l'app
         cache   : true pour masquer une app (pas d'onglet, pas de carte), sans perdre ses données
+        secret  : true pour une page cachée (pas d'onglet ni de carte, ni dans la liste « Sur ce téléphone »)
+                  mais gardée dans les sauvegardes — elle s'ouvre par le petit cœur en bas des réglages
    3. augmenter VERSION_QUOTIDIEN de 1 (l'app se mettra à jour toute seule sur le téléphone).
 
    La sauvegarde globale prend automatiquement toute la base de chaque app listée.
    Un bloc sur l'accueil est optionnel (voir LECTEURS dans index.html).
    ================================================================ */
 
-self.VERSION_QUOTIDIEN = 42;
+self.VERSION_QUOTIDIEN = 43;
 
 // Bouton « Noter une modif » (le crayon en bas à droite). Mettre false pour le retirer.
 self.RETOURS = true;
@@ -78,5 +80,15 @@ self.APPS = [
     stockage: 'localStorage',
     prefixe: 'thunes_',
     icone: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3"/><path d="M4 7.5V17a2 2 0 0 0 2 2h14V9H6.5A2.5 2.5 0 0 1 4 7.5Z"/><circle cx="16" cy="14" r="1.2"/>'
+  },
+  {
+    id: 'carnet',
+    nom: 'Carnet',
+    dossier: 'love/',
+    secret: true,            // page cachée : le petit cœur en bas des réglages
+    stockage: 'localStorage',
+    prefixe: 'carnet-',
+    couleur: ['#E2456C', '#FF6F92'],
+    icone: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>'
   }
 ];

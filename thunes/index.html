@@ -774,10 +774,12 @@ const FACT_DEFAUT = {
   emetteur:{nom:'Elie Soussan EI', adresse:'95 av ledru rollin', ville:'75011 Paris', tel:'0624964249', email:'eliesoussan4@gmail.com', siret:'92003677900014', mention:'DISPENSÉ(E) D’IMMATRICULATION AU RCS ET AU RM',
     titulaire:'Elie Soussan', banque:'Boursorama', iban:'FR76 4061 8803 9800 0406 2127 807', bic:'BOUSFRPPXXX',
     legal:'Pour tout professionnel, en cas de retard de paiement, seront exigibles, conformément à l’article L 441-6 du code de commerce, une indemnité calculée sur la base de trois fois le taux de l’intérêt légal en vigueur ainsi qu’une indemnité forfaitaire pour frais de recouvrement de 40 euros. - TVA non applicable, art. 293B du CGI.'},
-  clients:[{id:'parallele', nom:'PARALLELE MEDIA', attention:'M. guimbert antoine', adresse:'21, Boulevard de Montmorency', ville:'75016 Paris', tel:'0626054358', email:'guimbert.antoine@gmail.com', siret:'820 646 768 00011', tva:'FR00820646768'}],
+  clients:[{id:'parallele', nom:'PARALLELE MEDIA', attention:'M. guimbert antoine', adresse:'21, Boulevard de Montmorency', ville:'75016 Paris', tel:'0626054358', email:'guimbert.antoine@gmail.com', siret:'820 646 768 00011', tva:'FR00820646768'},
+    {id:'moni', nom:'MONI', attention:'M. David Soussan', adresse:'1, Rue Nicolas Appert', ville:'75011 Paris', tel:'0609181429', email:'david@sasmoni.com', siret:'394 981 344 00093', tva:'FR95394981344'},
+    {id:'la-blague', nom:'La blague SAS', attention:'M. Oury Elie', adresse:'106, rue du Faubourg Bannier', ville:'45000 Orléans', tel:'0666972385', email:'Elie@orleanscomedy.fr', siret:'940 355 613 00016', tva:'FR40940355613'}],
   delai:60, historique:[]
 };
-function lireFact(){ D = lire(); const f = D.factures || {}; return {...FACT_DEFAUT, ...f, emetteur:{...FACT_DEFAUT.emetteur, ...(f.emetteur || {})}, clients:f.clients || FACT_DEFAUT.clients, historique:f.historique || []}; }
+function lireFact(){ D = lire(); const f = D.factures || {}; return {...FACT_DEFAUT, ...f, emetteur:{...FACT_DEFAUT.emetteur, ...(f.emetteur || {})}, clients:[...(f.clients || []), ...FACT_DEFAUT.clients.filter(c => !(f.clients || []).some(x => x.id === c.id))], historique:f.historique || []}; }
 // Le numéro suivant : le dernier exporté, +1 (en gardant les zéros : 0030 → 0031)
 const numSuivant = n => { const m = String(n || '').match(/^(.*?)(\d+)(\D*)$/); return m ? m[1] + String(+m[2] + 1).padStart(m[2].length, '0') + m[3] : n; };
 const eurF = v => (Math.round((+v || 0) * 100) / 100).toFixed(2).replace('.', ',') + '€';

@@ -1489,7 +1489,7 @@ function openDayAdd(d) {
     // Ce qui attend déjà : les tâches sans date et les événements gardés pour être remis
     const attente = S.tasks.filter(t => !t.rep && !t.date && !t.done && !t.info && t.kind !== 'event' && !t.srcId).sort((a, b) => (b.prio ? 1 : 0) - (a.prio ? 1 : 0) || a.title.localeCompare(b.title, 'fr'));
     // … les événements gardés pour être remis, et les plateaux (rangés dans leur catégorie, ex. Stand-up)
-    const evTpl = S.tasks.filter(t => t.info && t.free);
+    const evTpl = S.tasks.filter(t => t.info && t.free && !isSceneTheme(themeOf(t)));   // (pas les plateaux : ils ont leur bouton « Plateau »)
     // Tout est rangé par catégorie (la catégorie du haut, sous-catégories comprises), dans l'ordre de tes catégories
     const groupes = [];
     [...attente, ...evTpl.sort((a, b) => a.title.localeCompare(b.title, 'fr'))].forEach(t => {
@@ -1501,7 +1501,7 @@ function openDayAdd(d) {
     groupes.sort((a, b) => (a.th ? a.th.order || 0 : 999) - (b.th ? b.th.order || 0 : 999));
     const ligne = t => { const th = themeOf(t), pl = t.info && isSceneTheme(th); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="${pl ? 'place-pl' : 'place-on'}" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${pl ? '🎤 ' : t.info ? '📅 ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
     return `<h2 class="sheet-title">${h(name)}</h2>
-      <div class="btn-row quatre"><button type="button" class="btn primary" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button><button type="button" class="btn" data-a="dayadd-routine" data-d="${d}">${PLAY}Routine</button></div>
+      <div class="btn-row quatre"><button type="button" class="btn" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button><button type="button" class="btn" data-a="dayadd-routine" data-d="${d}">${PLAY}Routine</button></div>
       ${groupes.map(g => `<h3 class="grp-h c-${g.th ? g.th.color || 'slate' : 'slate'}"><span class="cdot"></span>${g.th ? h(g.th.emoji + ' ' + g.th.name) : '📌 Sans catégorie'}<span class="muted">${g.ts.length}</span></h3><div class="att att-g">${g.ts.map(ligne).join('')}</div>`).join('') || '<p class="panel-note">Rien en attente : tout est déjà placé.</p>'}
       `;
   } });

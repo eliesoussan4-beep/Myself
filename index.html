@@ -1892,10 +1892,7 @@ let moisDecalage = 0, moisJour = null, moisDonnees = null;
 async function chargerMois(){
   moisDonnees = await lire('organisation', async db => {
     const [tasks, themes] = await Promise.all([tout(db, 'tasks'), tout(db, 'themes')]);
-    // (pas les plateaux : les scènes notées dans une catégorie « Scènes » ; les vraies tâches de stand-up restent)
-    const nomDe = id => (themes.find(x => x.id === id) || {}).name || '';
-    const scenes = new Set(themes.filter(th => SCENE_RE.test(th.name || '') || (th.parentId && SCENE_RE.test(nomDe(th.parentId)))).map(th => th.id));
-    return {tasks:tasks.filter(x => !x.free && !(x.info && scenes.has(x.themeId))), themes:new Map(themes.map(th => [th.id, th]))};
+    return {tasks:tasks.filter(x => !x.free), themes:new Map(themes.map(th => [th.id, th]))};   // (les plateaux placés y sont, comme dans « Bientôt »)
   });
 }
 function elementsDu(d){

@@ -210,7 +210,15 @@ dialog.volet[open]{display:flex;animation:monte .25s cubic-bezier(.2,.8,.2,1)}
 .duo.cd .carre{min-height:0}
 .duo.cd .car{flex:1;min-height:0}
 .duo.cd .carre .t{aspect-ratio:auto;height:auto}
-.jours{flex:1.2 1 0;min-height:150px;gap:6px}
+.jours{flex:.85 1 0;min-height:118px;gap:6px}
+/* Les deux boutons des factures, entre Octobre / Charges et les stats */
+.fac-b{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:none}
+.fbt{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-weight:700;font-size:14px;padding:11px 8px}
+.fbt svg{color:var(--denim);flex:none}
+.fac-m{display:flex;flex-direction:column;gap:6px}
+.fac-m h3{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px 0;font-size:15px}
+.fac-m h3 span{font-family:var(--body);font-size:13px;font-weight:700;color:var(--muted)}
+.fac-l{max-height:58dvh;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
 /* petits écrans : tout se resserre pour tenir sans défiler */
 @media (max-height:740px){
   main{gap:8px}
@@ -226,6 +234,12 @@ dialog.volet[open]{display:flex;animation:monte .25s cubic-bezier(.2,.8,.2,1)}
   .carte-c.tot .virer{padding:5px 6px;margin-top:2px}
   .jours{min-height:92px}
   .jours .axe{display:none}
+  main{gap:6px !important}
+  .fac-b .fbt{padding:7px 6px;font-size:13px}
+  .duo.cd{min-height:112px !important}
+  .jours{min-height:76px !important}
+  .mvts{min-height:84px !important}
+  .duo.hautes .chif,.duo.pots2 .chif{min-height:50px !important}
 }
 .jours .bars{flex:1;height:auto;min-height:36px}
 /* Le carrousel des stats */
@@ -528,7 +542,7 @@ function render(){
       <div class="carre"><button type="button" class="t chif pot ac4" data-a="cote-menu"><small>De côté</small><span class="ch-r"><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><em>+${Math.round(c.coteMois)} €/mois</em></span>${c.priseCote > 0 ? `<span class="pris">−${eur(c.priseCote, false)} ce mois</span>` : ''}</button>${pointsH(2).replace('class="pts"', 'class="pts cache"')}</div>
     </section>
     <section class="t mvts" data-a="tous-mv" role="button">
-      <div class="titre"><b>Mouvements</b>${navMois(cMv.m, c, 'mv')}<span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button><button type="button" class="mini fac" data-a="facture" aria-label="Faire une facture"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5V3Z"/><path d="M9 9h6M9 13h6"/></svg></button></span></div>
+      <div class="titre"><b>Mouvements</b>${navMois(cMv.m, c, 'mv')}<span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button></span></div>
       ${pages.length ? `<div class="car" data-car="mv">${pages.map(pg => `<div class="pg">${pg.map(ligneMv).join('')}</div>`).join('')}</div>${pointsH(pages.length)}` : `<p class="vide">Rien de noté ${cMv.m === c.m ? 'ce mois-ci' : 'en ' + esc(nomMois(cMv.m))}.</p>`}
     </section>
     <section class="duo cd">
@@ -540,6 +554,10 @@ function render(){
         <div class="t carte-c info tot"><small class="tot-t">Charges</small><div class="tot-m"><b>${eur(c.charges, false)}</b>${segs(chCat.map((g, i) => [g.l.reduce((a, x) => a + (+x.montant || 0), 0), `var(--k${(i + 1) % 8})`]))}<span>${plur(D.charges.length, 'charge', 'charges')}</span></div><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
         ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${(i + 1) % 8})"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
       </div>${pointsH(chCat.length + 1)}</div>
+    </section>
+    <section class="fac-b">
+      <button type="button" class="fbt" data-a="facture"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5V3Z"/><path d="M12 8v6M9 11h6"/></svg>Nouvelle facture</button>
+      <button type="button" class="fbt" data-a="factures"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5V3Z"/><path d="M9 9h6M9 13h4"/></svg>Mes factures</button>
     </section>
     <section class="jours"><div class="car t" data-car="stats">${statsDiapos.join('')}</div>${pointsH(statsDiapos.length)}</section>
 `;
@@ -855,7 +873,7 @@ function exporterFacture(partager, dlg){
     const hist = lireFact().historique || [], tot = lignes.reduce((a, l) => a + l.qte * l.pu, 0);
     D = lire();
     D.factures = {...(D.factures || {}), emetteur:E.F.emetteur, clients:E.F.clients, delai:E.delai, dernier:E.num,
-      historique:[...hist, {num:E.num, date:E.date, client:cl.id, nomClient:cl.nom, total:tot, lignes, faite:Date.now()}].slice(-200)};
+      historique:[...hist, {num:E.num, date:E.date, livraison:E.livraison, delai:E.delai, client:cl.id, nomClient:cl.nom, total:tot, lignes, faite:Date.now()}].slice(-200)};
     ecrire(D); dlg.close(); toast(`Facture ${E.num} prête ✓`);
   };
   if(partager && navigator.canShare && navigator.canShare({files:[fichier]})){
@@ -915,6 +933,28 @@ function pdfFacture(E){
   doc.text(doc.splitTextToSize(em.legal || '', 100), 16, 287);
   return doc.output('blob');
 }
+// L'historique des factures, par mois (toucher une facture la refait et la repartage)
+function fenetreFactures(){
+  const F = lireFact(), h = F.historique.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.faite || 0) - (a.faite || 0));
+  const parMois = new Map(); h.forEach(x => { const k = (x.date || '').slice(0, 7); if(!parMois.has(k)) parMois.set(k, []); parMois.get(k).push(x); });
+  ouvrir(`<h2>Mes factures</h2>
+    <div class="fac-l">${[...parMois.entries()].map(([k, l]) => `<div class="fac-m"><h3>${esc(cap(nomMois(k)))} ${k.slice(0, 4)}<span>${eurF(l.reduce((a, x) => a + (+x.total || 0), 0))}</span></h3>
+      ${l.map(x => `<button type="button" class="it mvl" data-fac="${esc(x.num)}"><span class="mv-ic" style="--k:var(--denim)">🧾</span><span class="n"><b>${esc(x.nomClient || '')}</b><small>N° ${esc(x.num)} · ${esc(dateFR(x.date))}</small></span><span class="m">${eurF(x.total)}</span></button>`).join('')}</div>`).join('') || '<p class="vide">Pas encore de facture : elles apparaîtront ici, mois par mois.</p>'}</div>
+    <p class="note">Toucher une facture la refait en PDF pour la partager à nouveau.</p>
+    <div class="btns"><button type="button" class="btn sec" data-f="non">Fermer</button></div>`,
+  (e, dlg) => {
+    if(e.target.closest('[data-f="non"]')){ dlg.close(); return; }
+    const b = e.target.closest('[data-fac]'); if(!b) return;
+    const x = h.find(y => y.num === b.dataset.fac), cl = x && F.clients.find(c => c.id === x.client);
+    if(!x || !cl){ toast('Client introuvable pour cette facture.'); return; }
+    if(!window.jspdf){ toast('Préparation du PDF… réessaie dans un instant.'); chargerJsPDF().catch(() => toast('Il faut Internet pour faire le PDF.')); return; }
+    const blob = pdfFacture({num:x.num, date:x.date, livraison:x.livraison || x.date, delai:x.delai || F.delai || 60, lignes:x.lignes, client:cl, emetteur:F.emetteur});
+    const nom = `Facture ${x.num.replace(/[\/\\:*?"<>|]/g, '-')}.pdf`, f = new File([blob], nom, {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f], title:nom}).catch(err => { if(!err || err.name !== 'AbortError') telecharger(blob, nom); });
+    else telecharger(blob, nom);
+  });
+  chargerJsPDF().catch(() => {});
+}
 // Annuler un réajustement (de la cagnotte « aj », ou du côté « ajc ») depuis l'historique
 function annulerAjustement(a, id){
   D = lire(); const l = a === 'aj' ? D.ajustements : (D.ajCote || []), x = l.find(y => y.id === id); if(!x) return;
@@ -928,6 +968,7 @@ $('#app').addEventListener('click', e => {
   const a = b.dataset.a, m = moisDe(new Date());
   if(a === 'tous-mv'){ fenetreTousMouvements(); return; }
   if(a === 'facture'){ voletFacture(); return; }
+  if(a === 'factures'){ fenetreFactures(); return; }
   if(a === 'mv-prec' || a === 'mv-suiv'){ const cur = moisMv || m; moisMv = a === 'mv-prec' ? moisPrec(cur) : moisSuivant(cur); if(moisMv >= m) moisMv = null; render(); return; }
   if(a === 'cat-prec' || a === 'cat-suiv'){ const cur = moisCat || m; moisCat = a === 'cat-prec' ? moisPrec(cur) : moisSuivant(cur); if(moisCat >= m) moisCat = null; render(); return; }
   if(a === 'cats-pop'){ fenetreCategories(); return; }

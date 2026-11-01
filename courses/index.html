@@ -1165,7 +1165,7 @@ function render(){
       : tb.items.map(i => tb.simple ? `<div class="cb-tbr simple"><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></div>`
         : `<button type="button" class="cb-tbr" data-act="tb-coche" data-id="${esc(i.id)}"><i class="cb-box"></i><span>${esc((i.emoji ? i.emoji + ' ' : '') + i.name)}</span></button>`).join('') || '<p class="cb-vide">Rien à acheter.</p>'}</div></div><div class="cb-points cb-esp" aria-hidden="true"><span></span></div></div>`;
   const histC = hDiapos.length ? `<div class="cb-bloc cb-carre"><div class="cb-car" data-car="hist">${hDiapos.join('')}${tk.length > 12 ? `<button type="button" class="cb-t cb-tk cb-tout" data-act="tickets"><b>Tout l’historique ›</b><span>${tk.length} courses</span></button>` : ''}</div>${pointsCb(hDiapos.length + (tk.length > 12 ? 1 : 0))}</div>` : '<div class="cb-t cb-carre"><p class="cb-vide">Pas encore de courses notées.</p></div>';
-  const tete = `<header class="cb-tete"><h1>${esc(cap(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h1><button type="button" class="cb-reg" data-act="backup" aria-label="Sauvegarde et réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>`;
+  const tete = `<header class="cb-tete"><h1>${esc(cap(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h1><button type="button" class="cb-reg" data-act="reglages-gen" aria-label="Sauvegarde et réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>`;
   $('#app').innerHTML = `
     <div class="cb cb-plein">
       ${tete}
@@ -1198,6 +1198,7 @@ $('#app').addEventListener('click', e => {
   else if(a === 'ticket'){ const t = S.tickets.get(b.dataset.id); if(t) openTicket(t, () => render()); }
   else if(a === 'rayons') ouvrirRayons(b.dataset.r);
   else if(a === 'backup') openBackup();
+  else if(a === 'reglages-gen'){ if(!(() => { try{ const q = window.parent !== window && window.parent.quotidien; if(q && typeof q.reglages === 'function'){ q.reglages(); return true; } }catch(e){} return false; })()) openBackup(); }   // le bouton du haut : les réglages généraux de Mon quotidien
   else if(a === 'tb-coche') cocherToBuy(b);
   else if(a === 'tb-pop') ouvrirTbPop();
 });

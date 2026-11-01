@@ -1604,7 +1604,7 @@
           <div class="rating-stars" id="rating-stars"></div>
         </div>
       </div>
-      <button type="button" class="bs-reglages" onclick="toggleBackupModal()" aria-label="Sauvegarde et réglages"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+      <button type="button" class="bs-reglages" onclick="if(!(() => { try{ const q = window.parent !== window && window.parent.quotidien; if(q && typeof q.reglages === 'function'){ q.reglages(); return true; } }catch(e){} return false; })()) toggleBackupModal()" aria-label="Sauvegarde et réglages"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
       <div id="rating-detail" class="rating-detail-panel" style="display:none;">
         <div class="rd-row"><span class="rd-label">Plateaux</span><span class="rd-value" id="rd-beaux-val">0/9</span></div>
         <div class="rd-row"><span class="rd-label">Note</span><span class="rd-value" id="rd-note-val">0/15</span></div>

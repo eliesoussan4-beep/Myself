@@ -115,6 +115,16 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .seg button{padding:6px 14px;border-radius:999px;font-size:.9rem;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600}
 
+/* Historique : replié dans un volet, on l'ouvre en touchant le titre */
+.volet-hist{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:0 16px}
+.volet-hist summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 0;cursor:pointer}
+.volet-hist summary::-webkit-details-marker{display:none}
+.volet-hist summary h2{margin:0;flex:1}
+.vh-n{color:var(--muted);font-size:.9rem;font-weight:600}
+.vh-fl{color:var(--muted);font-size:1.4rem;line-height:1;transition:transform .2s}
+.volet-hist[open] .vh-fl{transform:rotate(90deg)}
+.volet-hist[open]{padding-bottom:10px}
+.volet-hist .hist{border-top:1px solid var(--line)}
 /* Historique */
 .hist{list-style:none;margin:0;padding:0}
 .hist li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -215,9 +225,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   </section>
 
   <section>
-    <h2>Historique</h2>
-    <ul class="hist" id="hist"></ul>
-    <button class="more" id="more" hidden>Voir plus</button>
+    <details class="volet-hist">
+      <summary><h2>Historique</h2><span class="vh-n" id="histN"></span><span class="vh-fl" aria-hidden="true">›</span></summary>
+      <ul class="hist" id="hist"></ul>
+      <button class="more" id="more" hidden>Voir plus</button>
+    </details>
   </section>
 
   <div class="sync" id="sync">Chargement…</div>
@@ -469,6 +481,7 @@ function renderHist(){
     ...state.events.map(e=>({k:"e",id:e.id,date:e.date,t:e.t||0,title:TYPES[e.type]?.short||e.type,sub:"",msg:isMsg(e.type),ev:e,color:`var(${TYPES[e.type]?.color||"--muted"})`}))
   ].sort((a,b)=> b.date.localeCompare(a.date) || b.t-a.t);
   const ul = $("#hist");
+  $("#histN").textContent = items.length ? String(items.length) : "";
   if (!items.length){ ul.innerHTML = `<li class="empty">Tout ce que tu notes apparaîtra ici.</li>`; $("#more").hidden = true; return; }
   ul.innerHTML = "";
   items.slice(0,histLimit).forEach(it => {

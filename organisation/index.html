@@ -163,6 +163,7 @@ button.ob-t{width:100%}
 .ob-l span{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ob-l small{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
 .ob-l.fait span{text-decoration:line-through;color:var(--muted)}
+.sess-pt{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:10px;vertical-align:0}
 .ob-l.prog{background:color-mix(in srgb,var(--c,var(--denim)) 30%,var(--surface));box-shadow:inset 3px 0 0 var(--c,var(--denim))}
 .ob-l.prog small{color:var(--c,var(--denim));font-weight:800}
 .ob-prio{font-style:normal;flex:none;width:16px;height:16px;border-radius:50%;background:var(--today);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
@@ -1159,6 +1160,38 @@ function themeScenes() {
   if (!th) { th = { id: uid(), name: 'Scènes', emoji: '🎤', color: 'purple', autoEmoji: false, order: Math.max(-1, ...S.themes.map(x => x.order || 0)) + 1 }; save('themes', th); }
   return th;
 }
+// Les séances d'un plateau ce jour-là, lues dans Backstage (même logique que ses « créneaux ») : pour choisir la sienne
+function sessionsPlateau(nom, d) {
+  let l = []; try { l = JSON.parse(localStorage.getItem('backstage_plateaux_v1') || '[]'); } catch (e) {}
+  const p = (Array.isArray(l) ? l : []).find(x => (x.name || '').trim().toLowerCase() === String(nom || '').trim().toLowerCase());
+  if (!p || p.paused) return [];
+  const dw = parse(d).getDay(), out = [];
+  const base = ((p.times && p.times.length) ? p.times : [{ time: p.time, type: p.type }]).filter(b => b && b.time && !b.paused && !(b.pausedDays && b.pausedDays.includes(dw)));
+  if (p.days && p.days.includes(dw)) base.forEach(b => out.push({ time: b.time, type: b.type }));
+  (p.exceptions || []).filter(ex => ex.days && ex.days.includes(dw) && !(ex.pausedDays && ex.pausedDays.includes(dw)) && ex.time).forEach(ex => out.push({ time: ex.time, type: ex.type != null ? ex.type : (base[0] ? base[0].type : null) }));
+  const liste = out.length ? out : base;   // (pas prévu ce jour-là : on propose quand même ses horaires)
+  const vus = new Set();
+  return liste.map(x => ({ ...x, h: heureNorm(x.time) })).filter(x => x.h && !vus.has(x.h) && vus.add(x.h)).sort((a, b) => a.h < b.h ? -1 : 1);
+}
+const heureNorm = t => { t = String(t || '').trim().toLowerCase(); const m = t.match(/^(\d{1,2})\s*(?:h|:)?\s*(\d{2})?$/); return m && +m[1] < 24 ? m[1].padStart(2, '0') + ':' + (m[2] || '00') : ''; };
+// Placer un plateau sur un jour : s'il a plusieurs séances, on demande laquelle
+function placerPlateau(tpl, d, fini) {
+  const ss = sessionsPlateau(tpl.title, d);
+  const go = h => {
+    makeInstance(tpl, d, h ? { time: h, creneaux: [] } : (tpl.time || (tpl.creneaux || []).length ? {} : { creneaux: ['soir'] }));   // un plateau sans heure : la soirée
+    refresh(); toast(`🎤 ${tpl.title} ${whenLabel(d)}${h ? ' · ' + h.replace(':', 'h').replace(/h00$/, 'h') : ''}`); fini && fini();
+  };
+  if (ss.length < 2) { go(ss[0] ? ss[0].h : ''); return; }
+  const COUL = { 2: 'var(--c-green)', 1: 'var(--c-yellow)', 0: 'var(--c-red)' };
+  const s = openSheet({ isStatic: true, label: 'Séance', bar: '<button type="button" class="btn" data-f="cancel">Annuler</button>' });
+  s.body.innerHTML = `<h2 class="sheet-title">🎤 ${h(tpl.title)} · quelle séance ?</h2>
+    <div class="pick-list">${ss.map(x => `<button type="button" class="pick-row" data-f="h" data-v="${x.h}"><span>${x.type != null ? `<i class="sess-pt" style="background:${COUL[x.type] || 'var(--muted)'}"></i>` : ''}${h(x.h.replace(':', 'h').replace(/h00$/, 'h'))}</span></button>`).join('')}</div>`;
+  s.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    if (b.dataset.f === 'cancel') { closeTop(); return; }
+    if (b.dataset.f === 'h') { closeTop(); setTimeout(() => go(b.dataset.v), 380); }
+  });
+}
 function openPlateauPick(d) {
   const tpls = () => S.tasks.filter(x => x.free && x.info && isSceneTheme(themeOf(x))).sort((a, b) => a.title.localeCompare(b.title, 'fr'));
   const s = openSheet({ isStatic: true, label: 'Plateaux', bar: '<button type="button" class="btn" data-f="cancel">Fermer</button>' });
@@ -1175,11 +1208,7 @@ function openPlateauPick(d) {
   majListe();
   inp.addEventListener('input', majListe);
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
-  const placer = (tpl) => {
-    makeInstance(tpl, d, tpl.time || (tpl.creneaux || []).length ? {} : { creneaux: ['soir'] });   // un plateau sans heure : la soirée
-    closeTop(); refresh(); closeDayAddSoon();
-    toast(`🎤 ${tpl.title} ${whenLabel(d)}`);
-  };
+  const placer = (tpl) => { closeTop(); setTimeout(() => placerPlateau(tpl, d, closeDayAddSoon), 380); };   // (on laisse la fenêtre se fermer)
   s.el.addEventListener('click', e => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     const k = b.dataset.f;
@@ -1579,7 +1608,7 @@ function renderHome() {
   const whenEv = e => dayMonth(e.d) + (e.t.time ? ' ' + evWhen(e.t) : '');
   // En haut : la date et les réglages (comme l'accueil), puis ce qui attend d'être mis dans l'agenda
   const dJ = parse(today());
-  let html = `<header class="ob-tete"><h1>${h(cap(JOURS[dow(today())]))} ${dJ.getDate()} ${h(MOIS[dJ.getMonth()])}</h1><button type="button" class="ob-reg" data-a="open-backup" aria-label="Sauvegarde et réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>`;
+  let html = `<header class="ob-tete"><h1>${h(cap(JOURS[dow(today())]))} ${dJ.getDate()} ${h(MOIS[dJ.getMonth()])}</h1><button type="button" class="ob-reg" data-a="reglages-gen" aria-label="Sauvegarde et réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>`;
   html += tips.length ? `<div class="ob-bloc ob-att"><div class="ob-car pleine" data-car="attente">${tips.map(x => { const th = themeOf(x.t); return `<div class="ob-t ob-tip c-${th ? th.color || 'slate' : 'slate'}">
       ${th ? `<span class="ob-tip-c">${h(th.emoji + ' ' + th.name)}</span>` : '<span class="ob-tip-c">En attente</span>'}
       <button type="button" class="ob-tip-t" data-a="plan" data-id="${x.t.id}"><b>${h(x.t.title)}</b><span>${h(x.why)}</span></button>
@@ -3496,8 +3525,7 @@ const A = {
   'ev-flip': (el, c) => { if (!U.evVerso) U.evVerso = new Set(); U.evVerso.has(c.id) ? U.evVerso.delete(c.id) : U.evVerso.add(c.id); U.evAnim = c.id; refresh(); },
   'place-pl': (el, c) => {   // un plateau gardé, placé sur le jour (sans heure : la soirée)
     const t = S.tasks.find(x => x.id === c.id); if (!t) return;
-    makeInstance(t, c.d, t.time || (t.creneaux || []).length ? {} : { creneaux: ['soir'] });
-    if (stack.length) closeTop(); refresh(); toast(`🎤 ${t.title} ${whenLabel(c.d)}`);
+    if (stack.length) { closeTop(); setTimeout(() => placerPlateau(t, c.d), 380); } else placerPlateau(t, c.d);
   },
   'dayadd-routine': (el, c) => {   // choisir une routine à lancer ce jour-là (ou en créer une)
     const rs = S.routines.slice().sort(byOrder);
@@ -3517,6 +3545,7 @@ const A = {
   'open-todo': () => { if (U.todoView === 'routines') U.todoView = 'cats'; openSheet({ render: renderTodo, label: 'Planning' }); },
   'open-lists': () => openSheet({ render: renderLists, label: 'Listes' }),
   'open-backup': () => openBackup(),
+  'reglages-gen': () => { if (!(() => { try{ const q = window.parent !== window && window.parent.quotidien; if(q && typeof q.reglages === 'function'){ q.reglages(); return true; } }catch(e){} return false; })()) openBackup(); },   // le bouton du haut : les réglages généraux de Mon quotidien
   'new-task': (el, c) => openTaskForm(null, { date: c.d || today() }),
   'new-event': (el, c) => openEventForm(null, { date: c.d || today() }),
   'new-plateau': (el, c) => openPlateauPick(c.d || today()),

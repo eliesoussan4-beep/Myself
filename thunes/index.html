@@ -153,6 +153,57 @@ main{min-height:100dvh;box-sizing:border-box}
 .mvts{flex:.75 1 0;min-height:136px;overflow:hidden}
 .mvts .it{padding:7px 12px}
 .mvts .it .d{white-space:nowrap;width:50px}
+/* Mouvements : une pastille de couleur (la catégorie), le libellé en gras et la date dessous, le montant à droite */
+.it.mvl{gap:10px;padding:7px 10px 7px 7px}
+.mv-ic{flex:none;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;background:color-mix(in srgb,var(--k) 20%,transparent);color:var(--k);font-weight:800}
+.mvl .n{display:flex;flex-direction:column;gap:0;line-height:1.2}
+.mvl .n b{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvl .n small{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvl .m{font-family:var(--display);font-size:15px}
+.mvts .titre b{font-size:16px}
+.mini.fac{color:var(--denim)}
+.mvts .mini{width:28px;height:28px}
+.mvts .mini-b{gap:5px}
+.mvts .mnav{margin-right:6px}
+/* Le volet des factures : il monte du bas */
+dialog.volet{width:100%;max-width:560px;margin:auto auto 0;border-radius:22px 22px 0 0;max-height:94dvh;overflow:hidden;flex-direction:column}
+dialog.volet[open]{display:flex;animation:monte .25s cubic-bezier(.2,.8,.2,1)}
+@keyframes monte{from{transform:translateY(100%)}}
+.vl-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid var(--line)}
+.vl-h h2{font-size:21px}
+.vl-c{overflow-y:auto;overscroll-behavior:contain;padding:12px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.vl-b{display:flex;gap:8px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.vl-b .btn{flex:1}
+.vl-s{display:flex;flex-direction:column;gap:8px}
+.vl-s > h3{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0}
+.vl-c label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.vl-c .in{flex:none;min-height:46px;box-sizing:border-box;width:100%;line-height:1.3;color:var(--ink);font-weight:600}
+.pop .in{color:var(--ink)}
+.vl-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.vl-g > label,.ms-g > label{min-width:0}
+.vl-c input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%}
+.cl-l{display:flex;flex-wrap:wrap;gap:6px}
+.cl{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:9px 14px;font-weight:700;font-size:14px}
+.cl.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
+.cl.neuf{border-style:dashed;color:var(--denim)}
+.cl-fiche{background:var(--sunk);border-radius:14px;padding:10px 12px;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.cl-fiche b{color:var(--ink)}
+.lien{border:0;background:none;padding:0;color:var(--denim);font-weight:700;font-size:13.5px}
+.cl-form{background:var(--sunk);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.ms{background:var(--sunk);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.ms-h{display:flex;gap:8px;align-items:center}
+.ms-h .in{flex:1}
+.ms-x{flex:none;width:40px;height:46px;border:0;border-radius:12px;background:var(--surface);color:var(--muted)}
+.ms-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end}
+.ms-t{min-height:46px;display:flex;align-items:center;justify-content:flex-end;font-family:var(--display);font-weight:800;font-size:16px}
+.ajout{border:1.5px dashed var(--line);background:none;border-radius:14px;padding:11px;font-weight:700;color:var(--denim)}
+.vl-tot{display:flex;justify-content:space-between;align-items:baseline;padding:4px 2px}
+.vl-tot b{font-family:var(--display);font-size:24px}
+.vl-c details{background:var(--sunk);border-radius:14px;padding:0 12px}
+.vl-c details summary{padding:12px 0;font-weight:700;cursor:pointer}
+.vl-c details[open]{padding-bottom:12px}
+.vl-c details > div{display:flex;flex-direction:column;gap:8px}
+.vl-c .note{margin:0}
 .duo.hautes .chif,.duo.pots2 .chif{min-height:74px;padding:12px 14px}
 .duo.hautes .chif b,.duo.pots2 .chif b{font-size:23px !important}
 .duo.cd{flex:.9 1 0;min-height:126px}
@@ -335,6 +386,7 @@ function lire(){ let d = null; try{ d = JSON.parse(localStorage.getItem(CLE) || 
   return d; }
 // Catégories de dépenses proposées au départ (tu peux les changer, en ajouter, en supprimer)
 const CATS_DEPART = [['🍽️', 'Resto'], ['🛒', 'Courses'], ['🚇', 'Transport'], ['🎉', 'Sorties'], ['🛍️', 'Shopping'], ['💊', 'Santé'], ['🎁', 'Cadeaux'], ['📦', 'Autre']];
+const kCat = k => `var(--k${(Math.max(0, D.categories.indexOf(k)) + 3) % 8})`;
 const catDe = (d, x) => x && x.c ? d.categories.find(c => c.id === x.c) : null;
 // Le libellé d'un mouvement : « 🍽️ Resto · sushi » (ou l'ancien texte libre)
 const libelle = (d, x) => { const c = catDe(d, x); return c ? `${c.emoji} ${c.nom}${x.l ? ' · ' + x.l : ''}` : (x.l || (x.m < 0 ? 'Dépense' : 'Rentrée')); };
@@ -417,7 +469,15 @@ function tousMouvements(c){
     ...(c.pios || []).map(x => ({...x, lib:'↙ Pris sur le côté', pio:true}))]   // (les réajustements ne sont pas des mouvements : ils n'apparaissent pas ici)
     .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
 }
-const ligneMv = x => `<button type="button" class="it${x.scene ? ' ro' : ''}${x.aj || x.ajc ? ' ajl' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.pio ? 'pio' : x.aj ? 'aj' : x.ajc ? 'ajc' : 'mv'}" data-id="${x.id}"><span class="d">${+x.d.slice(8)} ${new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {month:'short'})}</span><span class="n">${esc(x.lib)}</span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'} ${eur(Math.abs(x.m))}</span></button>`;
+const ligneMv = x => {
+  const k = !x.scene && !x.vir && !x.pio && x.m < 0 ? catDe(D, x) : null;
+  const ic = x.scene ? '🎤' : x.vir ? '↪' : x.pio ? '↙' : k ? k.emoji : x.m < 0 ? '💸' : '💶';
+  const titre = x.scene ? String(x.lib || '').replace(/^🎤\s*/, '') : x.vir ? 'Virement du stand-up' : x.pio ? 'Pris sur le côté' : k ? k.nom : (x.l || (x.m < 0 ? 'Dépense' : 'Rentrée'));
+  const quand = cap(new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}));
+  const sous = [quand, k && x.l ? x.l : '', x.su ? '🎤 stand-up' : '', x.scene ? 'scène' : ''].filter(Boolean).join(' · ');
+  const coul = k ? kCat(k) : x.m > 0 ? 'var(--plus)' : x.scene || x.su ? '#7B5CD6' : 'var(--muted)';
+  return `<button type="button" class="it mvl${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.pio ? 'pio' : x.aj ? 'aj' : x.ajc ? 'ajc' : 'mv'}" data-id="${x.id}"><span class="mv-ic" style="--k:${coul}">${esc(ic)}</span><span class="n"><b>${esc(titre)}</b><small>${esc(sous)}</small></span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'}${eur(Math.abs(x.m))}</span></button>`;
+};
 let moisMv = null, moisCat = null;   // le mois affiché dans Mouvements et dans les catégories (null : ce mois-ci)
 const moisPrec = m => { const x = new Date(+m.slice(0, 4), +m.slice(5) - 2, 1); return x.getFullYear() + '-' + pad(x.getMonth() + 1); };
 const bilanDe = (c, mm) => !mm || mm === c.m ? c : {...bilanMois(D, mm, nbJours(mm), scenes()), m:mm};
@@ -448,7 +508,7 @@ function render(){
       <div class="axe"><span>1</span><span>${Math.round(c.nbJ / 2)}</span><span>${c.nbJ}</span></div></div>`];
   const topCats = catsTri.filter(k => (parCat.get(k.id) || 0) > 0).slice(0, 4), mxC = Math.max(1, ...topCats.map(k => parCat.get(k.id)));
   statsDiapos.push(`<div class="sd"><div class="titre"><b>Par catégorie</b><span>${esc(nomMois(cCat.m))}</span></div>
-      ${topCats.length ? `<div class="hb">${topCats.map((k, i) => `<div style="--k:var(--k${(catsTri.indexOf(k) + 3) % 8})"><span>${esc(k.emoji)} ${esc(k.nom)}</span><i><em style="width:${Math.max(3, parCat.get(k.id) / mxC * 100)}%"></em></i><b>${eur(parCat.get(k.id), false)}</b></div>`).join('')}</div>` : '<p class="vide">Pas encore de dépense ce mois-ci.</p>'}</div>`);
+      ${topCats.length ? `<div class="hb">${topCats.map((k, i) => `<div style="--k:${kCat(k)}"><span>${esc(k.emoji)} ${esc(k.nom)}</span><i><em style="width:${Math.max(3, parCat.get(k.id) / mxC * 100)}%"></em></i><b>${eur(parCat.get(k.id), false)}</b></div>`).join('')}</div>` : '<p class="vide">Pas encore de dépense ce mois-ci.</p>'}</div>`);
   const mois6 = [5, 4, 3, 2, 1, 0].map(k => { const x = new Date(); x.setDate(1); x.setMonth(x.getMonth() - k); const mm = iso(x).slice(0, 7); return {mm, v:-D.mouvements.filter(y => y.m < 0 && y.d.slice(0, 7) === mm).reduce((a, y) => a + y.m, 0)}; }), mx6 = Math.max(1, ...mois6.map(x => x.v));
   statsDiapos.push(`<div class="sd"><div class="titre"><b>Dépenses par mois</b><span>6 derniers mois</span></div>
       <div class="mb">${mois6.map((x, k) => `<div class="${k === 5 ? 'on' : ''}"><b>${x.v ? Math.round(x.v) : ''}</b><i style="height:${Math.max(3, x.v / mx6 * 100)}%"></i><span>${esc(cap(new Date(+x.mm.slice(0, 4), +x.mm.slice(5) - 1, 1).toLocaleDateString('fr-FR', {month:'short'})))}</span></div>`).join('')}</div></div>`);
@@ -468,13 +528,13 @@ function render(){
       <div class="carre"><button type="button" class="t chif pot ac4" data-a="cote-menu"><small>De côté</small><span class="ch-r"><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><em>+${Math.round(c.coteMois)} €/mois</em></span>${c.priseCote > 0 ? `<span class="pris">−${eur(c.priseCote, false)} ce mois</span>` : ''}</button>${pointsH(2).replace('class="pts"', 'class="pts cache"')}</div>
     </section>
     <section class="t mvts" data-a="tous-mv" role="button">
-      <div class="titre"><b>Mouvements</b>${navMois(cMv.m, c, 'mv')}<span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button></span></div>
+      <div class="titre"><b>Mouvements</b>${navMois(cMv.m, c, 'mv')}<span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button><button type="button" class="mini fac" data-a="facture" aria-label="Faire une facture"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5V3Z"/><path d="M9 9h6M9 13h6"/></svg></button></span></div>
       ${pages.length ? `<div class="car" data-car="mv">${pages.map(pg => `<div class="pg">${pg.map(ligneMv).join('')}</div>`).join('')}</div>${pointsH(pages.length)}` : `<p class="vide">Rien de noté ${cMv.m === c.m ? 'ce mois-ci' : 'en ' + esc(nomMois(cMv.m))}.</p>`}
     </section>
     <section class="duo cd">
       <div class="carre"><div class="car" data-car="cats">
-        <div class="t carte-c info tot"><div class="tot-nav">${navMois(cCat.m, c, 'cat', true)}</div><div class="tot-m"><b>${eur(totDep, false)}</b>${segs(catsTri.map((k, i) => [parCat.get(k.id) || 0, `var(--k${(i + 3) % 8})`]).concat([[parCat.get('_') || 0, 'var(--muted)'], [cCat.depScenes, '#7B5CD6']]))}${cCat.depScenes ? `<span>dont 🎤 ${eur(cCat.depScenes, false)}</span>` : ''}</div><button type="button" class="virer" data-a="cats-pop">Catégories</button></div>
-        ${catsTri.map((k, i) => { const v = parCat.get(k.id) || 0; return `<button type="button" class="t carte-c ch" style="--k:var(--k${(i + 3) % 8})" data-a="cat" data-id="${k.id}"><span class="emo">${esc(k.emoji)}</span><small>${esc(k.nom)}</small><b>${eur(v, false)}</b><span>${totDep ? Math.round(v / totDep * 100) + ' % du mois' : 'ce mois'}</span></button>`; }).join('')}
+        <div class="t carte-c info tot"><div class="tot-nav">${navMois(cCat.m, c, 'cat', true)}</div><div class="tot-m"><b>${eur(totDep, false)}</b>${segs(catsTri.map(k => [parCat.get(k.id) || 0, kCat(k)]).concat([[parCat.get('_') || 0, 'var(--muted)'], [cCat.depScenes, '#7B5CD6']]))}${cCat.depScenes ? `<span>dont 🎤 ${eur(cCat.depScenes, false)}</span>` : ''}</div><button type="button" class="virer" data-a="cats-pop">Catégories</button></div>
+        ${catsTri.map(k => { const v = parCat.get(k.id) || 0; return `<button type="button" class="t carte-c ch" style="--k:${kCat(k)}" data-a="cat" data-id="${k.id}"><span class="emo">${esc(k.emoji)}</span><small>${esc(k.nom)}</small><b>${eur(v, false)}</b><span>${totDep ? Math.round(v / totDep * 100) + ' % du mois' : 'ce mois'}</span></button>`; }).join('')}
       </div>${pointsH(catsTri.length + 1)}</div>
       <div class="carre"><div class="car" data-car="charges">
         <div class="t carte-c info tot"><small class="tot-t">Charges</small><div class="tot-m"><b>${eur(c.charges, false)}</b>${segs(chCat.map((g, i) => [g.l.reduce((a, x) => a + (+x.montant || 0), 0), `var(--k${(i + 1) % 8})`]))}<span>${plur(D.charges.length, 'charge', 'charges')}</span></div><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
@@ -689,6 +749,172 @@ function fenetreZero(){
     ecrire(D); dlg.close(); render(); toast('C’est reparti de zéro');
   });
 }
+/* ---------- Factures : client, missions, numéro → un PDF à partager (WhatsApp, mail…) ---------- */
+// Par défaut : tes infos et ton dernier numéro, repris de ta facture modèle (tout se modifie dans le volet)
+const FACT_DEFAUT = {
+  dernier:'2026 - 02 - 0030',
+  emetteur:{nom:'Elie Soussan EI', adresse:'95 av ledru rollin', ville:'75011 Paris', tel:'0624964249', email:'eliesoussan4@gmail.com', siret:'92003677900014', mention:'DISPENSÉ(E) D’IMMATRICULATION AU RCS ET AU RM',
+    titulaire:'Elie Soussan', banque:'Boursorama', iban:'FR76 4061 8803 9800 0406 2127 807', bic:'BOUSFRPPXXX',
+    legal:'Pour tout professionnel, en cas de retard de paiement, seront exigibles, conformément à l’article L 441-6 du code de commerce, une indemnité calculée sur la base de trois fois le taux de l’intérêt légal en vigueur ainsi qu’une indemnité forfaitaire pour frais de recouvrement de 40 euros. - TVA non applicable, art. 293B du CGI.'},
+  clients:[{id:'parallele', nom:'PARALLELE MEDIA', attention:'M. guimbert antoine', adresse:'21, Boulevard de Montmorency', ville:'75016 Paris', tel:'0626054358', email:'guimbert.antoine@gmail.com', siret:'820 646 768 00011', tva:'FR00820646768'}],
+  delai:60, historique:[]
+};
+function lireFact(){ D = lire(); const f = D.factures || {}; return {...FACT_DEFAUT, ...f, emetteur:{...FACT_DEFAUT.emetteur, ...(f.emetteur || {})}, clients:f.clients || FACT_DEFAUT.clients, historique:f.historique || []}; }
+// Le numéro suivant : le dernier exporté, +1 (en gardant les zéros : 0030 → 0031)
+const numSuivant = n => { const m = String(n || '').match(/^(.*?)(\d+)(\D*)$/); return m ? m[1] + String(+m[2] + 1).padStart(m[2].length, '0') + m[3] : n; };
+const eurF = v => (Math.round((+v || 0) * 100) / 100).toFixed(2).replace('.', ',') + '€';
+const dateFR = iso => iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : '';
+const plusJours = (iso, n) => { const x = new Date(iso + 'T12:00'); x.setDate(x.getDate() + (+n || 0)); return x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()); };
+// jsPDF n'est chargé que quand on ouvre le volet (prêt avant de toucher « Partager »)
+function chargerJsPDF(){
+  if(window.jspdf) return Promise.resolve();
+  if(chargerJsPDF.p) return chargerJsPDF.p;
+  return chargerJsPDF.p = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; sc.onload = res; sc.onerror = () => { chargerJsPDF.p = null; rej(new Error('jsPDF')); }; document.head.appendChild(sc); });
+}
+let facEtat = null;   // la facture en cours d'édition
+function voletFacture(){
+  const F = lireFact(), auj = iso(new Date());
+  facEtat = {num:numSuivant(F.dernier), client:(F.clients[F.clients.length - 1] || {}).id || null, date:auj, livraison:auj, delai:F.delai || 60,
+    lignes:[{article:'Montage Audiovisuel', qte:1, pu:130}], clientEdit:null, F};
+  const last = F.historique[F.historique.length - 1]; if(last && last.lignes && last.lignes.length) facEtat.lignes = last.lignes.map(l => ({...l, qte:1}));
+  chargerJsPDF().catch(() => {});
+  let dlg = $('#volet'); if(!dlg){ dlg = document.createElement('dialog'); dlg.id = 'volet'; dlg.className = 'volet'; document.body.appendChild(dlg); }
+  dlg.innerHTML = `<div class="vl-h"><h2>Nouvelle facture</h2><button type="button" class="mini" data-f="fermer" aria-label="Fermer">✕</button></div><div class="vl-c"></div>
+    <div class="vl-b"><button type="button" class="btn sec" data-f="telecharger">Télécharger</button><button type="button" class="btn" data-f="partager">Partager le PDF</button></div>`;
+  dlg.onclick = e => { if(e.target === dlg){ dlg.close(); return; } clicFacture(e, dlg); };
+  dlg.oninput = e => saisieFacture(e, dlg);
+  dessinerFacture(dlg); dlg.showModal();
+}
+function dessinerFacture(dlg){
+  const E = facEtat, F = E.F, cl = F.clients.find(c => c.id === E.client), tot = E.lignes.reduce((a, l) => a + (+l.qte || 0) * (+l.pu || 0), 0);
+  const ch = (k, l, v, t = 'text', ph = '') => `<label>${l}<input class="in" data-k="${k}" type="${t}" value="${esc(v == null ? '' : v)}" placeholder="${esc(ph)}"${t === 'text' ? ' autocomplete="off"' : ''}${/qte|pu|delai/.test(k) ? ' inputmode="decimal"' : ''}></label>`;
+  const CL = [['nom', 'Nom ou société'], ['attention', 'À l’attention de'], ['adresse', 'Adresse'], ['ville', 'Code postal et ville'], ['tel', 'Téléphone'], ['email', 'Email'], ['siret', 'SIRET'], ['tva', 'N° de TVA']];
+  const EM = [['nom', 'Ton nom'], ['adresse', 'Adresse'], ['ville', 'Code postal et ville'], ['tel', 'Téléphone'], ['email', 'Email'], ['siret', 'SIRET'], ['mention', 'Mention sous le SIRET'], ['titulaire', 'Nom associé au compte'], ['banque', 'Nom de la banque'], ['iban', 'IBAN'], ['bic', 'BIC'], ['legal', 'Mentions en bas de page']];
+  dlg.querySelector('.vl-c').innerHTML = `
+    <section class="vl-s"><h3>Pour qui ?</h3>
+      <div class="cl-l">${F.clients.map(c => `<button type="button" class="cl${c.id === E.client && !E.clientEdit ? ' on' : ''}" data-f="client" data-id="${esc(c.id)}">${esc(c.nom)}</button>`).join('')}<button type="button" class="cl neuf" data-f="client-neuf">＋ Nouveau client</button></div>
+      ${E.clientEdit ? `<div class="cl-form">${CL.map(([k, l]) => ch('c.' + k, l, E.clientEdit[k])).join('')}<div class="btns"><button type="button" class="btn sec" data-f="client-annuler">Annuler</button><button type="button" class="btn" data-f="client-ok">Enregistrer le client</button></div></div>`
+        : cl ? `<div class="cl-fiche"><b>${esc(cl.nom)}</b>${cl.attention ? '<br>À l’attention de ' + esc(cl.attention) : ''}${cl.adresse ? '<br>' + esc(cl.adresse) : ''}${cl.ville ? '<br>' + esc(cl.ville) : ''}${cl.siret ? '<br>SIRET : ' + esc(cl.siret) : ''} · <button type="button" class="lien" data-f="client-modif">Modifier</button></div>` : '<p class="note">Choisis un client, ou crée-le.</p>'}
+    </section>
+    <section class="vl-s"><h3>La facture</h3>
+      ${ch('num', 'Numéro de facture', E.num)}
+      <div class="vl-g">${ch('date', 'Date de facture', E.date, 'date')}${ch('livraison', 'Date de livraison', E.livraison, 'date')}</div>
+      <div class="vl-g">${ch('delai', 'Paiement sous (jours)', E.delai)}<label>Échéance<input class="in" value="${esc(dateFR(plusJours(E.date, E.delai)))}" disabled></label></div>
+    </section>
+    <section class="vl-s"><h3>Missions</h3>
+      ${E.lignes.map((l, i) => `<div class="ms"><div class="ms-h"><input class="in" data-k="l.${i}.article" value="${esc(l.article)}" placeholder="Mission (ex. Montage audiovisuel)" autocomplete="off" aria-label="Mission">${E.lignes.length > 1 ? `<button type="button" class="ms-x" data-f="ligne-x" data-i="${i}" aria-label="Retirer">✕</button>` : ''}</div>
+        <div class="ms-g">${ch(`l.${i}.qte`, 'Nombre de fois', l.qte)}${ch(`l.${i}.pu`, 'Prix (€)', String(l.pu).replace('.', ','))}<span class="ms-t" data-tot="${i}">${eurF((+l.qte || 0) * (+l.pu || 0))}</span></div></div>`).join('')}
+      <button type="button" class="ajout" data-f="ligne-plus">＋ Ajouter une mission</button>
+      <div class="vl-tot"><span>Montant total HT</span><b id="vl-tot">${eurF(tot)}</b></div>
+    </section>
+    <details><summary>Mes infos (en-tête et RIB)</summary><div>${EM.map(([k, l]) => ch('e.' + k, l, F.emetteur[k])).join('')}</div></details>
+    <p class="note err" id="vl-err"></p>`;
+}
+function saisieFacture(e, dlg){
+  const k = e.target.dataset && e.target.dataset.k; if(!k) return;
+  const v = e.target.value, E = facEtat;
+  if(k.startsWith('c.')) E.clientEdit[k.slice(2)] = v;
+  else if(k.startsWith('e.')) E.F.emetteur[k.slice(2)] = v;
+  else if(k.startsWith('l.')){ const [, i, ch] = k.split('.'); E.lignes[+i][ch] = ch === 'article' ? v : (nombre(v) || 0);
+    const t = dlg.querySelector(`[data-tot="${i}"]`); if(t) t.textContent = eurF((+E.lignes[+i].qte || 0) * (+E.lignes[+i].pu || 0));
+    dlg.querySelector('#vl-tot').textContent = eurF(E.lignes.reduce((a, l) => a + (+l.qte || 0) * (+l.pu || 0), 0)); }
+  else if(k === 'delai'){ E.delai = nombre(v) || 0; dessinerEcheance(dlg); }
+  else if(k === 'date'){ E.date = v; dessinerEcheance(dlg); }
+  else E[k] = v;
+}
+const dessinerEcheance = dlg => { const x = dlg.querySelector('input[disabled]'); if(x) x.value = dateFR(plusJours(facEtat.date, facEtat.delai)); };
+function clicFacture(e, dlg){
+  const b = e.target.closest('[data-f]'); if(!b) return;
+  const E = facEtat, f = b.dataset.f, garder = () => { D = lire(); D.factures = {...(D.factures || {}), emetteur:E.F.emetteur, clients:E.F.clients, delai:E.delai}; ecrire(D); };
+  if(f === 'fermer'){ garder(); dlg.close(); return; }
+  if(f === 'client'){ E.client = b.dataset.id; E.clientEdit = null; }
+  if(f === 'client-neuf') E.clientEdit = {id:null};
+  if(f === 'client-modif'){ const c = E.F.clients.find(x => x.id === E.client); if(c) E.clientEdit = {...c}; }
+  if(f === 'client-annuler') E.clientEdit = null;
+  if(f === 'client-ok'){
+    const c = E.clientEdit; if(!(c.nom || '').trim()){ dlg.querySelector('#vl-err').textContent = 'Indique au moins le nom du client.'; return; }
+    if(c.id) E.F.clients = E.F.clients.map(x => x.id === c.id ? {...c} : x); else { c.id = uid(); E.F.clients = [...E.F.clients, {...c}]; }
+    E.client = c.id; E.clientEdit = null; garder();
+  }
+  if(f === 'ligne-plus') E.lignes.push({article:'', qte:1, pu:0});
+  if(f === 'ligne-x') E.lignes.splice(+b.dataset.i, 1);
+  if(f === 'partager' || f === 'telecharger'){ exporterFacture(f === 'partager', dlg); return; }
+  const y = dlg.querySelector('.vl-c').scrollTop; dessinerFacture(dlg); dlg.querySelector('.vl-c').scrollTop = y;
+}
+function exporterFacture(partager, dlg){
+  const E = facEtat, err = t => { dlg.querySelector('#vl-err').textContent = t; };
+  const cl = E.F.clients.find(c => c.id === E.client);
+  if(!cl){ err('Choisis le client.'); return; }
+  const lignes = E.lignes.filter(l => (l.article || '').trim() && +l.qte > 0);
+  if(!lignes.length){ err('Ajoute au moins une mission (avec combien de fois).'); return; }
+  if(!(E.num || '').trim()){ err('Indique le numéro de facture.'); return; }
+  if(!window.jspdf){ err('Préparation du PDF… réessaie dans un instant (il faut Internet la première fois).'); chargerJsPDF().then(() => err('')).catch(() => err('Impossible de préparer le PDF sans Internet.')); return; }
+  const blob = pdfFacture({...E, lignes, client:cl, emetteur:E.F.emetteur});
+  const nom = `Facture ${E.num.replace(/\s+/g, ' ').replace(/[\/\\:*?"<>|]/g, '-')}.pdf`, fichier = new File([blob], nom, {type:'application/pdf'});
+  const fini = () => {
+    const hist = lireFact().historique || [], tot = lignes.reduce((a, l) => a + l.qte * l.pu, 0);
+    D = lire();
+    D.factures = {...(D.factures || {}), emetteur:E.F.emetteur, clients:E.F.clients, delai:E.delai, dernier:E.num,
+      historique:[...hist, {num:E.num, date:E.date, client:cl.id, nomClient:cl.nom, total:tot, lignes, faite:Date.now()}].slice(-200)};
+    ecrire(D); dlg.close(); toast(`Facture ${E.num} prête ✓`);
+  };
+  if(partager && navigator.canShare && navigator.canShare({files:[fichier]})){
+    navigator.share({files:[fichier], title:nom}).then(fini).catch(x => { if(x && x.name === 'AbortError') return; telecharger(blob, nom); fini(); });
+  } else { telecharger(blob, nom); fini(); }
+}
+function telecharger(blob, nom){
+  const u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = nom; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 4000);
+}
+// Le PDF, sur le modèle de ta facture : A4, en-tête, deux colonnes, bandeau des dates, tableau, total, RIB, mentions
+function pdfFacture(E){
+  const doc = new window.jspdf.jsPDF({unit:'mm', format:'a4'}), em = E.emetteur, cl = E.client;
+  const GRIS = [140, 148, 164], ENC = [52, 58, 74], BLEU = [96, 112, 140], FOND = [242, 244, 247], LIGNE = [228, 231, 236], FONDL = [247, 248, 250];
+  const t = (txt, x, y, o = {}) => { doc.setFont('helvetica', o.b ? 'bold' : 'normal'); doc.setFontSize(o.s || 9.5); doc.setTextColor(...(o.c || ENC)); doc.text(String(txt == null ? '' : txt), x, y, o.r ? {align:'right'} : undefined); };
+  // En-tête
+  t('FACTURE N°', 195, 16, {s:8, c:GRIS, r:true}); t(E.num, 195, 24, {s:15, c:BLEU, r:true});
+  // Colonnes
+  const col = (x, titre, l, bas) => {
+    t(titre, x, 38, {s:8.5, c:GRIS}); doc.setDrawColor(...LIGNE); doc.setLineWidth(.2); doc.line(x, 40.5, x + 85, 40.5);
+    let y = 47; l.filter(Boolean).forEach(v => { t(v, x, y, {s:9}); y += 4.6; });
+    y += 1.5; bas.filter(b => b[1]).forEach(([lab, v]) => { t(lab, x, y, {s:8.2, c:GRIS}); t(v, x + doc.getTextWidth(lab) + 2, y, {s:8.5}); y += 4.4; });
+    return y;
+  };
+  const y1 = col(20, 'Facturé par', [em.nom, em.adresse, em.ville, em.tel, em.email], [['SIRET:', em.siret]]);
+  if(em.mention) t(em.mention, 20, y1 + 0.5, {s:7.6, c:GRIS});
+  const y2 = col(108, 'Facturé à', [cl.nom, cl.attention ? 'A l’attention de ' + cl.attention : '', cl.adresse, cl.ville, cl.tel, cl.email], [['SIRET:', cl.siret], ['TVA:', cl.tva]]);
+  // Bandeau des dates
+  let y = Math.max(y1 + 8, y2 + 4, 92);
+  doc.setFillColor(...FOND); doc.roundedRect(14, y, 182, 21, 2.5, 2.5, 'F');
+  [['Date de facture', dateFR(E.date), 20], ['Date de livraison', dateFR(E.livraison), 64], ['Conditions de règlement', `${E.delai} jours`, 108], ['Échéance de paiement', dateFR(plusJours(E.date, E.delai)), 152]]
+    .forEach(([l, v, x]) => { t(l, x, y + 7.5, {s:8, c:GRIS}); t(v, x, y + 15, {s:11}); });
+  // Tableau
+  y += 33;
+  const enTete = () => { [['N°', 20], ['ARTICLE', 34]].forEach(([l, x]) => t(l, x, y, {s:7.5, c:GRIS})); t('QUANTITÉ', 112, y, {s:7.5, c:GRIS}); t('PRIX UNITÉ', 160, y, {s:7.5, c:GRIS, r:true}); t('TOTAL', 192, y, {s:7.5, c:GRIS, r:true});
+    doc.setDrawColor(...LIGNE); doc.line(14, y + 3, 196, y + 3); y += 10; };
+  enTete();
+  let total = 0;
+  E.lignes.forEach((l, i) => {
+    if(y > 232){ doc.addPage(); y = 24; enTete(); }
+    const tl = (+l.qte || 0) * (+l.pu || 0); total += tl;
+    doc.setFillColor(...FONDL); doc.rect(14, y - 6, 182, 10, 'F');
+    t(i + 1, 20, y, {s:9}); t(doc.splitTextToSize(l.article, 72)[0], 34, y, {s:9}); t(String(l.qte).replace('.', ','), 112, y, {s:9}); t(eurF(l.pu), 160, y, {s:9, r:true}); t(eurF(tl), 192, y, {s:9, r:true});
+    y += 12;
+  });
+  doc.setDrawColor(...LIGNE); doc.line(108, y, 196, y);
+  t('MONTANT TOTAL HT', 112, y + 7, {s:8.5, b:true}); t(eurF(total), 192, y + 7.5, {s:11, r:true});
+  // RIB et mentions, en bas de la dernière page
+  const yb = 250;
+  doc.setFillColor(...FOND); doc.rect(10, yb, 190, 30, 'F');
+  t('Paiement souhaité par virement bancaire', 16, yb + 6.5, {s:7.8, c:GRIS});
+  t('Nom associé au compte', 16, yb + 13, {s:8, b:true}); t(em.titulaire, 16, yb + 17.5, {s:8.5});
+  t('Nom de la banque', 16, yb + 23.5, {s:8, b:true}); t(em.banque, 16, yb + 28, {s:8.5});
+  t('IBAN', 80, yb + 13, {s:8, b:true}); t(em.iban, 80, yb + 17.5, {s:8.5});
+  t('BIC', 152, yb + 13, {s:8, b:true}); t(em.bic, 152, yb + 17.5, {s:8.5});
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(6.3); doc.setTextColor(...ENC);
+  doc.text(doc.splitTextToSize(em.legal || '', 100), 16, 287);
+  return doc.output('blob');
+}
 // Annuler un réajustement (de la cagnotte « aj », ou du côté « ajc ») depuis l'historique
 function annulerAjustement(a, id){
   D = lire(); const l = a === 'aj' ? D.ajustements : (D.ajCote || []), x = l.find(y => y.id === id); if(!x) return;
@@ -701,6 +927,7 @@ $('#app').addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if(!b || !b.dataset.a) return;
   const a = b.dataset.a, m = moisDe(new Date());
   if(a === 'tous-mv'){ fenetreTousMouvements(); return; }
+  if(a === 'facture'){ voletFacture(); return; }
   if(a === 'mv-prec' || a === 'mv-suiv'){ const cur = moisMv || m; moisMv = a === 'mv-prec' ? moisPrec(cur) : moisSuivant(cur); if(moisMv >= m) moisMv = null; render(); return; }
   if(a === 'cat-prec' || a === 'cat-suiv'){ const cur = moisCat || m; moisCat = a === 'cat-prec' ? moisPrec(cur) : moisSuivant(cur); if(moisCat >= m) moisCat = null; render(); return; }
   if(a === 'cats-pop'){ fenetreCategories(); return; }
@@ -717,6 +944,7 @@ $('#app').addEventListener('click', e => {
         setTimeout(() => r.dataset.r === 'vir' ? fenetreVirement() : fenetreMouvement(-1, null, {su:true}), 60); });
     return;
   }
+  if(a === 'reglages' && (() => { try{ const q = window.parent !== window && window.parent.quotidien; if(q && typeof q.reglages === 'function'){ q.reglages(); return true; } }catch(e){} return false; })()) return;   // le bouton du haut : les réglages généraux de Mon quotidien (seul, Thunes garde sa fenêtre)
   if(a === 'reglages'){   // les réglages : raccourcis vers ce qui se règle, et la version
     const L = [['reg-ver', 'Ce que je me verse ce mois-ci'], ['reg-ep', 'Ce que je mets de côté chaque mois'], ['ajuster', 'Réajuster la cagnotte'], ['cote', 'Réajuster le côté'], ['piocher', 'Piocher dans le côté'], ['cats-pop', 'Catégories de dépenses'], ['charge', 'Nouvelle charge fixe'], ['zero', 'Repartir de zéro…']];
     ouvrir(`<h2>Réglages</h2><div class="reg-l">${L.map(([k, l]) => `<button type="button" class="it" data-r="${k}"><span class="n">${l}</span><span class="m">›</span></button>`).join('')}</div>
@@ -751,6 +979,7 @@ window.addEventListener('storage', e => { if(e.key === CLE || e.key === 'backsta
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') render(); });
 // Mon quotidien : toucher l'onglet ramène en haut ; et l'accueil peut ouvrir la fenêtre − / +
 window.quotidienAccueil = () => { const d = $('#pop'); if(d.open) d.close(); render(); window.scrollTo(0, 0); };
+window.quotidienThunesZero = () => fenetreZero();   // « Repartir de zéro » depuis les réglages généraux
 window.quotidienThunes = {calcul:() => calcul(lire()), categories:() => lire().categories, libelle:x => libelle(lire(), x)};   // l'accueil de Mon quotidien lit la cagnotte ici (un seul calcul)
 render();
 </script>

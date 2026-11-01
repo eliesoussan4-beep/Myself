@@ -671,6 +671,18 @@ dialog h2:focus{outline:none}
 <dialog id="reglages" aria-label="Sauvegarde et réglages"></dialog>
 <style>
 /* le petit cœur discret en bas des réglages, et la page cachée par-dessus tout */
+#reglages{width:min(92vw,440px);max-height:86dvh;border-radius:22px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+#reglages[open]{animation:regin .18s ease}
+@keyframes regin{from{opacity:0;transform:translateY(8px) scale(.98)}}
+#reglages .feuille.reg{padding:18px 16px 14px;gap:10px}
+#reglages .reg-l{display:flex;flex-direction:column;gap:6px}
+#reglages .it{display:flex;align-items:center;gap:12px;border:0;border-radius:12px;background:var(--sunk);padding:12px;text-align:left;width:100%;color:var(--ink);font:inherit}
+#reglages .it-i{flex:none;width:30px;height:30px;border-radius:9px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:16px}
+#reglages .it .n{flex:1;min-width:0;font-weight:700;font-size:15px;display:flex;flex-direction:column}
+#reglages .it .n small{font-weight:500;font-size:12.5px;color:var(--muted)}
+#reglages .it .m{color:var(--muted);font-size:20px;line-height:1}
+#reglages .reg-tete{display:flex;align-items:center;gap:8px}
+#reglages .reg-retour{width:36px;height:36px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0}
 #reglages .coeur{display:block;margin:2px auto 0;width:32px;height:32px;padding:0;border:0;background:none;color:var(--muted);opacity:.45}
 #reglages .coeur svg{display:block;margin:auto}
 #carnet{position:fixed;inset:0;z-index:1000;background:var(--bg)}
@@ -1880,7 +1892,10 @@ let moisDecalage = 0, moisJour = null, moisDonnees = null;
 async function chargerMois(){
   moisDonnees = await lire('organisation', async db => {
     const [tasks, themes] = await Promise.all([tout(db, 'tasks'), tout(db, 'themes')]);
-    return {tasks:tasks.filter(x => !x.free), themes:new Map(themes.map(th => [th.id, th]))};
+    // (pas les plateaux : les scènes notées dans une catégorie « Scènes » ; les vraies tâches de stand-up restent)
+    const nomDe = id => (themes.find(x => x.id === id) || {}).name || '';
+    const scenes = new Set(themes.filter(th => SCENE_RE.test(th.name || '') || (th.parentId && SCENE_RE.test(nomDe(th.parentId)))).map(th => th.id));
+    return {tasks:tasks.filter(x => !x.free && !(x.info && scenes.has(x.themeId))), themes:new Map(themes.map(th => [th.id, th]))};
   });
 }
 function elementsDu(d){
@@ -2238,6 +2253,12 @@ async function majEtat(){
   }));
   el.innerHTML = lignes.join('');
 }
+// « Repartir de zéro » de Thunes, depuis les réglages généraux : on va dans Thunes et on ouvre sa fenêtre
+async function thunesZero(){
+  montrer('thunes');
+  const w = await attendreApp('thunes', w => typeof w.quotidienThunesZero === 'function');
+  if(w) w.quotidienThunesZero(); else toast('Thunes pas prêt, réessaie.');
+}
 // La page cachée (le Carnet) : par-dessus tout, avec un bouton pour revenir
 function ouvrirCarnet(){
   const app = APPS.find(a => a.secret); if(!app) return;
@@ -2252,29 +2273,40 @@ function ouvrirCarnet(){
   o.hidden = false;
 }
 function fermerCarnet(){ const o = $('#carnet'); if(o) o.remove(); }
-function ouvrirReglages(){
+// Les réglages généraux (même bouton sur tous les onglets), dans le style des fenêtres de Thunes :
+// une liste de lignes ; « Sauvegarde » s'ouvre dans la même fenêtre (‹ pour revenir)
+function ouvrirReglages(vue = 'menu'){
   const dlg = $('#reglages'), t = themeChoisi();
-  dlg.innerHTML = `<div class="feuille">
-    <h2>Sauvegarde</h2>
-    <p class="hint">Un seul fichier avec toutes les apps. Range-le dans Fichiers ou sur ton Drive.</p>
-    <div class="ligne2"><button type="button" class="btn primaire" data-act="exporter">Tout exporter</button><button type="button" class="btn" data-act="importer">Tout importer</button></div>
-    <p class="hint">« Tout importer » accepte aussi les sauvegardes faites dans chaque app (plusieurs fichiers à la fois).</p>
-    <h3>Sauvegarde automatique sur Drive</h3>
-    <p class="hint">Toutes les 12 h environ, dès que l’app est ouverte, dans un seul fichier avec toutes les apps (comme « Tout exporter »). La Garde-robe, masquée, n’y est plus : ses dernières sauvegardes restent sur ton Drive.</p>
-    <p class="msg" id="drive-etat" style="white-space:pre-line"></p>
-    <label class="champ">Adresse du script<input id="drive-url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(lireDrive().url || '')}"></label>
-    <label class="champ">Code secret<input id="drive-code" autocomplete="off" placeholder="le même que dans le script" value="${esc(lireDrive().code || '')}"></label>
-    <div class="ligne2"><button type="button" class="btn" data-act="drive-tester">Enregistrer et tester</button><button type="button" class="btn" data-act="drive-maintenant">Sauvegarder maintenant</button></div>
-    <h3>Sur ce téléphone</h3>
-    <div class="etat" id="etat"><div><span>Lecture…</span></div></div>
+  const ligne = (act, ico, txt, sous) => `<button type="button" class="it" data-act="${act}"><span class="it-i" aria-hidden="true">${ico}</span><span class="n">${txt}${sous ? `<small>${sous}</small>` : ''}</span><span class="m">›</span></button>`;
+  if(vue === 'menu') dlg.innerHTML = `<div class="feuille reg">
+    <h2>Réglages</h2>
+    <div class="reg-l">
+      ${ligne('vue-sauvegarde', '💾', 'Sauvegarde', 'exporter, importer, Drive')}
+      ${APPS.some(a => a.id === 'thunes' && !a.cache) ? ligne('thunes-zero', '💰', 'Thunes : repartir de zéro', 'cagnotte et côté de départ') : ''}
+    </div>
     <h3>Apparence</h3>
     <div class="segment" role="group" aria-label="Thème">${[['auto', 'Auto'], ['dark', 'Sombre'], ['light', 'Clair']].map(([v, l]) => `<button type="button" data-theme-choix="${v}" aria-pressed="${t === v}">${l}</button>`).join('')}</div>
     <button type="button" class="btn" data-act="fermer">Fermer</button>
     <p class="version">Mon quotidien · version ${VERSION}</p>
     <button type="button" class="coeur" data-act="carnet" aria-label="Ouvrir">${svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>', 16)}</button>
   </div>`;
-  dlg.showModal();
-  majEtat(); majEtatDrive();
+  else dlg.innerHTML = `<div class="feuille reg">
+    <div class="reg-tete"><button type="button" class="reg-retour" data-act="vue-menu" aria-label="Retour">${svg('<path d="M15 6l-6 6 6 6"/>', 20)}</button><h2>Sauvegarde</h2></div>
+    <p class="hint">Un seul fichier avec toutes les apps. Range-le dans Fichiers ou sur ton Drive.</p>
+    <div class="ligne2"><button type="button" class="btn primaire" data-act="exporter">Tout exporter</button><button type="button" class="btn" data-act="importer">Tout importer</button></div>
+    <p class="hint">« Tout importer » accepte aussi les sauvegardes faites dans chaque app (plusieurs fichiers à la fois).</p>
+    <h3>Sauvegarde automatique sur Drive</h3>
+    <p class="hint">Toutes les 12 h environ, dès que l’app est ouverte, dans un seul fichier avec toutes les apps (comme « Tout exporter »).</p>
+    <p class="msg" id="drive-etat" style="white-space:pre-line"></p>
+    <label class="champ">Adresse du script<input id="drive-url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(lireDrive().url || '')}"></label>
+    <label class="champ">Code secret<input id="drive-code" autocomplete="off" placeholder="le même que dans le script" value="${esc(lireDrive().code || '')}"></label>
+    <div class="ligne2"><button type="button" class="btn" data-act="drive-tester">Enregistrer et tester</button><button type="button" class="btn" data-act="drive-maintenant">Sauvegarder maintenant</button></div>
+    <h3>Sur ce téléphone</h3>
+    <div class="etat" id="etat"><div><span>Lecture…</span></div></div>
+    <button type="button" class="btn" data-act="fermer">Fermer</button>
+  </div>`;
+  if(!dlg.open) dlg.showModal();
+  if(vue !== 'menu'){ majEtat(); majEtatDrive(); }
 }
 $('#reglages').addEventListener('click', e => {
   const dlg = $('#reglages');
@@ -2282,6 +2314,9 @@ $('#reglages').addEventListener('click', e => {
   const b = e.target.closest('button'); if(!b) return;
   if(b.dataset.act === 'fermer') dlg.close();
   else if(b.dataset.act === 'carnet'){ dlg.close(); ouvrirCarnet(); }
+  else if(b.dataset.act === 'vue-sauvegarde') ouvrirReglages('sauvegarde');
+  else if(b.dataset.act === 'vue-menu') ouvrirReglages('menu');
+  else if(b.dataset.act === 'thunes-zero'){ dlg.close(); thunesZero(); }
   else if(b.dataset.act === 'exporter') exporterTout();
   else if(b.dataset.act === 'importer') $('#fichier').click();
   else if(b.dataset.act === 'drive-tester'){
@@ -2467,6 +2502,7 @@ window.quotidien = {
     try{ const fn = f.contentWindow.quotidienAction; if(typeof fn === 'function') fn(params || {}); }catch(e){}
   },
   scenesAgenda: jours => lireScenesAgenda(jours || 7, 0),
+  reglages(){ ouvrirReglages(); return true; },
   // Cocher un élément d'une liste de l'Organisation depuis une autre app (ex. « To Buy » dans Courses)
   async cocherItemListe(id){
     const w = await attendreApp('organisation', w => typeof w.quotidienCocherItem === 'function' && w.quotidienPret());

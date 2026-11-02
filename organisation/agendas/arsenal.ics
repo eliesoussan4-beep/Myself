@@ -247,40 +247,6 @@ END:VEVENT
 BEGIN:VEVENT
 LAST-MODIFIED:20261101T061628Z
 DTSTAMP:20261101T061628Z
-LOCATION:Selhurst Park\, London
-X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
-DTSTART:20261227T190000Z
-DTEND:20261227T210000Z
-SUMMARY:Crystal Palace vs Arsenal (A)
-TRANSP:TRANSPARENT
-SEQUENCE:0
-UID:6a3507b354aa884dbc65d2cb
-PRIORITY:5
-X-MICROSOFT-CDO-IMPORTANCE:1
-CLASS:PUBLIC
-DESCRIPTION:Premier League | Matchweek 17 | Join us for analysis and live c
- ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
- n #CRYARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMdY/3NsBs\n\nJoin Me
- mbership\nhttps://ecal.ai/f/2gRMf9/3NsBs\n\nDownload the Arsenal App\nhttps
- ://ecal.ai/f/2gRMfp/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMfC/3NsBs\
- n\nLatest News\nhttps://ecal.ai/f/2gRMfF/3NsBs\n\nFacebook\nhttps://ecal.ai
- /f/2gRMfW/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMg5/3NsBs\n\nInstagram\nhttps://
- ecal.ai/f/2gRMgc/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMgk/3NsBs\n\nManage 
- my ECAL\nhttps://ecal.ai/f/2gRMgL/3NsBs\n\n
-BEGIN:VALARM
-TRIGGER:-P2DT
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-BEGIN:VALARM
-TRIGGER:-PT15M
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-LAST-MODIFIED:20261101T061628Z
-DTSTAMP:20261101T061628Z
 LOCATION:Craven Cottage\, London
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 DTSTART:20261230T193000Z
@@ -1358,6 +1324,41 @@ DESCRIPTION:You'll now have the most up-to-date fixture and event informati
  /3NsBs\n\n
 BEGIN:VALARM
 TRIGGER:-PT1M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:00010101T000000Z
+DTSTAMP:00010101T000000Z
+LOCATION:Selhurst Park\, London
+X-ECAL-SCHEDULE:
+DTSTART:20261227T190000Z
+DTEND:20261227T210000Z
+SUMMARY:Crystal Palace vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2cb
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 17 | Watch live on UK - Sky Sports. 
+ Join us for analysis and live commentary in The Breakdown Live on the Arsen
+ al App and Arsenal.com | Join In #CRYARS\n\nShop Arsenal Direct\nhttps://ec
+ al.ai/f/2gRMdY/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRMf9/3NsBs\n\n
+ Download the Arsenal App\nhttps://ecal.ai/f/2gRMfp/3NsBs\n\nLatest Videos\n
+ https://ecal.ai/f/2gRMfC/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRMfF/3Ns
+ Bs\n\nFacebook\nhttps://ecal.ai/f/2gRMfW/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM
+ g5/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRMgc/3NsBs\n\nTikTok\nhttps://ec
+ al.ai/f/2gRMgk/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRMgL/3NsBs\n\n
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
 ACTION:DISPLAY
 DESCRIPTION:Reminder
 END:VALARM

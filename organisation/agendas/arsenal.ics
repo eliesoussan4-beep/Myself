@@ -1167,40 +1167,6 @@ LAST-MODIFIED:20261101T061628Z
 DTSTAMP:20261101T061628Z
 LOCATION:Emirates Stadium\, London
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
-DTSTART:20261107T150000Z
-DTEND:20261107T170000Z
-SUMMARY:Arsenal vs Hull City (H)
-TRANSP:TRANSPARENT
-SEQUENCE:0
-UID:6a3507b354aa884dbc65d2c3
-PRIORITY:5
-X-MICROSOFT-CDO-IMPORTANCE:1
-CLASS:PUBLIC
-DESCRIPTION:Premier League | Matchweek 10 | Join us for analysis and live c
- ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
- n #ARSHUL\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRM3T/3NsBs\n\nJoin Me
- mbership\nhttps://ecal.ai/f/2gRM42/3NsBs\n\nDownload the Arsenal App\nhttps
- ://ecal.ai/f/2gRM4c/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRM4m/3NsBs\
- n\nLatest News\nhttps://ecal.ai/f/2gRM4y/3NsBs\n\nFacebook\nhttps://ecal.ai
- /f/2gRM4K/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM4X/3NsBs\n\nInstagram\nhttps://
- ecal.ai/f/2gRM54/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRM5d/3NsBs\n\nManage 
- my ECAL\nhttps://ecal.ai/f/2gRM5P/3NsBs\n\n
-BEGIN:VALARM
-TRIGGER:-P2DT
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-BEGIN:VALARM
-TRIGGER:-PT15M
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-LAST-MODIFIED:20261101T061628Z
-DTSTAMP:20261101T061628Z
-LOCATION:Emirates Stadium\, London
-X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 DTSTART:20261220T163000Z
 DTEND:20261220T183000Z
 SUMMARY:Arsenal vs Manchester United (H)
@@ -1351,6 +1317,42 @@ DESCRIPTION:Premier League | Matchweek 17 | Watch live on UK - Sky Sports.
  Bs\n\nFacebook\nhttps://ecal.ai/f/2gRMfW/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM
  g5/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRMgc/3NsBs\n\nTikTok\nhttps://ec
  al.ai/f/2gRMgk/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRMgL/3NsBs\n\n
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:00010101T000000Z
+DTSTAMP:00010101T000000Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Arsenal vs Hull City (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2c3
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 10 | Listen live on BBC Radio 5 Live
+ . Join us for analysis and live commentary in The Breakdown Live on the Ars
+ enal App and Arsenal.com | Join In #ARSHUL\n\nShop Arsenal Direct\nhttps://
+ ecal.ai/f/2gRM3T/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRM42/3NsBs\n
+ \nDownload the Arsenal App\nhttps://ecal.ai/f/2gRM4c/3NsBs\n\nLatest Videos
+ \nhttps://ecal.ai/f/2gRM4m/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRM4y/3
+ NsBs\n\nFacebook\nhttps://ecal.ai/f/2gRM4K/3NsBs\n\nX\nhttps://ecal.ai/f/2g
+ RM4X/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM54/3NsBs\n\nTikTok\nhttps://
+ ecal.ai/f/2gRM5d/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM5P/3NsBs\n\
+ n
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 BEGIN:VALARM
 TRIGGER:-P2DT

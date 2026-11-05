@@ -1134,7 +1134,9 @@ const PLAY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor
 const SUBICO = ic('M4 5h16v14H4zM8 12l2.5 2.5L16 9', 13, 2);
 function subsBlock(t, d, ctx) {
   const done = new Set(subDone(t, d));
-  return `<div class="subs">${t.subs.map(s => { const on = done.has(s.id); return `<div class="sub${on ? ' done' : ''}">
+  // les étapes faites passent en bas, rayées (l'ordre des autres ne bouge pas)
+  const ordre = [...t.subs.filter(s => !done.has(s.id)), ...t.subs.filter(s => done.has(s.id))];
+  return `<div class="subs">${ordre.map(s => { const on = done.has(s.id); return `<div class="sub${on ? ' done' : ''}">
       <button type="button" class="check sm" data-a="sub-check" data-id="${t.id}" data-d="${d || ''}" data-sid="${s.id}" aria-label="${on ? 'Décocher' : 'Cocher'} ${h(s.title)}"><span class="box">${on ? CHECK : ''}</span></button>
       <span class="sub-title">${h(s.title)}</span></div>`; }).join('')}
     <button type="button" class="sub-edit" data-a="edit" data-id="${t.id}" data-d="${d || ''}">${ic(P.pencil, 15)}Modifier</button></div>`;
@@ -1688,7 +1690,9 @@ function dashboardHTML() {
   // Événements à remettre (gardés dans la base) : une diapo chacun, avec combien de fois il est prévu ce mois ;
   // toucher la carte la retourne et montre les dates
   const mois = t0.slice(0, 7);
-  const tpls = S.tasks.filter(x => x.info && x.free && !isSceneTheme(themeOf(x))).sort((a, b) => a.title.localeCompare(b.title, 'fr'));   // les plateaux ont leur place dans Backstage
+  // (les plateaux ont leur place dans Backstage) ; ceux de la catégorie « Taff » d'abord
+  const estTaff = x => { const th = themeOf(x), p = th && parentOf(th); return /taff/i.test((th && th.name) || '') || /taff/i.test((p && p.name) || ''); };
+  const tpls = S.tasks.filter(x => x.info && x.free && !isSceneTheme(themeOf(x))).sort((a, b) => (estTaff(b) - estTaff(a)) || a.title.localeCompare(b.title, 'fr'));
   const datesDe = tpl => S.tasks.filter(x => x.srcId === tpl.id && x.date && x.date.slice(0, 7) === mois).map(x => ({ d: x.date, t: x })).sort((a, b) => a.d < b.d ? -1 : 1);
   const eDiapos = tpls.map(tpl => {
     const th = themeOf(tpl), col = th ? th.color || 'slate' : 'slate', ds = datesDe(tpl), n = ds.length, verso = U.evVerso && U.evVerso.has(tpl.id);
@@ -1807,7 +1811,7 @@ function openSheet(opts) {
   s.update();
   document.body.classList.add('locked');
   if (U.reuseHist) U.reuseHist = false;
-  else if (useHistory) { try { history.pushState({ sheet: stack.length }, ''); } catch (e) { useHistory = false; } }
+  else if (useHistory) { try { history.pushState({ sheet: stack.length }, ''); } catch (e) {} }
   return s;
 }
 function popSheet() {
@@ -1825,7 +1829,7 @@ function closeTop() {
   if (useHistory) {
     const s = stack[stack.length - 1];
     try { history.back(); } catch (e) { popSheet(); return; }
-    setTimeout(() => { if (stack[stack.length - 1] === s) { useHistory = false; popSheet(); } }, 400);
+    setTimeout(() => { if (stack[stack.length - 1] === s) popSheet(); }, 400);   // (sans couper l'historique pour la suite : le bouton retour du téléphone doit toujours fermer les volets)
   } else popSheet();
 }
 window.addEventListener('popstate', () => {
@@ -2879,9 +2883,17 @@ function openTaskForm(task, preset = {}, dayCtx) {
       if (f.rep && f.rep.unit === 'sem' && !f.rep.days.length) f.rep.days = [dow(f.date || t0)];
       if (f.rep && !f.date) f.date = t0;
       if (!f.doneDates) f.doneDates = [];
+      // Une tâche placée sur un jour passé : on la note comme faite ce jour-là (pour garder la trace), pas « en retard »
+      const passe = !f.info && !f.rep && f.date && f.date < t0 && (isNew || f.date !== task.date);
+      if (passe && f.free) {
+        const jour = f.date; f.date = null; save('tasks', f);
+        makeInstance(f, jour, { done: true, doneAt: parse(jour).setHours(12, 0, 0, 0) });
+        closeTop(); refresh(); toast(`Noté comme fait ${relLabel(jour)} ✓`); if (isNew) closeDayAddSoon(); return;
+      }
+      if (passe) { f.done = true; f.doneAt = parse(f.date).setHours(12, 0, 0, 0); }
       save('tasks', f);
       closeTop(); refresh();
-      toast(isNew ? (f.info ? 'Ajouté à l\'agenda 📅' : 'Tâche ajoutée ✨') : 'Modifié ✅');
+      toast(passe ? `Noté comme fait ${relLabel(f.date)} ✓` : isNew ? (f.info ? 'Ajouté à l\'agenda 📅' : 'Tâche ajoutée ✨') : 'Modifié ✅');
       if (isNew) closeDayAddSoon();
       return;
     }
@@ -3122,7 +3134,7 @@ function openQuick(id, d) {
   const etapes = () => {
     const tt = S.tasks.find(x => x.id === id); if (!tt || !hasSubs(tt)) return '';
     const fait = new Set(subDone(tt, day));
-    return `<div class="subs q-subs"><div class="q-subs-h">Étapes · ${fait.size}/${tt.subs.length}</div>${tt.subs.map(x => { const on = fait.has(x.id); return `<div class="sub${on ? ' done' : ''}">
+    return `<div class="subs q-subs"><div class="q-subs-h">Étapes · ${fait.size}/${tt.subs.length}</div>${[...tt.subs.filter(x => !fait.has(x.id)), ...tt.subs.filter(x => fait.has(x.id))].map(x => { const on = fait.has(x.id);   /* les étapes faites passent en bas, rayées */ return `<div class="sub${on ? ' done' : ''}">
       <button type="button" class="check sm" data-f="sub" data-v="${x.id}" aria-label="${on ? 'Décocher' : 'Cocher'} ${h(x.title)}"><span class="box">${on ? CHECK : ''}</span></button>
       <span class="sub-title">${h(x.title)}</span></div>`; }).join('')}</div>`;
   };

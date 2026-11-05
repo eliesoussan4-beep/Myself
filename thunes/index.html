@@ -131,6 +131,9 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .cat-x{flex:none;width:44px;border:0;border-radius:12px;background:var(--sunk);color:var(--muted);font-size:15px}
 .cat-l{max-height:46dvh;overflow-y:auto}
 .cat-new{margin-top:8px}
+.coul-l{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:4px 0}
+.coul{width:32px;height:32px;border-radius:50%;border:3px solid transparent;background:var(--k);padding:0;box-shadow:0 0 0 1px var(--line)}
+.coul.on{border-color:var(--surface);box-shadow:0 0 0 2.5px var(--k)}
 .btn.plus{flex:none;width:46px;padding:0;font-size:22px}
 .coche-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
 .coche-l input{width:18px;height:18px;margin:0}
@@ -274,6 +277,22 @@ main{gap:10px}
 .carte-c.tot .virer{padding:6px;margin-top:2px}
 .carte-c.tot .seg{margin:3px 0 1px}
 .mvts .pg{display:flex;flex-direction:column;gap:4px}
+.mvts .pg.jour{min-height:0;overflow:hidden}
+.pg-j{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 2px;font-size:12.5px}
+.pg-j b{font-weight:700;color:var(--muted)}
+.pg-j span{font-family:var(--display);font-weight:800;color:var(--ink)}
+.pg-j span.plus{color:var(--plus)}
+.pg-l{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px;scrollbar-width:none}
+.pg-l::-webkit-scrollbar{display:none}
+.mvts [data-car="mv"]{flex:1;min-height:0}
+.mvts [data-car="mv"] > .pg{height:100%}
+.pg-l > *{flex:none}
+.pg-l .it.mvl{padding:5px 8px 5px 5px}
+.pg-l .mv-ic{width:28px;height:28px;border-radius:9px;font-size:15px}
+.pg-l .mvl .n b{font-size:14px}
+.pg-l{-webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent);padding-bottom:10px}
+.mvts{flex:1 1 0 !important;min-height:150px !important}
+@media (max-height:740px){ .mvts{min-height:106px !important} }
 .mini-b{display:flex;gap:6px}
 .mini{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 18px/1 var(--display);padding:0;display:flex;align-items:center;justify-content:center}
 .carte-c{border:0;text-align:left;color:var(--ink);gap:3px !important;justify-content:flex-start}
@@ -400,7 +419,7 @@ function lire(){ let d = null; try{ d = JSON.parse(localStorage.getItem(CLE) || 
   return d; }
 // Catégories de dépenses proposées au départ (tu peux les changer, en ajouter, en supprimer)
 const CATS_DEPART = [['🍽️', 'Resto'], ['🛒', 'Courses'], ['🚇', 'Transport'], ['🎉', 'Sorties'], ['🛍️', 'Shopping'], ['💊', 'Santé'], ['🎁', 'Cadeaux'], ['📦', 'Autre']];
-const kCat = k => `var(--k${(Math.max(0, D.categories.indexOf(k)) + 3) % 8})`;
+const kCat = k => `var(--k${k && k.coul != null ? k.coul : (Math.max(0, D.categories.indexOf(k)) + 3) % 8})`;
 const catDe = (d, x) => x && x.c ? d.categories.find(c => c.id === x.c) : null;
 // Le libellé d'un mouvement : « 🍽️ Resto · sushi » (ou l'ancien texte libre)
 const libelle = (d, x) => { const c = catDe(d, x); return c ? `${c.emoji} ${c.nom}${x.l ? ' · ' + x.l : ''}` : (x.l || (x.m < 0 ? 'Dépense' : 'Rentrée')); };
@@ -440,7 +459,7 @@ function bilanMois(d, m, j, sc){
   const mv = d.mouvements.filter(x => x.d.slice(0, 7) === m);
   const mvC = mv.filter(x => !x.su);   // (une dépense payée avec la cagnotte stand-up ne touche pas la cagnotte : elle compte quand même dans les stats)
   const depenses = -mvC.filter(x => x.m < 0).reduce((s, x) => s + x.m, 0), rentrees = mvC.filter(x => x.m > 0).reduce((s, x) => s + x.m, 0);
-  const scM = sc.filter(x => x.date.slice(0, 7) === m), depScenes = scM.reduce((s, x) => s + (+x.depenses || 0), 0);
+  const scM = sc.filter(x => x.date.slice(0, 7) === m), depScenes = 0;   // (les dépenses notées sur une scène restent dans Backstage : tu les notes toi-même ici, sinon doublon)
   const virs = (d.virements || []).filter(x => x.d.slice(0, 7) === m), vir = virs.reduce((s, x) => s + x.m, 0);
   const ajs = (d.ajustements || []).filter(x => x.d.slice(0, 7) === m), aj = ajs.reduce((s, x) => s + x.m, 0);   // « je réajuste ma cagnotte »
   const pios = (d.pioches || []).filter(x => x.d.slice(0, 7) === m), pio = pios.reduce((s, x) => s + x.m, 0);   // « je pioche dans mon côté »
@@ -468,7 +487,7 @@ function calcul(d, jour = new Date()){
 // À appeler AVANT de changer versement, charges ou épargne : on fige ce qui est déjà gagné ce mois-ci (jusqu'à aujourd'hui inclus)
 function palier(d, jour = new Date()){
   const m = moisDe(jour), j = jour.getDate(), b = bilanMois(d, m, j, []);
-  d.paliers = {...(d.paliers || {}), [m]:{j, acquis:Math.round(b.acq * 100) / 100, epA:Math.round(epAcquis(d, m, j - 1) * 100) / 100, epJ:j - 1}};
+  d.paliers = {...(d.paliers || {}), [m]:{j, acquis:Math.round(b.acq * 100) / 100, epA:Math.round(epAcquis(d, m, j) * 100) / 100, epJ:j}};
 }
 let D = lire();
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
@@ -478,17 +497,16 @@ const segs = l => { const t = l.reduce((a, x) => a + x[0], 0); return `<div clas
 const pointsH = n => n > 1 ? `<div class="pts" aria-hidden="true">${Array.from({length:n}, (_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
 function tousMouvements(c){
   return [...c.mv.map(x => ({...x, lib:(x.su ? '🎤 ' : '') + libelle(D, x) + (x.su ? ' · stand-up' : '')})),
-    ...c.scM.filter(x => +x.depenses > 0).map(x => ({id:'sc' + x.id, d:x.date, m:-(+x.depenses), lib:'🎤 ' + (x.nom || 'Scène'), scene:true})),
     ...c.virs.map(x => ({...x, lib:'↪ Virement du stand-up', vir:true})),
     ...(c.pios || []).map(x => ({...x, lib:'↙ Pris sur le côté', pio:true}))]   // (les réajustements ne sont pas des mouvements : ils n'apparaissent pas ici)
     .sort((a, b) => b.d.localeCompare(a.d) || (b.t || 0) - (a.t || 0));
 }
-const ligneMv = x => {
+const ligneMv = (x, sansDate) => {
   const k = !x.scene && !x.vir && !x.pio && x.m < 0 ? catDe(D, x) : null;
   const ic = x.scene ? '🎤' : x.vir ? '↪' : x.pio ? '↙' : k ? k.emoji : x.m < 0 ? '💸' : '💶';
   const titre = x.scene ? String(x.lib || '').replace(/^🎤\s*/, '') : x.vir ? 'Virement du stand-up' : x.pio ? 'Pris sur le côté' : k ? k.nom : (x.l || (x.m < 0 ? 'Dépense' : 'Rentrée'));
   const quand = cap(new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}));
-  const sous = [quand, k && x.l ? x.l : '', x.su ? '🎤 stand-up' : '', x.scene ? 'scène' : ''].filter(Boolean).join(' · ');
+  const sous = [sansDate ? '' : quand, k && x.l ? x.l : '', x.su ? '🎤 stand-up' : '', x.scene ? 'scène' : ''].filter(Boolean).join(' · ') || (sansDate ? (x.m < 0 ? 'dépense' : 'rentrée') : '');
   const coul = k ? kCat(k) : x.m > 0 ? 'var(--plus)' : x.scene || x.su ? '#7B5CD6' : 'var(--muted)';
   return `<button type="button" class="it mvl${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.pio ? 'pio' : x.aj ? 'aj' : x.ajc ? 'ajc' : 'mv'}" data-id="${x.id}"><span class="mv-ic" style="--k:${coul}">${esc(ic)}</span><span class="n"><b>${esc(titre)}</b><small>${esc(sous)}</small></span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'}${eur(Math.abs(x.m))}</span></button>`;
 };
@@ -503,7 +521,7 @@ function render(){
   const c = calcul(D), cMv = bilanDe(c, moisMv), cCat = bilanDe(c, moisCat);
   const mvs = tousMouvements(cMv);
   // dépenses par jour du mois
-  const parJ = Array.from({length:c.nbJ}, (_, k) => -c.mv.filter(x => x.m < 0 && +x.d.slice(8) === k + 1).reduce((s, x) => s + x.m, 0) + c.scM.filter(x => +x.date.slice(8) === k + 1).reduce((s, x) => s + (+x.depenses || 0), 0));
+  const parJ = Array.from({length:c.nbJ}, (_, k) => -c.mv.filter(x => x.m < 0 && +x.d.slice(8) === k + 1).reduce((s, x) => s + x.m, 0));
   const mx = Math.max(c.parJour > 0 ? c.parJour : 1, ...parJ);
   // dépenses du mois par catégorie
   const parCat = new Map(); cCat.mv.filter(x => x.m < 0).forEach(x => { const k = x.c && D.categories.some(y => y.id === x.c) ? x.c : '_'; parCat.set(k, (parCat.get(k) || 0) - x.m); });
@@ -513,8 +531,8 @@ function render(){
   // charges fixes par catégorie
   const catDeCharge = x => D.catCharges.some(y => y.id === x.cat) ? x.cat : (D.catCharges[D.catCharges.length - 1] || {}).id;   // sans catégorie : dans la dernière (« Autre »)
   const chCat = D.catCharges.map(k => ({k, l:D.charges.filter(x => catDeCharge(x) === k.id)})).filter(g => g.l.length);
-  const parPage = innerHeight < 700 ? 1 : 2;   // petit écran : un mouvement par page, pour que tout tienne sans défiler
-  const pages = []; for(let i = 0; i < mvs.length; i += parPage) pages.push(mvs.slice(i, i + parPage));
+  // Une carte par jour (le plus récent d'abord) ; dans la carte, la liste du jour défile vers le bas
+  const pages = []; mvs.forEach(x => { const p = pages[pages.length - 1]; if(p && p.d === x.d) p.l.push(x); else pages.push({d:x.d, l:[x]}); });
   // Les stats : une diapo par stat (on fait glisser)
   const statsDiapos = [`<div class="sd">
       <div class="titre"><b>Dépenses par jour</b><span>≈ ${eur(depMois / Math.max(1, c.j))} / jour</span></div>
@@ -537,13 +555,13 @@ function render(){
     <section class="duo pots2">
       <div class="carre"><div class="car" data-car="pots">
         <button type="button" class="t chif pot cagc ac3" data-a="ajuster"><small>Cagnotte</small><span class="ch-r"><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><em>${c.parJour >= 0 ? '+' : ''}${Math.round(c.parJour)} €/j</em></span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote, false)} pris sur le côté</span>` : ''}</button>
-        <div class="t chif pot su"><small>🎤 Stand-up · gagné ${eur(c.gainsSU, false)}</small><span class="su-l"><b>${eur(c.standup, false)}</b><button type="button" class="virer" data-a="su-menu"${c.standup > 0 ? '' : ' disabled'}>Utiliser</button></span></div>
+        <div class="t chif pot su"><small>🎤 Stand-up</small><span class="su-l"><b>${eur(c.standup, false)}</b><button type="button" class="virer" data-a="su-menu"${c.standup > 0 ? '' : ' disabled'}>Utiliser</button></span></div>
       </div>${pointsH(2)}</div>
       <div class="carre"><button type="button" class="t chif pot ac4" data-a="cote-menu"><small>De côté</small><span class="ch-r"><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><em>+${Math.round(c.coteMois)} €/mois</em></span>${c.priseCote > 0 ? `<span class="pris">−${eur(c.priseCote, false)} ce mois</span>` : ''}</button>${pointsH(2).replace('class="pts"', 'class="pts cache"')}</div>
     </section>
     <section class="t mvts" data-a="tous-mv" role="button">
       <div class="titre"><b>Mouvements</b>${navMois(cMv.m, c, 'mv')}<span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button></span></div>
-      ${pages.length ? `<div class="car" data-car="mv">${pages.map(pg => `<div class="pg">${pg.map(ligneMv).join('')}</div>`).join('')}</div>${pointsH(pages.length)}` : `<p class="vide">Rien de noté ${cMv.m === c.m ? 'ce mois-ci' : 'en ' + esc(nomMois(cMv.m))}.</p>`}
+      ${pages.length ? `<div class="car" data-car="mv">${pages.map(pg => { const net = pg.l.reduce((a, x) => a + x.m, 0); return `<div class="pg jour"><div class="pg-j"><b>${esc(cap(new Date(pg.d + 'T00:00').toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'short'})))}</b><span class="${net < 0 ? '' : 'plus'}">${net < 0 ? '−' : '+'}${eur(Math.abs(net))}</span></div><div class="pg-l">${pg.l.map(x => ligneMv(x, true)).join('')}</div></div>`; }).join('')}</div>${pointsH(pages.length)}` : `<p class="vide">Rien de noté ${cMv.m === c.m ? 'ce mois-ci' : 'en ' + esc(nomMois(cMv.m))}.</p>`}
     </section>
     <section class="duo cd">
       <div class="carre"><div class="car" data-car="cats">
@@ -617,15 +635,17 @@ function fenetreCategorie(x, mm){
   ouvrir(`<h2>${x ? 'Catégorie' : 'Nouvelle catégorie'}</h2>
     ${x ? `<div class="items">${dep.map(m => ligneMv({...m, lib:m.l || x.nom})).join('') || `<p class="vide">Pas de dépense en ${esc(nomMois(c.m))}.</p>`}</div>` : ''}
     <div class="row"><input class="in emo" name="e" value="${x ? esc(x.emoji) : '💸'}" aria-label="Emoji" maxlength="4"><input class="in" name="n" placeholder="Nom" value="${x ? esc(x.nom) : ''}" autocomplete="off"></div>
+    <div class="coul-l" role="radiogroup" aria-label="Couleur">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<button type="button" class="coul${(x && x.coul != null ? x.coul : x ? (Math.max(0, D.categories.indexOf(x)) + 3) % 8 : 3) === i ? ' on' : ''}" data-f="coul" data-i="${i}" style="--k:var(--k${i})" aria-label="Couleur ${i + 1}"></button>`).join('')}</div>
     <div class="btns">${x ? '<button type="button" class="btn rouge" data-f="sup">Supprimer</button>' : '<button type="button" class="btn sec" data-f="non">Annuler</button>'}<button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
   (e, dlg) => {
     const b = e.target.closest('[data-f]'); if(!b) return;
     const f = dlg.querySelector('form');
     if(b.dataset.f === 'non'){ dlg.close(); return; }
+    if(b.dataset.f === 'coul'){ dlg.querySelectorAll('.coul').forEach(y => y.classList.toggle('on', y === b)); return; }
     D = lire();
     if(b.dataset.f === 'sup'){ if(!confirm('Supprimer cette catégorie ? Les dépenses déjà notées gardent leur montant.')) return; D.categories = D.categories.filter(c => c.id !== x.id); ecrire(D); dlg.close(); render(); return; }
     const n = f.n.value.trim(); if(!n){ f.n.focus(); return; }
-    const c = {id:x ? x.id : uid(), emoji:f.e.value.trim() || '💸', nom:n};
+    const sel = dlg.querySelector('.coul.on'), c = {...(x || {}), id:x ? x.id : uid(), emoji:f.e.value.trim() || '💸', nom:n, coul:sel ? +sel.dataset.i : undefined};
     D.categories = x ? D.categories.map(y => y.id === x.id ? c : y) : [...D.categories, c];
     ecrire(D); dlg.close(); render();
   });

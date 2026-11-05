@@ -182,6 +182,7 @@ main{gap:12px;padding-top:8px}   /* serré : tout l’accueil tient sur un écra
 .rj-n span{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
 .rj-c{display:flex;flex-wrap:wrap;justify-content:center;gap:2px}
 .rj-c button{border:0;background:color-mix(in srgb,var(--surface) 55%,transparent);border-radius:10px;font-size:18px;line-height:1;padding:5px 6px;cursor:pointer}
+.rj-c button.fini{opacity:.32;filter:grayscale(1);background:transparent}
 .rj-l{display:flex;flex-direction:column;gap:5px}
 .rj-i{display:flex;align-items:center;gap:10px;border:0;border-left:3px solid var(--sc);border-radius:0 12px 12px 0;background:color-mix(in srgb,var(--sc) 12%,var(--sunk));color:var(--ink);padding:6px 12px 6px 10px;text-align:left;font:600 15px/1.25 var(--body)}
 .rj-ouv{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-start;gap:10px;border:0;background:none;color:inherit;font:inherit;padding:4px 0;text-align:left}
@@ -197,6 +198,10 @@ main{gap:12px;padding-top:8px}   /* serré : tout l’accueil tient sur un écra
 .rj-i em{font-style:normal;font-size:12px;color:var(--muted)}
 .feuille h3 small{font-size:12px;color:var(--muted);font-family:var(--body)}
 /* Fenêtre au milieu de l'écran (pas un volet du bas) */
+dialog.conf .pop-h h2{font-size:19px;line-height:1.3}
+.conf-b{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 16px 16px}
+.conf-b .btn{margin:0}
+.btn.danger{background:#C8443B;border-color:#C8443B;color:#fff}
 dialog.popup{width:min(92vw,440px);max-height:min(78dvh,620px);border-radius:22px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,.35)}
 dialog.popup[open]{animation:popin .18s ease}
 @keyframes popin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
@@ -226,6 +231,11 @@ dialog.popup[open]{animation:popin .18s ease}
 .tm-nc{display:flex;gap:6px}
 .tm-nc input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:10px 12px;font:500 16px var(--body)}
 .tm-nc input.tm-ne{flex:none;width:56px;text-align:center;font-size:20px;padding:6px}
+.tm-nc[hidden]{display:none}
+.tm-nc{align-items:stretch}
+.tm-nc input{min-height:46px;box-sizing:border-box;height:46px}
+.tm-nc input:not(.tm-ne){flex:1 1 auto;width:auto}
+.tm-nc .btn{flex:none;width:auto;min-width:0;height:46px;min-height:0;padding:0 16px;margin:0}
 .tm-cat.on{border-color:var(--denim);background:color-mix(in srgb,var(--denim) 18%,var(--surface));box-shadow:inset 0 0 0 1px var(--denim)}
 /* Liste de courses en fenêtre */
 .re-total{border:0;background:none;color:inherit;font:inherit;padding:0;cursor:pointer}
@@ -1069,8 +1079,10 @@ function blocOrganisation(d0){
   const groupes = new Map();
   const thMsg = [...d.themes.values()].find(th => /message/i.test(th.name || ''));
   const kMsg = thMsg ? thMsg.id : '_msg';
+  const resteCat = new Map();   // ce qu'il reste à faire par catégorie (pour griser l'emoji d'une catégorie terminée)
   [...d.restantes, ...d.faitesL].forEach(e => {
     const x = e.t, k = x.bsRappel ? kMsg : x.themeId && d.themes.has(x.themeId) ? x.themeId : '_';
+    if(!e.fait) resteCat.set(k, (resteCat.get(k) || 0) + 1);
     const subs = (x.subs || []).length, fait = subs ? ((x.subDone || {})[x.rep ? e.d : 'x'] || []).filter(id => x.subs.some(s => s.id === id)).length : 0;
     const etapes = subs ? `<span class="l-et">${fait}/${subs} étapes</span>` : '';
     const minut = !e.fait && x.duration && x.timer !== false ? `<button type="button" class="minut" data-aller="organisation" data-action="minuteur" data-id="${esc(x.id)}" data-d="${esc(e.d)}" aria-label="Lancer le minuteur de ${esc(x.title)}">${svg('<path d="M8 5.5v13l10.5-6.5z"/>', 12)}${x.duration} min</button>` : '';
@@ -1079,14 +1091,14 @@ function blocOrganisation(d0){
   });
   [...groupes.entries()].sort((a, b) => rang(d.themes.get(a[0])) - rang(d.themes.get(b[0]))).forEach(([k, lignes]) => {
     const th = d.themes.get(k), msg = k === '_msg';
-    ordreCats.push({k, emoji:msg ? '💬' : th && th.emoji ? th.emoji : '📌', nom:msg ? 'Messages' : th ? th.name : 'Sans catégorie'});
+    ordreCats.push({k, emoji:msg ? '💬' : th && th.emoji ? th.emoji : '📌', nom:msg ? 'Messages' : th ? th.name : 'Sans catégorie', fini:!resteCat.get(k)});
     diapos.push(`<div class="slide groupe" data-cat="${esc(k)}"${msg ? ' style="--sc:var(--c-blue)"' : coul(th)}><div class="slide-cat">${msg ? '💬 Messages' : th ? esc((th.emoji ? th.emoji + ' ' : '') + th.name) : 'Sans catégorie'}<span>${lignes.length}</span></div><div class="liste" style="height:${Math.min(lignes.length, 2) * 44}px">${lignes.join('')}</div></div>`);
   });
   if(diapos.length){
     // 1re carte : combien il reste (tâches et événements ensemble) et les catégories, dans l'ordre des cartes ; toucher le chiffre ouvre le récap
     const n = d.restantes.length + d.evts.length;
     diapos.unshift(`<div class="slide resume-j" data-recap="${jourOrga}" role="button"><button type="button" class="rj-n" data-recap="${jourOrga}" aria-label="Voir tout ce qu’il y a à faire ${jourOrga ? 'demain' : 'aujourd’hui'}"><b>${n}</b><span>${n ? (n > 1 ? 'choses à faire' : 'chose à faire') : 'tout est fait 🎉'}</span></button>
-      <div class="rj-c">${ordreCats.map(c => `<button type="button" data-aller-cat="${esc(c.k)}" aria-label="Voir ${esc(c.nom)}">${esc(c.emoji)}</button>`).join('')}</div></div>`);
+      <div class="rj-c">${ordreCats.map(c => `<button type="button" data-aller-cat="${esc(c.k)}"${c.fini ? ' class="fini"' : ''} aria-label="Voir ${esc(c.nom)}${c.fini ? ' (tout est fait)' : ''}">${esc(c.emoji)}</button>`).join('')}</div></div>`);
   }
   if(!diapos.length) diapos.push(`<div class="slide nav-jour"><p class="vide">Rien de prévu ${jourOrga ? 'demain' : 'aujourd’hui'}.</p></div>`);
   const tout = jourOrga ? [vers(0), ...diapos] : [...diapos, vers(1)];
@@ -1992,8 +2004,20 @@ $('#mois').addEventListener('click', e => {
 // Glisser vers le bas pour fermer (depuis la poignée, ou quand la fenêtre est tout en haut)
 {
   const dlg = $('#mois'); let y0 = null, dy = 0;
-  dlg.addEventListener('touchstart', e => { const f = dlg.querySelector('.feuille'); if(!f) return; y0 = e.target.closest('.poignee, .mois-h') ? e.touches[0].clientY : null; /* la liste du jour défile sans fermer la fenêtre */ dy = 0; f.style.transition = 'none'; }, {passive:true});
-  dlg.addEventListener('touchmove', e => { if(y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); const f = dlg.querySelector('.feuille'); if(f && dy > 4) f.style.transform = `translateY(${dy}px)`; }, {passive:true});
+  // On peut partir de n'importe où dans la fenêtre (calendrier compris) : seule une liste déjà défilée vers le bas garde la main
+  let x0 = 0, decide = false;
+  dlg.addEventListener('touchstart', e => {
+    const f = dlg.querySelector('.feuille'); if(!f) return;
+    const zone = e.target.closest('.mliste, .sem, .feuille');
+    y0 = zone && zone.classList.contains('feuille') ? e.touches[0].clientY : (zone && zone.scrollTop <= 0 ? e.touches[0].clientY : null);
+    x0 = e.touches[0].clientX; dy = 0; decide = false; f.style.transition = 'none';
+  }, {passive:true});
+  dlg.addEventListener('touchmove', e => {
+    if(y0 == null) return;
+    const ddy = e.touches[0].clientY - y0, ddx = Math.abs(e.touches[0].clientX - x0);
+    if(!decide){ if(Math.abs(ddy) < 8 && ddx < 8) return; decide = true; if(ddy <= 0 || ddx > Math.abs(ddy)){ y0 = null; return; } }   // (vers le haut ou de côté : on laisse défiler)
+    dy = Math.max(0, ddy); const f = dlg.querySelector('.feuille'); if(f) f.style.transform = `translateY(${dy}px)`;
+  }, {passive:true});
   dlg.addEventListener('touchend', () => { const f = dlg.querySelector('.feuille'); if(y0 == null || !f) return; y0 = null; f.style.transition = 'transform .18s ease'; if(dy > 90){ f.style.transform = 'translateY(100%)'; fermerMois(); } else f.style.transform = ''; });
 }
 
@@ -2337,6 +2361,17 @@ $('#reglages').addEventListener('click', e => {
 });
 
 /* ---------- Retours : noter une modif pendant l'utilisation (temporaire, voir RETOURS dans apps.js) ---------- */
+// Une petite fenêtre de confirmation (au lieu de la boîte grise du navigateur) : renvoie true si on valide
+function confirmerJoli(texte, oui = 'Supprimer'){
+  return new Promise(res => {
+    const d = document.createElement('dialog'); d.className = 'popup conf';
+    d.innerHTML = `<div class="pop"><div class="pop-h"><h2>${esc(texte)}</h2></div><div class="conf-b"><button type="button" class="btn" data-c="0">Annuler</button><button type="button" class="btn primaire danger" data-c="1">${esc(oui)}</button></div></div>`;
+    const fin = v => { d.close(); d.remove(); res(v); };
+    d.addEventListener('click', e => { if(e.target === d) return fin(false); const b = e.target.closest('[data-c]'); if(b) fin(b.dataset.c === '1'); });
+    d.addEventListener('cancel', e => { e.preventDefault(); fin(false); });
+    document.body.appendChild(d); d.showModal();
+  });
+}
 const CLE_RETOURS = 'quotidien-retours';
 const NOMS = () => [{id:'accueil', nom:'Accueil'}, ...APPS.filter(a => !a.secret).map(a => ({id:a.id, nom:a.nom})), {id:'general', nom:'Général'}];
 const nomDe = id => (NOMS().find(x => x.id === id) || {nom:id}).nom;
@@ -2435,7 +2470,7 @@ $('#retours').addEventListener('click', async e => {
     $('#r-ecran').value = retourApp === actif ? ecranActuel() : '';
     return;
   }
-  if(b.dataset.suppr){ ecrireRetours(lireRetours().filter(r => r.id !== b.dataset.suppr)); rafraichirListe('Note supprimée.'); return; }
+  if(b.dataset.suppr){ const id = b.dataset.suppr; confirmerJoli('Supprimer cette note ?').then(ok => { if(!ok) return; ecrireRetours(lireRetours().filter(r => r.id !== id)); rafraichirListe('Note supprimée.'); }); return; }
   const a = b.dataset.r;
   if(a === 'fermer') dlg.close();
   else if(a === 'ajouter'){

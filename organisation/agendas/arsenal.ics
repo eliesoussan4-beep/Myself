@@ -247,40 +247,6 @@ END:VEVENT
 BEGIN:VEVENT
 LAST-MODIFIED:20261101T061628Z
 DTSTAMP:20261101T061628Z
-LOCATION:Craven Cottage\, London
-X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
-DTSTART:20261230T193000Z
-DTEND:20261230T213000Z
-SUMMARY:Fulham vs Arsenal (A)
-TRANSP:TRANSPARENT
-SEQUENCE:0
-UID:6a3507b354aa884ccf093b0c
-PRIORITY:5
-X-MICROSOFT-CDO-IMPORTANCE:1
-CLASS:PUBLIC
-DESCRIPTION:Premier League | Matchweek 18 | Join us for analysis and live c
- ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
- n #FULARS\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMgV/3NsBs\n\nJoin Me
- mbership\nhttps://ecal.ai/f/2gRMh4/3NsBs\n\nDownload the Arsenal App\nhttps
- ://ecal.ai/f/2gRMhd/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMhr/3NsBs\
- n\nLatest News\nhttps://ecal.ai/f/2gRMhB/3NsBs\n\nFacebook\nhttps://ecal.ai
- /f/2gRMhQ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMj1/3NsBs\n\nInstagram\nhttps://
- ecal.ai/f/2gRMjg/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMjx/3NsBs\n\nManage 
- my ECAL\nhttps://ecal.ai/f/2gRMk6/3NsBs\n\n
-BEGIN:VALARM
-TRIGGER:-P2DT
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-BEGIN:VALARM
-TRIGGER:-PT15M
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-LAST-MODIFIED:20261101T061628Z
-DTSTAMP:20261101T061628Z
 LOCATION:Emirates Stadium\, London
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 DTSTART:20270102T150000Z
@@ -1353,6 +1319,41 @@ DESCRIPTION:Premier League | Matchweek 10 | Listen live on BBC Radio 5 Live
  RM4X/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM54/3NsBs\n\nTikTok\nhttps://
  ecal.ai/f/2gRM5d/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM5P/3NsBs\n\
  n
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:00010101T000000Z
+DTSTAMP:00010101T000000Z
+LOCATION:Craven Cottage\, London
+X-ECAL-SCHEDULE:
+DTSTART:20261230T193000Z
+DTEND:20261230T213000Z
+SUMMARY:Fulham vs Arsenal (A)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884ccf093b0c
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 18 | Watch live on UK - Sky Sports. 
+ Join us for analysis and live commentary in The Breakdown Live on the Arsen
+ al App and Arsenal.com | Join In #FULARS\n\nShop Arsenal Direct\nhttps://ec
+ al.ai/f/2gRMgV/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRMh4/3NsBs\n\n
+ Download the Arsenal App\nhttps://ecal.ai/f/2gRMhd/3NsBs\n\nLatest Videos\n
+ https://ecal.ai/f/2gRMhr/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRMhB/3Ns
+ Bs\n\nFacebook\nhttps://ecal.ai/f/2gRMhQ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM
+ j1/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRMjg/3NsBs\n\nTikTok\nhttps://ec
+ al.ai/f/2gRMjx/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRMk6/3NsBs\n\n
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 BEGIN:VALARM
 TRIGGER:-P2DT

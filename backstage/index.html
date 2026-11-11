@@ -1528,6 +1528,8 @@
   .volet .volet-poignee{display:block;position:sticky;top:0;z-index:2;height:22px;margin:0 -16px;background:var(--bg);touch-action:none;cursor:grab}
   .volet .volet-poignee::before{content:"";position:absolute;left:50%;top:9px;width:40px;height:5px;border-radius:3px;background:var(--border);transform:translateX(-50%)}
   .volet .volet-tete{display:flex;align-items:center;justify-content:space-between;margin-top:2px}
+  #view-tests.volet .backlink,#view-plateaux.volet .backlink{display:none}
+  .volet .volet-x-flot{position:sticky;top:6px;margin:-30px 0 0 auto;z-index:3;float:right}
   .volet .volet-x{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:0;background:var(--surface-2);color:var(--text-dim);font-size:16px;cursor:pointer}
   html.volet-ouvert,html.volet-ouvert body{overflow:hidden}
   html.qd-superpose .volet,html.qd-superpose #volet-fond{visibility:visible}
@@ -2001,6 +2003,8 @@
 
     <!-- TESTS -->
     <section class="view" id="view-tests">
+      <div class="volet-poignee" aria-hidden="true"></div>
+      <button type="button" class="volet-x volet-x-flot" onclick="fermerVolet()" aria-label="Fermer">✕</button>
 
       <!-- Sous-vue liste des textes -->
       <div id="tests-list-view">
@@ -2081,6 +2085,8 @@
 
     <!-- PLATEAUX -->
     <section class="view" id="view-plateaux">
+      <div class="volet-poignee" aria-hidden="true"></div>
+      <button type="button" class="volet-x volet-x-flot" onclick="fermerVolet()" aria-label="Fermer">✕</button>
 
       <!-- Sous-vue liste -->
       <div id="plateaux-list-view">
@@ -5238,7 +5244,7 @@ function renderHomeRotation(){
   const diapo = (x, bonusRow) => {
     const e = bonusRow ? {cls:'', txt:'⭐ Bonus'} : etat(x);
     const vise = !x.done && !bonusRow && x.rate ? `≈ ${x.rate} tests` : '';
-    return `<button type="button" class="tb-tuile tb-r ${e.cls}" onclick="goto('tests'); openTextDetail(${x.text.id})">
+    return `<button type="button" class="tb-tuile tb-r ${e.cls}" onclick="voletTexte(${x.text.id})">
       <span class="tb-r-h"><span class="tb-r-n">${escapeHtml(x.text.name)}</span>${data.totalScenes !== null ? `<span class="tb-r-c" role="button" tabindex="0" title="Modifier le nombre de scènes" onclick="event.stopPropagation(); openRotationScenesModal()">🎤 ${data.scenesUsed}/${data.totalScenes}</span>` : ''}</span>
       <span class="tb-r-v"><b>${x.validated}/${TEXT_TARGET}</b><span>${e.txt}</span>${vise ? `<em>${vise}</em>` : ''}</span>
       <span class="tb-barre"><span style="width:${Math.min(100, x.validated / TEXT_TARGET * 100)}%"></span>${part !== null && !bonusRow ? `<i style="left:${(part * 100).toFixed(1)}%"></i>` : ''}</span>
@@ -5255,6 +5261,18 @@ const JOURS_COULEUR = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];   // ge
 let filtreSemaine = (() => { try{ return localStorage.getItem('backstage_filtre_semaine_v1') || ''; }catch(e){ return ''; } })();
 // Ouvrir directement la modification d'un plateau (depuis l'accueil) ; Enregistrer ou Annuler ramène à l'accueil
 let editDepuisAccueil = false;
+// Depuis l'accueil : un texte, ou un plateau à compléter, s'ouvre en volet du bas (plus en page à part)
+function voletTexte(id){
+  currentTextId = id;
+  document.getElementById('tests-list-view').style.display = 'none';
+  document.getElementById('tests-detail-view').style.display = 'block';
+  renderTextDetail(); ouvrirVolet('view-tests'); voletAccueilMaj = true;
+}
+function voletPlateau(id){
+  editDepuisAccueil = true;
+  openPlateauDetail(id); enterPlateauEditMode(); ouvrirVolet('view-plateaux'); voletAccueilMaj = true;
+}
+let voletAccueilMaj = false;
 function modifierPlateau(id){
   editDepuisAccueil = true;
   goto('plateaux'); openPlateauDetail(id); enterPlateauEditMode();
@@ -5483,7 +5501,7 @@ function renderHomeACompleter(){
   }
   wrap.innerHTML = `<div class="tb-tuile tb-ac" role="button" onclick="goto('plateaux')">
     <span class="tb-titre"><b>À compléter</b><span class="tb-ac-n">${l.length}</span></span>
-    <div class="tb-ac-l">${l.map(p => `<button type="button" onclick="event.stopPropagation(); modifierPlateau(${p.id})"><span>${escapeHtml(p.name || 'Sans nom')}</span></button>`).join('')}</div>
+    <div class="tb-ac-l">${l.map(p => `<button type="button" onclick="event.stopPropagation(); voletPlateau(${p.id})"><span>${escapeHtml(p.name || 'Sans nom')}</span></button>`).join('')}</div>
   </div>`;
 }
 
@@ -6738,6 +6756,7 @@ function ouvrirVolet(id){
 // enchaine : on ouvre tout de suite un autre volet (on garde le fond et l'historique)
 function fermerVolet(viaRetour, enchaine){
   if(!voletActif) return;
+  if(voletAccueilMaj && !enchaine){ voletAccueilMaj = false; setTimeout(() => { try{ renderHomeRating(); }catch(e){} }, 320); }   // (l'accueil se met à jour derrière)
   const v = voletActif; voletActif = null;
   const fond = document.getElementById('volet-fond');
   v.classList.remove('volet-in');

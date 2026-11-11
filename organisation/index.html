@@ -226,6 +226,16 @@ dialog.ob-pop::backdrop{background:rgba(10,14,22,.5)}
 .ob-tip-b{display:flex;gap:6px}
 .ob-tip-b .chip{flex:1;justify-content:center}
 .ob-tip-b .chip:last-child{flex:none}
+.ob-tipg{height:auto;min-height:138px;justify-content:flex-start;gap:6px}
+.ob-tip-c{display:flex;justify-content:space-between;align-items:center}
+.ob-tip-c i{font-style:normal;font-weight:800;color:var(--muted)}
+.ob-tip-l{display:flex;flex-direction:column;gap:5px}
+.ob-tip-r{display:flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--surface) 70%,transparent);border-radius:12px;padding:5px 6px 5px 10px}
+.ob-tip-n{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left;color:var(--ink);font-family:inherit;display:flex;flex-direction:column}
+.ob-tip-n b{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-tip-n small{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-tip-r .chip{flex:none;padding:6px 9px}
+.ob-tip-plus{align-self:flex-start;border:0;background:none;color:var(--c,var(--denim));font-weight:700;font-size:12.5px;padding:2px}
 .ob-st{height:178px}
 .ob-bars{flex:1;min-height:0;display:grid;grid-template-columns:repeat(14,1fr);gap:4px;align-items:end}
 .ob-bars.sept{grid-template-columns:repeat(7,1fr);gap:8px}
@@ -1611,11 +1621,15 @@ function renderHome() {
   // En haut : la date et les réglages (comme l'accueil), puis ce qui attend d'être mis dans l'agenda
   const dJ = parse(today());
   let html = `<header class="ob-tete"><h1>${h(cap(JOURS[dow(today())]))} ${dJ.getDate()} ${h(MOIS[dJ.getMonth()])}</h1><button type="button" class="ob-reg" data-a="reglages-gen" aria-label="Sauvegarde et réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>`;
-  html += tips.length ? `<div class="ob-bloc ob-att"><div class="ob-car pleine" data-car="attente">${tips.map(x => { const th = themeOf(x.t); return `<div class="ob-t ob-tip c-${th ? th.color || 'slate' : 'slate'}">
-      ${th ? `<span class="ob-tip-c">${h(th.emoji + ' ' + th.name)}</span>` : '<span class="ob-tip-c">En attente</span>'}
-      <button type="button" class="ob-tip-t" data-a="plan" data-id="${x.t.id}"><b>${h(x.t.title)}</b><span>${h(x.why)}</span></button>
-      <div class="ob-tip-b"><button type="button" class="chip sm" data-a="plan-today" data-id="${x.t.id}">${ic(P.plus, 13, 2.4)}Aujourd’hui</button><button type="button" class="chip sm" data-a="plan-tomorrow" data-id="${x.t.id}">${ic(P.plus, 13, 2.4)}Demain</button><button type="button" class="chip sm" data-a="plan-other" data-id="${x.t.id}" aria-label="Choisir un autre jour">${ic(IC.cal, 14, 1.8)}</button></div>
-    </div>`; }).join('')}</div>${tips.length > 1 ? `<div class="ob-points" aria-hidden="true">${tips.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>` : '';
+  // En haut : une carte par catégorie (seulement celles qui ont des choses en attente), avec ses tâches à placer
+  const grTips = [];
+  tips.forEach(x => { const th0 = themeOf(x.t), th = th0 ? parentOf(th0) || th0 : null, k = th ? th.id : '_'; let g = grTips.find(y => y.k === k); if (!g) { g = { k, th, l: [] }; grTips.push(g); } g.l.push(x); });
+  grTips.sort((a, b) => (a.th ? a.th.order || 0 : 999) - (b.th ? b.th.order || 0 : 999));
+  html += grTips.length ? `<div class="ob-bloc ob-att"><div class="ob-car pleine" data-car="attente">${grTips.map(g => `<div class="ob-t ob-tip ob-tipg c-${g.th ? g.th.color || 'slate' : 'slate'}">
+      <span class="ob-tip-c">${g.th ? h(g.th.emoji + ' ' + g.th.name) : 'En attente'}<i>${g.l.length}</i></span>
+      <div class="ob-tip-l">${g.l.slice(0, 3).map(x => `<div class="ob-tip-r"><button type="button" class="ob-tip-n" data-a="plan" data-id="${x.t.id}"><b>${h(x.t.title)}</b><small>${h(x.why)}</small></button><button type="button" class="chip sm" data-a="plan-today" data-id="${x.t.id}" aria-label="Aujourd’hui">Auj.</button><button type="button" class="chip sm" data-a="plan-other" data-id="${x.t.id}" aria-label="Choisir un jour">${ic(IC.cal, 14, 1.8)}</button></div>`).join('')}</div>
+      ${g.l.length > 3 ? `<button type="button" class="ob-tip-plus" data-a="open-todo">+ ${g.l.length - 3} autre${g.l.length - 3 > 1 ? 's' : ''}</button>` : ''}
+    </div>`).join('')}</div>${grTips.length > 1 ? `<div class="ob-points" aria-hidden="true">${grTips.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>` : '';
 
   html += dashboardHTML();
   // (plus de raccourcis ronds, de boutons d'ajout ni d'agenda ici : l'agenda est sur l'accueil de Mon quotidien)
@@ -1948,7 +1962,10 @@ function eventsList() {
   const up = [];
   for (let i = 0; i <= 120; i++) { const d = addDays(t0, i); S.tasks.forEach(x => { if (isEvent(x) && occursOn(x, d)) up.push({ t: x, d }); }); }
   up.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : cleH(a.t) < cleH(b.t) ? -1 : 1);
-  let html = feedsSection();
+  // Les agendas importés (lien .ics) sont cachés : un bouton les affiche (avec leurs réglages)
+  const nFeed = up.filter(e => e.t.feedId).length;
+  if (!U.voirFeeds) for (let i = up.length - 1; i >= 0; i--) if (up[i].t.feedId) up.splice(i, 1);
+  let html = `<button type="button" class="dashed-add small" data-a="voir-feeds">📡 ${U.voirFeeds ? 'Masquer' : 'Afficher'} les agendas importés${nFeed ? ` · ${nFeed}` : ''}</button>` + (U.voirFeeds ? feedsSection() : '');
   // À réutiliser, rangé par catégorie
   const grp = [];
   tpls.slice().sort((a, b) => ((themeOf(a) || { order: 99 }).order || 0) - ((themeOf(b) || { order: 99 }).order || 0) || a.title.localeCompare(b.title))
@@ -3138,8 +3155,17 @@ function openQuick(id, d) {
       <button type="button" class="check sm" data-f="sub" data-v="${x.id}" aria-label="${on ? 'Décocher' : 'Cocher'} ${h(x.title)}"><span class="box">${on ? CHECK : ''}</span></button>
       <span class="sub-title">${h(x.title)}</span></div>`; }).join('')}</div>`;
   };
+  // « Reporter à demain » et « Retirer / Passer pour aujourd'hui » directement ici (plus besoin de passer par Modifier)
+  let qUnplan = '', qReport = '';
+  if (occursOn(t, day) && !done && !(t.info && !t.srcId && !t.rep)) {
+    const shown = day < t0 ? t0 : day, where = shown === t0 ? "aujourd'hui" : shown === addDays(t0, 1) ? 'demain' : 'le ' + shortDate(shown);
+    qUnplan = t.rep ? `Passer pour ${where}` : `Retirer ${where === "aujourd'hui" ? "d'aujourd'hui" : where === 'demain' ? 'de demain' : 'du ' + shortDate(shown)}`;
+    const tg = addDays(shown, 1); qReport = `Reporter ${tg === addDays(t0, 1) ? 'à demain' : 'au ' + shortDate(tg)}`;
+  }
   s.body.innerHTML = `<h2 class="sheet-title">« ${h(t.title)} »</h2>
     <div class="q-etapes">${etapes()}</div>
+    ${qReport ? `<button type="button" class="btn wide" data-f="q-report">${ic(P.right, 18, 1.8)}${qReport}</button>` : ''}
+    ${qUnplan ? `<button type="button" class="btn wide" data-f="q-unplan">${ic(t.rep ? 'M5 6l7 6-7 6M13 6l7 6-7 6' : 'M4 13h5l1.5 2.5h3L15 13h5M5 5h14l1 8v6H4v-6z', 18, 1.8)}${qUnplan}</button>` : ''}
     <button type="button" class="btn wide" data-f="edit">${ic(P.pencil, 18, 1.8)}Modifier</button>
     ${done ? '' : `<button type="button" class="btn wide" data-f="rep">${ic(IC.cal, 18, 1.8)}Reporter…</button>`}
     ${noter ? `<button type="button" class="btn wide" data-f="noter">🎤 Noter dans Backstage</button>` : ''}`;
@@ -3149,6 +3175,14 @@ function openQuick(id, d) {
     if (k === 'cancel') closeTop();
     if (k === 'sub') { toggleSub(id, day, b.dataset.v); const z = s.body.querySelector('.q-etapes'); if (z) z.innerHTML = etapes(); return; }
     if (k === 'edit') { closeTop(); setTimeout(() => openEditor(S.tasks.find(x => x.id === id), d), 420); }
+    if (k === 'q-report') { const cur = S.tasks.find(x => x.id === id) || t, snap = snapshot(), tg = reportTask(cur, day); closeTop(); refresh(); toast(`Reportée ${toLabel(tg)} ↷`, () => restore(snap)); return; }
+    if (k === 'q-unplan') {
+      const cur = S.tasks.find(x => x.id === id) || t, snap = snapshot();
+      if (cur.rep) { const cut = addDays(t0, -120); save('tasks', { ...cur, skip: [...(cur.skip || []).filter(x => x >= cut), day] }); closeTop(); refresh(); toast('Passée pour cette fois 👌', () => restore(snap)); }
+      else if (cur.srcId) { retirerCopie(cur); closeTop(); refresh(); toast('Retirée · le modèle reste dans To-do 📥', () => restore(snap)); }
+      else { save('tasks', { ...cur, date: null, routineRun: null }); closeTop(); refresh(); toast('Retirée · elle t\'attend dans To-do 📥', () => restore(snap)); }
+      return;
+    }
     if (k === 'noter') { closeTop(); setTimeout(() => { const q = quotidien(); if (q) q.ouvrir('backstage', { action: 'noter', nom: t.title, date: day }); }, 300); }
     if (k === 'rep') {
       closeTop();
@@ -3566,6 +3600,7 @@ const A = {
   'new-task-theme': (el, c) => openTaskForm(null, { themeId: c.id || null }),
   'new-task-nodate': () => openTaskForm(null, { date: null }),
   'todo-view': el => { U.todoView = el.dataset.v; refresh(); },
+  'voir-feeds': () => { U.voirFeeds = !U.voirFeeds; refresh(); },
   'day-menu': (el, c) => openDayMenu(c.d),
   'ord-move': (el, c) => moveUnit(c.d, c.id, +el.dataset.s),
   'open-routines': () => openSheet({ render: renderRoutinesSheet, label: 'Routines' }),

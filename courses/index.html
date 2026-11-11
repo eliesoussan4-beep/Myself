@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Courses</title>
+<title>Shop</title>
 <link rel="manifest" href="../manifest.webmanifest">
 <meta name="theme-color" content="#E8EBEF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#11151C" media="(prefers-color-scheme: dark)">
@@ -111,9 +111,33 @@ button.cb-t{cursor:pointer;width:100%}
 .cb-reg{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none;padding:0}
 .cb-plein{height:calc(100dvh - 44px - env(safe-area-inset-bottom,0px));min-height:520px;gap:10px}
 .cb-plein > .cb-tete{flex:none}
-.cb-plein > .cb-r1,.cb-plein > .cb-r2{flex:1.25 1 0;min-height:0}
-.cb-plein > .cb-bande{flex:1 1 0;min-height:0;align-items:stretch}
-.cb-plein > .cb-bloc{flex:.95 1 0;min-height:0}
+.cb-plein > .cb-r1,.cb-plein > .cb-r2{flex:.8 1 0;min-height:0}
+.cb-plein > .cb-bande{flex:.95 1 0;min-height:0;align-items:stretch}
+.cb-plein > .cb-bloc{flex:.85 1 0;min-height:0}
+/* Les deux petites cartes du haut (comme Cagnotte / De côté dans Thunes) */
+.cb-plein > .cb-mini{flex:none}
+.cb-stl,.cb-tbl{-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent);padding-bottom:8px}
+.cb-r2 .cb-tk-l{overflow:hidden}
+.cb-mn{flex-direction:column;justify-content:center;gap:2px;padding:10px 14px;min-height:64px;box-sizing:border-box;border:0;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
+.cb-mn small{font-size:12px;font-weight:700}
+.mn-r{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0}
+.mn-r b{font-family:var(--display);font-size:20px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mn-r em{font-style:normal;font-size:12px;font-weight:800;white-space:nowrap}
+.cb-mn.ac1{--a:#2F9A5A;background:color-mix(in srgb,var(--a) 16%,var(--sunk));box-shadow:inset 4px 0 0 var(--a)}
+.cb-mn.ac2{--a:var(--denim);background:color-mix(in srgb,var(--a) 12%,var(--sunk));box-shadow:inset 4px 0 0 var(--a)}
+.cb-mn small,.cb-mn em{color:var(--a)}
+.cb-mn.bientot{cursor:default;opacity:.7}
+.cb-mn.bientot b{color:var(--muted)}
+/* La fenêtre du calcul de remise */
+.rm-l{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.rm-in{height:48px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);font:700 20px var(--display);padding:0 12px;box-sizing:border-box;width:100%}
+.rm-chips{display:flex;flex-wrap:wrap;gap:6px}
+.rm-chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:8px 12px;font-weight:700;font-size:14px}
+.rm-chip.on{background:#2F9A5A;border-color:#2F9A5A;color:#fff}
+.rm-res{background:color-mix(in srgb,#2F9A5A 14%,var(--sunk));border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:4px}
+.rm-res b{font-family:var(--display);font-size:32px;font-weight:800;line-height:1.1}
+.rm-res span{font-size:13px;font-weight:700;color:#2F9A5A}
+.rm-g{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px;align-items:end}
 .cb-plein .cb-duo{align-items:stretch}
 .cb-plein .cb-duo > *{min-height:0;overflow:hidden}
 .cb-plein .cb-bloc{min-height:0}
@@ -1119,7 +1143,7 @@ function render(){
   // 4) Les courses, une carte par course (les plus récentes d'abord)
   const hDiapos = tk.slice(0, 12).map(t => { const ls = (t.lines || []).slice().sort((a, b) => (b.price || 0) - (a.price || 0));
     return `<button type="button" class="cb-t cb-tk" data-act="ticket" data-id="${t.id}"><div class="cb-titre"><b>${cap(new Date(t.date).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}))}</b></div><div class="cb-tk-tot">${t.total != null ? fmt2(t.total) + ' €' : '—'}</div>
-      <div class="cb-tk-l">${ls.slice(0, 3).map(l => { const pr = S.products.get(l.pid); return `<span><em>${pr ? nameE(pr) : '?'}</em>${l.price != null ? `<b>${fmt2(l.price)} €</b>` : ''}</span>`; }).join('')}${ls.length > 3 ? `<span class="muted">+ ${ls.length - 3} autre${ls.length - 3 > 1 ? 's' : ''}</span>` : ''}</div></button>`; });
+      <div class="cb-tk-l">${ls.slice(0, 2).map(l => { const pr = S.products.get(l.pid); return `<span><em>${pr ? nameE(pr) : '?'}</em>${l.price != null ? `<b>${fmt2(l.price)} €</b>` : ''}</span>`; }).join('')}</div></button>`; });
   const hist = hDiapos.length ? `<div class="cb-bloc"><div class="cb-car pleine" data-car="hist">${hDiapos.join('')}${tk.length > 12 ? `<button type="button" class="cb-t cb-tk cb-tout" data-act="tickets"><b>Tout l’historique ›</b><span>${tk.length} courses</span></button>` : ''}</div>${pointsCb(hDiapos.length + (tk.length > 12 ? 1 : 0))}</div>` : '<div class="cb-t"><p class="cb-vide">Pas encore de courses notées.</p></div>';
   // 5) Les stats, une carte par stat
   const totR = new Map(), parP = new Map(), nbP = new Map(); let totAll = 0;
@@ -1157,7 +1181,7 @@ function render(){
   // En haut à droite : le mois (dépensé, panier moyen, et la part de chaque rayon)
   const tuileMois2 = `<div class="cb-t cb-mois2"><b class="cb-m-t">${cap(new Date().toLocaleDateString('fr-FR', {month:'long'}))}</b>
     <div class="cb-m-c"><b>${Math.round(months[0].sum)} €</b><span>${avg != null ? `≈ ${Math.round(avg)} € par course` : 'dépensés'}</span></div>
-    ${mTot > 0 ? `<div class="cb-rl">${rs.slice(0, 4).map(([r, v]) => `<div class="rc-${r}"><i></i><span>${SH[r]}</span><b>${Math.round(v / mTot * 100)}%</b></div>`).join('')}</div>` : '<p class="cb-vide">Pas encore de courses ce mois-ci.</p>'}</div>`;
+    ${mTot > 0 ? `<div class="cb-rl">${rs.slice(0, 2).map(([r, v]) => `<div class="rc-${r}"><i></i><span>${SH[r]}</span><b>${Math.round(v / mTot * 100)}%</b></div>`).join('')}</div>` : '<p class="cb-vide">Pas encore de courses ce mois-ci.</p>'}</div>`;
   // À droite de l'historique : ta liste « To Buy » de l'Organisation (celle de la carte Listes de l'accueil), à cocher
   const tb = toBuy, tbOk = tb && !tb.absente;
   const tuileToBuy = `<div class="cb-bloc cb-tbw"><div class="cb-t cb-tobuy" data-act="tb-pop" role="button"><div class="cb-titre"><b>${tbOk ? esc((tb.emoji ? tb.emoji + ' ' : '') + tb.nom) : 'To Buy'}</b><span>${tbOk && !tb.simple ? tb.items.length : ''}</span></div>
@@ -1169,6 +1193,10 @@ function render(){
   $('#app').innerHTML = `
     <div class="cb cb-plein">
       ${tete}
+      <div class="cb-duo cb-mini">
+        <button type="button" class="cb-t cb-mn ac1" data-act="remise"><small>Calcul de remise</small><span class="mn-r"><b>${esc(typeof remiseDerniere === 'function' ? remiseDerniere() : 'Calculer')}</b><em>−${esc(lireRemise().pct)} %</em></span></button>
+        <div class="cb-t cb-mn ac2 bientot" aria-label="Bientôt"><small>Bientôt</small><span class="mn-r"><b>…</b><em>à définir</em></span></div>
+      </div>
       <div class="cb-duo cb-r1">${tuileStock}${tuileMois2}</div>
       ${produits}
       <div class="cb-duo cb-r2">${histC}${tuileToBuy}</div>
@@ -1201,6 +1229,7 @@ $('#app').addEventListener('click', e => {
   else if(a === 'reglages-gen'){ if(!(() => { try{ const q = window.parent !== window && window.parent.quotidien; if(q && typeof q.reglages === 'function'){ q.reglages(); return true; } }catch(e){} return false; })()) openBackup(); }   // le bouton du haut : les réglages généraux de Mon quotidien
   else if(a === 'tb-coche') cocherToBuy(b);
   else if(a === 'tb-pop') ouvrirTbPop();
+  else if(a === 'remise') ouvrirRemise();
 });
 // Carrousel « Tous les produits » : les points suivent la diapo visible, et on garde la position
 let posProduits = 0;
@@ -1730,6 +1759,38 @@ function ouvrirTbPop(){
 chargerToBuy();
 setInterval(() => { if(!document.hidden) chargerToBuy(); }, 4000);
 document.addEventListener('visibilitychange', () => { if(!document.hidden) chargerToBuy(); });
+
+/* ---------- Calcul de remise : prix + pourcentage → prix après remise et économie ---------- */
+function lireRemise(){ try{ return JSON.parse(localStorage.getItem('courses_remise_v1') || 'null') || {prix:'', pct:20}; }catch(e){ return {prix:'', pct:20}; } }
+var remiseDerniere = () => { const r = lireRemise(), p = parseFloat(String(r.prix).replace(',', '.')); return p > 0 ? `${fmt2(p * (1 - r.pct / 100))} €` : 'Calculer'; };
+function ouvrirRemise(){
+  const r = lireRemise(), PCTS = [10, 20, 25, 30, 40, 50, 70];
+  const d = document.createElement('dialog'); d.className = 'pop-co';
+  d.innerHTML = `<div class="pop-in"><div class="pop-h"><h2>Calcul de remise</h2><button type="button" class="pop-x" aria-label="Fermer">✕</button></div>
+    <div class="pop-c">
+      <div class="rm-g"><label class="rm-l">Prix<input class="rm-in" id="rm-prix" inputmode="decimal" placeholder="0,00" value="${esc(r.prix)}" autocomplete="off"></label>
+        <label class="rm-l">Remise (%)<input class="rm-in" id="rm-pct" inputmode="decimal" value="${esc(r.pct)}" autocomplete="off"></label></div>
+      <div class="rm-chips">${PCTS.map(p => `<button type="button" class="rm-chip" data-pct="${p}">−${p} %</button>`).join('')}</div>
+      <div class="rm-res"><b id="rm-final">—</b><span id="rm-eco"></span></div>
+    </div></div>`;
+  const prix = () => parseFloat(d.querySelector('#rm-prix').value.replace(/\s/g, '').replace(',', '.')) || 0;
+  const pct = () => Math.min(100, Math.max(0, parseFloat(d.querySelector('#rm-pct').value.replace(',', '.')) || 0));
+  const maj = () => {
+    const p = prix(), q = pct(), f = p * (1 - q / 100);
+    d.querySelector('#rm-final').textContent = p ? `${fmt2(f)} €` : '—';
+    d.querySelector('#rm-eco').textContent = p ? `−${fmt2(p - f)} € d’économie` : 'Entre le prix pour voir le prix remisé';
+    d.querySelectorAll('.rm-chip').forEach(c => c.classList.toggle('on', +c.dataset.pct === q));
+    try{ localStorage.setItem('courses_remise_v1', JSON.stringify({prix:d.querySelector('#rm-prix').value, pct:q})); }catch(e){}
+  };
+  d.addEventListener('input', maj);
+  d.addEventListener('click', e => {
+    if(e.target === d || e.target.closest('.pop-x')){ d.close(); return; }
+    const c = e.target.closest('[data-pct]'); if(c){ d.querySelector('#rm-pct').value = c.dataset.pct; maj(); }
+  });
+  d.addEventListener('close', () => { d.remove(); render(); });
+  document.body.appendChild(d); d.showModal(); maj();
+  if(!r.prix) d.querySelector('#rm-prix').focus();
+}
 </script>
 </body>
 </html>

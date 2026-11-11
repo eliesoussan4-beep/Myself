@@ -1177,7 +1177,7 @@ function carreCourses(d){
   if(d.bas.length) slides.push(`<div class="slide rc rayon" style="--scl:#A8432C;--scd:#E3826B"><div class="slide-cat">Presque vide<span>${d.bas.length}</span></div><div class="liste">${d.bas.map(p => `<div class="art" data-aller="courses" data-action="produit" data-id="${esc(p.id)}"><span class="art-n">${esc(emo(p))} ${esc(p.name)}</span></div>`).join('')}</div></div>`);
   // 1re carte : le total, combien de produits, le jour des courses, et « + Produit »
   const resume = `<div class="slide rayon resume">${d.bas.length ? `<span class="re-warn" title="${plur(d.bas.length, 'produit presque vide', 'produits presque vides')}">${d.bas.length}</span>` : ''}
-    <div class="re-label">Courses</div>
+    <div class="re-label">Shop</div>
     <button type="button" class="re-total" data-recap-co aria-label="Voir la liste de courses">${Math.round(total)} €</button>
     <div class="re-sous">${plur(reste.length, 'produit', 'produits')} · ${esc(prochainesCourses().replace(/^courses /, ''))}</div></div>`;
   slides.unshift(resume);

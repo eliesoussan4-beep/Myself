@@ -226,11 +226,12 @@ dialog.ob-pop::backdrop{background:rgba(10,14,22,.5)}
 .ob-tip-b{display:flex;gap:6px}
 .ob-tip-b .chip{flex:1;justify-content:center}
 .ob-tip-b .chip:last-child{flex:none}
-.ob-tipg{height:auto;min-height:138px;justify-content:flex-start;gap:6px}
+.ob-tipg{height:138px;justify-content:flex-start;gap:5px;overflow:hidden}
 .ob-tip-c{display:flex;justify-content:space-between;align-items:center}
 .ob-tip-c i{font-style:normal;font-weight:800;color:var(--muted)}
 .ob-tip-l{display:flex;flex-direction:column;gap:5px}
-.ob-tip-r{display:flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--surface) 70%,transparent);border-radius:12px;padding:5px 6px 5px 10px}
+.ob-tip-r{display:flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--surface) 70%,transparent);border-radius:12px;padding:3px 5px 3px 10px;min-height:0}
+.ob-tip-r .chip{padding:5px 9px !important}
 .ob-tip-n{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left;color:var(--ink);font-family:inherit;display:flex;flex-direction:column}
 .ob-tip-n b{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ob-tip-n small{font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1511,7 +1512,7 @@ function openDayAdd(d) {
       let g = groupes.find(y => y.k === k); if (!g) { g = { k, th, ts: [] }; groupes.push(g); } g.ts.push(t);
     });
     groupes.sort((a, b) => (a.th ? a.th.order || 0 : 999) - (b.th ? b.th.order || 0 : 999));
-    const ligne = t => { const th = themeOf(t), pl = t.info && isSceneTheme(th); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="${pl ? 'place-pl' : 'place-on'}" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${pl ? '🎤 ' : t.info ? '📅 ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
+    const ligne = t => { const th = themeOf(t), pl = t.info && isSceneTheme(th); return `<button type="button" class="att-l c-${th ? th.color || 'slate' : 'slate'}" data-a="${pl ? 'place-pl' : 'place-choisir'}" data-id="${t.id}" data-d="${d}"><span class="cdot"></span><span class="ell">${pl ? '🎤 ' : t.info ? '📅 ' : ''}${h(t.title)}</span>${t.time ? `<span class="muted">${h(evWhen(t))}</span>` : ''}<span class="att-plus">${ic(P.plus, 15, 2.4)}</span></button>`; };
     return `<h2 class="sheet-title">${h(name)}</h2>
       <div class="btn-row quatre"><button type="button" class="btn" data-a="new-task" data-d="${d}">${ic(P.plus, 16, 2.2)}Tâche</button><button type="button" class="btn" data-a="new-event" data-d="${d}">${ic(P.plus, 16, 2.2)}Événement</button><button type="button" class="btn" data-a="new-plateau" data-d="${d}">🎤 Plateau</button><button type="button" class="btn" data-a="dayadd-routine" data-d="${d}">${PLAY}Routine</button></div>
       ${groupes.map(g => `<h3 class="grp-h c-${g.th ? g.th.color || 'slate' : 'slate'}"><span class="cdot"></span>${g.th ? h(g.th.emoji + ' ' + g.th.name) : '📌 Sans catégorie'}<span class="muted">${g.ts.length}</span></h3><div class="att att-g">${g.ts.map(ligne).join('')}</div>`).join('') || '<p class="panel-note">Rien en attente : tout est déjà placé.</p>'}
@@ -1627,8 +1628,8 @@ function renderHome() {
   grTips.sort((a, b) => (a.th ? a.th.order || 0 : 999) - (b.th ? b.th.order || 0 : 999));
   html += grTips.length ? `<div class="ob-bloc ob-att"><div class="ob-car pleine" data-car="attente">${grTips.map(g => `<div class="ob-t ob-tip ob-tipg c-${g.th ? g.th.color || 'slate' : 'slate'}">
       <span class="ob-tip-c">${g.th ? h(g.th.emoji + ' ' + g.th.name) : 'En attente'}<i>${g.l.length}</i></span>
-      <div class="ob-tip-l">${g.l.slice(0, 3).map(x => `<div class="ob-tip-r"><button type="button" class="ob-tip-n" data-a="plan" data-id="${x.t.id}"><b>${h(x.t.title)}</b><small>${h(x.why)}</small></button><button type="button" class="chip sm" data-a="plan-today" data-id="${x.t.id}" aria-label="Aujourd’hui">Auj.</button><button type="button" class="chip sm" data-a="plan-other" data-id="${x.t.id}" aria-label="Choisir un jour">${ic(IC.cal, 14, 1.8)}</button></div>`).join('')}</div>
-      ${g.l.length > 3 ? `<button type="button" class="ob-tip-plus" data-a="open-todo">+ ${g.l.length - 3} autre${g.l.length - 3 > 1 ? 's' : ''}</button>` : ''}
+      <div class="ob-tip-l">${g.l.slice(0, 2).map(x => `<div class="ob-tip-r"><button type="button" class="ob-tip-n" data-a="plan" data-id="${x.t.id}"><b>${h(x.t.title)}</b><small>${h(x.why)}</small></button><button type="button" class="chip sm" data-a="plan-today" data-id="${x.t.id}" aria-label="Aujourd’hui">Auj.</button><button type="button" class="chip sm" data-a="plan-other" data-id="${x.t.id}" aria-label="Choisir un jour">${ic(IC.cal, 14, 1.8)}</button></div>`).join('')}</div>
+      ${g.l.length > 2 ? `<button type="button" class="ob-tip-plus" data-a="open-todo">+ ${g.l.length - 2} autre${g.l.length - 2 > 1 ? 's' : ''}</button>` : ''}
     </div>`).join('')}</div>${grTips.length > 1 ? `<div class="ob-points" aria-hidden="true">${grTips.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : ''}</div>` : '';
 
   html += dashboardHTML();
@@ -3585,6 +3586,12 @@ const A = {
       if (b.dataset.f === 'nouvelle') { closeTop(); setTimeout(() => openRoutineForm(), 380); }
       if (b.dataset.f === 'r') { closeTop(); if (stack.length && stack[stack.length - 1].kind === 'dayadd') closeTop(); launchRoutine(b.dataset.v, c.d); }
     });
+  },
+  // Depuis « Ajouter » : on choisit le jour (Aujourd'hui, Demain ou le calendrier) au lieu de placer d'office
+  'place-choisir': (el, c) => {
+    const t = S.tasks.find(x => x.id === c.id); if (!t) return;
+    if (stack.length) closeTop();
+    setTimeout(() => openDatePicker(`« ${t.title} »`, d => { placeTask(S.tasks.find(x => x.id === c.id) || t, d); refresh(); closeDayAddSoon && closeDayAddSoon(); toast(`Prévu ${whenLabel(d)} 📅`); }, 'Quel jour ?'), 380);
   },
   'place-on': (el, c) => { const t = S.tasks.find(x => x.id === c.id); if (!t) return; placeTask(t, c.d); if (stack.length) closeTop(); refresh(); toast(`Prévu ${whenLabel(c.d)} 📅`); },
   'open-events': () => { U.todoView = 'events'; openSheet({ render: renderTodo, label: 'Planning' }); },

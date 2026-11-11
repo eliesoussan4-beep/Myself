@@ -157,7 +157,7 @@ main{min-height:100dvh;box-sizing:border-box}
 .mvts .it{padding:7px 12px}
 .mvts .it .d{white-space:nowrap;width:50px}
 /* Mouvements : une pastille de couleur (la catégorie), le libellé en gras et la date dessous, le montant à droite */
-.it.mvl{gap:10px;padding:7px 10px 7px 7px}
+.it.mvl{gap:10px;padding:7px 10px 7px 7px;background:color-mix(in srgb,var(--k) 15%,var(--surface))}
 .mv-ic{flex:none;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;background:color-mix(in srgb,var(--k) 20%,transparent);color:var(--k);font-weight:800}
 .mvl .n{display:flex;flex-direction:column;gap:0;line-height:1.2}
 .mvl .n b{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -279,6 +279,12 @@ main{gap:10px}
 .carte-c.tot > .virer{margin-top:auto !important;width:100%;box-sizing:border-box;height:34px;padding:0 6px;display:flex;align-items:center;justify-content:center}
 .carte-c.tot .tot-nav,.carte-c.tot > .tot-t{height:26px;display:flex;align-items:center;justify-content:center}
 .carte-c.ch[data-a="charge-cat"]{cursor:pointer}
+@media (max-height:740px){
+  .carte-c.tot > .virer{height:28px}
+  .carte-c.tot .tot-nav,.carte-c.tot > .tot-t{height:22px}
+  .carte-c.tot .seg{margin:2px 0 0}
+}
+.tot-n{font-size:11px;font-weight:800;color:var(--muted);background:var(--sunk);border-radius:99px;padding:1px 7px;margin-left:4px}
 .duo.cd .carre{display:flex;flex-direction:column}
 .duo.cd .car{flex:1 1 auto;align-items:stretch}
 .duo.cd .car > .t{align-self:stretch;height:auto !important;min-height:0}
@@ -516,7 +522,7 @@ const ligneMv = (x, sansDate) => {
   const quand = cap(new Date(x.d + 'T00:00').toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}));
   const sous = [sansDate ? '' : quand, k && x.l ? x.l : '', x.su ? '🎤 stand-up' : '', x.scene ? 'scène' : ''].filter(Boolean).join(' · ') || (sansDate ? (x.m < 0 ? 'dépense' : 'rentrée') : '');
   const coul = k ? kCat(k) : x.m > 0 ? 'var(--plus)' : x.scene || x.su ? '#7B5CD6' : 'var(--muted)';
-  return `<button type="button" class="it mvl${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.pio ? 'pio' : x.aj ? 'aj' : x.ajc ? 'ajc' : 'mv'}" data-id="${x.id}"><span class="mv-ic" style="--k:${coul}">${esc(ic)}</span><span class="n"><b>${esc(titre)}</b><small>${esc(sous)}</small></span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'}${eur(Math.abs(x.m))}</span></button>`;
+  return `<button type="button" style="--k:${coul}" class="it mvl${x.scene ? ' ro' : ''}" data-a="${x.scene ? '' : x.vir ? 'vir' : x.pio ? 'pio' : x.aj ? 'aj' : x.ajc ? 'ajc' : 'mv'}" data-id="${x.id}"><span class="mv-ic" style="--k:${coul}">${esc(ic)}</span><span class="n"><b>${esc(titre)}</b><small>${esc(sous)}</small></span><span class="m ${x.m < 0 ? 'moins' : 'plus'}">${x.m < 0 ? '−' : '+'}${eur(Math.abs(x.m))}</span></button>`;
 };
 let moisMv = null, moisCat = null;   // le mois affiché dans Mouvements et dans les catégories (null : ce mois-ci)
 const moisPrec = m => { const x = new Date(+m.slice(0, 4), +m.slice(5) - 2, 1); return x.getFullYear() + '-' + pad(x.getMonth() + 1); };
@@ -577,7 +583,7 @@ function render(){
         ${catsTri.filter(k => (parCat.get(k.id) || 0) > 0).map(k => { const v = parCat.get(k.id) || 0; return `<button type="button" class="t carte-c ch" style="--k:${kCat(k)}" data-a="cat" data-id="${k.id}"><span class="emo">${esc(k.emoji)}</span><small>${esc(k.nom)}</small><b>${eur(v, false)}</b><span>${totDep ? Math.round(v / totDep * 100) + ' % du mois' : 'ce mois'}</span></button>`; }).join('')}
       </div>${pointsH(catsTri.filter(k => (parCat.get(k.id) || 0) > 0).length + 1) || '<div class="pts cache" aria-hidden="true"><span></span></div>'}</div>
       <div class="carre"><div class="car" data-car="charges">
-        <div class="t carte-c info tot"><small class="tot-t">Charges</small><div class="tot-m"><b>${eur(c.charges, false)}</b>${segs(chCat.map((g, i) => [g.l.reduce((a, x) => a + (+x.montant || 0), 0), `var(--k${(i + 1) % 8})`]))}<span>${plur(D.charges.length, 'charge', 'charges')}</span></div><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
+        <div class="t carte-c info tot"><div class="tot-nav"><span class="mnav"><em class="tot-t">Charges</em><small class="tot-n">${D.charges.length}</small></span></div><div class="tot-m"><b>${eur(c.charges, false)}</b>${segs(chCat.map((g, i) => [g.l.reduce((a, x) => a + (+x.montant || 0), 0), `var(--k${(i + 1) % 8})`]))}</div><button type="button" class="virer" data-a="charge">＋ Charge</button></div>
         ${chCat.map((g, i) => `<div class="t carte-c ch" style="--k:var(--k${(i + 1) % 8})" data-a="charge-cat" data-cat="${g.k.id}" role="button" aria-label="Ajouter une charge dans ${esc(g.k.nom)}"><small>${esc(g.k.emoji)} ${esc(g.k.nom)}</small><b>${eur(g.l.reduce((s, x) => s + (+x.montant || 0), 0), false)}</b><div class="ch-l">${g.l.sort((a, b) => b.montant - a.montant).map(x => `<button type="button" data-a="charge" data-id="${x.id}"><span>${esc(x.nom)}</span><em>${eur(+x.montant || 0, false)}</em></button>`).join('')}</div></div>`).join('')}
       </div>${pointsH(chCat.length + 1) || '<div class="pts cache" aria-hidden="true"><span></span></div>'}</div>
     </section>

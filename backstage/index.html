@@ -6903,7 +6903,21 @@ async function afficherAgendaANoter(){
 }
 
 // Retour (Android) : ferme d'abord une fiche ouverte (texte, plateau), sinon revient à l'accueil
+// Les petites fenêtres (« Ajouter un plateau », etc.) : le retour du téléphone les ferme, au lieu de quitter Backstage
+let modalHist = false, modalSauter = false;
+const modalesOuvertes = () => [...document.querySelectorAll('[id$="-modal-overlay"]')].filter(el => el.style.display && el.style.display !== 'none');
+function fermerModale(el){
+  if(el.id === 'quickadd-plateau-modal-overlay') closeQuickAddPlateauModal();
+  else el.style.display = 'none';
+}
+new MutationObserver(() => {
+  const ouvertes = modalesOuvertes().length;
+  if(ouvertes && !modalHist){ try{ history.pushState({bs:(history.state && history.state.bs) || 'home', modale:1}, ''); modalHist = true; }catch(e){} }
+  else if(!ouvertes && modalHist){ modalHist = false; if(history.state && history.state.modale){ modalSauter = true; try{ history.back(); }catch(e){ modalSauter = false; } } }
+}).observe(document.body, {subtree:true, attributes:true, attributeFilter:['style']});
 window.addEventListener('popstate', e => {
+  if(modalSauter){ modalSauter = false; return; }   // la fenêtre vient d'être fermée par son bouton
+  const m = modalesOuvertes(); if(m.length){ modalHist = false; m.forEach(fermerModale); return; }
   if(voletSauterRetour){ voletSauterRetour = false; return; }   // le volet vient d'être fermé par son bouton
   if(voletActif){ fermerVolet(true); return; }
   const v = (e.state && e.state.bs) || 'home';

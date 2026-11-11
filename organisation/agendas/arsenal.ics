@@ -214,40 +214,6 @@ LAST-MODIFIED:20261110T194831Z
 DTSTAMP:20261110T194831Z
 LOCATION:Emirates Stadium\, London
 X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
-DTSTART:20270105T193000Z
-DTEND:20270105T213000Z
-SUMMARY:Arsenal vs Brentford (H)
-TRANSP:TRANSPARENT
-SEQUENCE:0
-UID:6a3507b354aa884dbc65d2cf
-PRIORITY:5
-X-MICROSOFT-CDO-IMPORTANCE:1
-CLASS:PUBLIC
-DESCRIPTION:Premier League | Matchweek 20 | Join us for analysis and live c
- ommentary in The Breakdown Live on the Arsenal App and Arsenal.com | Join I
- n #ARSBRE\n\nShop Arsenal Direct\nhttps://ecal.ai/f/2gRMmY/3NsBs\n\nJoin Me
- mbership\nhttps://ecal.ai/f/2gRMn8/3NsBs\n\nDownload the Arsenal App\nhttps
- ://ecal.ai/f/2gRMnl/3NsBs\n\nLatest Videos\nhttps://ecal.ai/f/2gRMnx/3NsBs\
- n\nLatest News\nhttps://ecal.ai/f/2gRMnK/3NsBs\n\nFacebook\nhttps://ecal.ai
- /f/2gRMnZ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRMp7/3NsBs\n\nInstagram\nhttps://
- ecal.ai/f/2gRMpj/3NsBs\n\nTikTok\nhttps://ecal.ai/f/2gRMpp/3NsBs\n\nManage 
- my ECAL\nhttps://ecal.ai/f/2gRMpV/3NsBs\n\n
-BEGIN:VALARM
-TRIGGER:-P2DT
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-BEGIN:VALARM
-TRIGGER:-PT15M
-ACTION:DISPLAY
-DESCRIPTION:Reminder
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-LAST-MODIFIED:20261110T194831Z
-DTSTAMP:20261110T194831Z
-LOCATION:Emirates Stadium\, London
-X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 DTSTART:20270123T150000Z
 DTEND:20270123T170000Z
 SUMMARY:Arsenal vs Newcastle United (H)
@@ -1219,6 +1185,41 @@ DESCRIPTION:Premier League | Matchweek 12 | Watch live on UK - Sky Sports.
  Bs\n\nFacebook\nhttps://ecal.ai/f/2gRM72/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM
  7d/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRM7p/3NsBs\n\nTikTok\nhttps://ec
  al.ai/f/2gRM7C/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRM8d/3NsBs\n\n
+BEGIN:VALARM
+TRIGGER:-P2DT
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+LAST-MODIFIED:00010101T000000Z
+DTSTAMP:00010101T000000Z
+LOCATION:Emirates Stadium\, London
+X-ECAL-SCHEDULE:
+DTSTART:20270105T193000Z
+DTEND:20270105T213000Z
+SUMMARY:Arsenal vs Brentford (H)
+TRANSP:TRANSPARENT
+SEQUENCE:0
+UID:6a3507b354aa884dbc65d2cf
+PRIORITY:5
+X-MICROSOFT-CDO-IMPORTANCE:1
+CLASS:PUBLIC
+DESCRIPTION:Premier League | Matchweek 20 | Watch live on UK - Sky Sports. 
+ Join us for analysis and live commentary in The Breakdown Live on the Arsen
+ al App and Arsenal.com | Join In #ARSBRE\n\nShop Arsenal Direct\nhttps://ec
+ al.ai/f/2gRMmY/3NsBs\n\nJoin Membership\nhttps://ecal.ai/f/2gRMn8/3NsBs\n\n
+ Download the Arsenal App\nhttps://ecal.ai/f/2gRMnl/3NsBs\n\nLatest Videos\n
+ https://ecal.ai/f/2gRMnx/3NsBs\n\nLatest News\nhttps://ecal.ai/f/2gRMnK/3Ns
+ Bs\n\nFacebook\nhttps://ecal.ai/f/2gRMnZ/3NsBs\n\nX\nhttps://ecal.ai/f/2gRM
+ p7/3NsBs\n\nInstagram\nhttps://ecal.ai/f/2gRMpj/3NsBs\n\nTikTok\nhttps://ec
+ al.ai/f/2gRMpp/3NsBs\n\nManage my ECAL\nhttps://ecal.ai/f/2gRMpV/3NsBs\n\n
+X-ECAL-SCHEDULE:57d81f202f30c6e0683fb612
 BEGIN:VALARM
 TRIGGER:-P2DT
 ACTION:DISPLAY

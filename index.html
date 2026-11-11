@@ -70,6 +70,29 @@ body.superposition #vues{z-index:50}   /* au-dessus de la barre du bas et du cra
 main{max-width:640px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-direction:column;gap:12px}
 .tete{display:flex;justify-content:space-between;align-items:flex-end;padding:0 2px 6px}
 .tete{align-items:center}
+.tete-b{display:flex;gap:8px;flex:none}
+.voy-b.on{color:var(--denim);border-color:var(--denim);background:color-mix(in srgb,var(--denim) 12%,var(--surface))}
+dialog.voy .pop-h h2 small{display:block}
+.rond.petit{width:36px;height:36px;border-radius:12px;font-size:16px;color:var(--ink)}
+.vy-c{background:var(--sunk);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.vy-c.encours{background:color-mix(in srgb,var(--denim) 16%,var(--sunk));box-shadow:inset 4px 0 0 var(--denim)}
+.vy-c.passe{opacity:.65}
+.vy-c-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.vy-c-h b{font-family:var(--display);font-size:17px}
+.vy-c-h span{font-size:12.5px;font-weight:700;color:var(--denim);white-space:nowrap}
+.vy-c small{font-size:12.5px;font-weight:600;color:var(--muted)}
+.vy-c-b{display:flex;gap:6px;margin-top:4px}
+.vy-mini{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:7px 10px;font-weight:700;font-size:13px}
+.vy-chips{display:flex;flex-wrap:wrap;gap:6px}
+.vy-chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:8px 12px;font-weight:600;font-size:14px}
+.vy-chip.on{background:var(--denim);border-color:var(--denim);color:var(--on-denim)}
+dialog.voy select{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--sunk);color:var(--ink);padding:10px 12px;font:400 15px var(--body);min-height:46px}
+dialog.voy .champ input{min-height:46px;box-sizing:border-box}
+.vy-bag{display:flex;flex-direction:column}
+.vy-it{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px;font-weight:600}
+.vy-it input{width:20px;height:20px;accent-color:var(--denim);flex:none;margin:0}
+.vy-in{flex:1;min-width:0;min-height:46px;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;background:var(--sunk);color:var(--ink);padding:0 12px;font:500 15px var(--body)}
+.btn.vy-ok{flex:none;width:52px;padding:0}
 .tete h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(19px,5.7vw,40px);line-height:1;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .rond{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
 .bloc{--c:var(--c-c,var(--denim));width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--ink);transition:transform .12s;cursor:pointer;position:relative;overflow:hidden}
@@ -1198,7 +1221,7 @@ async function lireThunes(){
   const c = w.quotidienThunes.calcul();
   return {cagnotte:c.cagnotte, parJour:c.parJour, connu:c.ver.connu, priseCote:c.priseCote};
 }
-const eurT = n => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+const eurT = n => { const v = deviseActive(); if(v) return fmtDevise(n, v); return (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; };
 function carteThunes(t){
   // Juste le chiffre (le détail est dans Thunes)
   const corps = t ? `<b class="${t.cagnotte < 0 ? 'neg' : ''}">${eurT(t.cagnotte)}</b>` : `<b>—</b>`;
@@ -1251,7 +1274,8 @@ $('#thunes-mvt').addEventListener('click', e => {
   if(!(v > 0)){ $('#tm-msg').textContent = 'Indique un montant.'; return; }
   if(signe < 0 && !tmCat){ $('#tm-msg').textContent = 'Choisis une catégorie.'; return; }
   const d = lireThunesData() || {charges:[], epargne:0, versements:{}, mouvements:[]};
-  d.mouvements.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d:iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:Date.now(), ...(signe < 0 ? {c:tmCat} : {})});
+  const vd = deviseActive(), enEur = vd ? v / vd.taux : v;
+  d.mouvements.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d:iso(new Date()), m:signe * Math.round(enEur * 100) / 100, l, t:Date.now(), ...(signe < 0 ? {c:tmCat} : {}), ...(vd ? {dev:{c:vd.devise, v:Math.round(v * 100) / 100}} : {})});
   try{ localStorage.setItem(CLE_THUNES, JSON.stringify(d)); }catch(err){ $('#tm-msg').textContent = 'Impossible d’enregistrer.'; return; }
   const cat = signe < 0 && Array.isArray(d.categories) ? d.categories.find(c => c.id === tmCat) : null;
   dlg.close(); toast(signe < 0 ? `− ${eurT(v)} · ${cat ? cat.emoji + ' ' + cat.nom : ''}${l ? ' · ' + l : ''}` : `+ ${eurT(v)}`); planifierAccueil(0);
@@ -1592,7 +1616,8 @@ function squeletteAccueil(){
   $('#accueil').innerHTML = `
     <header class="tete">
       <h1>${esc(cap(now.toLocaleDateString('fr-FR', {weekday:'long'})) + ' ' + now.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}))}</h1>
-      <button type="button" class="rond" data-act="reglages" aria-label="Sauvegarde et réglages">${svg('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>', 20)}</button>
+      <span class="tete-b"><button type="button" class="rond voy-b${voyageProche() ? ' on' : ''}" data-act="voyages" aria-label="Mes voyages">${svg('<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>', 20)}</button>
+      <button type="button" class="rond" data-act="reglages" aria-label="Sauvegarde et réglages">${svg('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>', 20)}</button></span>
     </header>
     <button type="button" class="alerte" id="alerte-drive" data-act="reglages" hidden></button>
     <div data-bloc="jour"><div class="bloc jour"><p class="vide">Chargement…</p></div></div>
@@ -1731,6 +1756,7 @@ async function choisirTenue(btn){
 }
 $('#accueil').addEventListener('click', e => {
   if(e.target.closest('[data-act="reglages"]')){ ouvrirReglages(); return; }
+  if(e.target.closest('[data-act="voyages"]')){ ouvrirVoyages(); return; }
   const ac = e.target.closest('[data-aller-cat]');
   if(!ac){ const rc = e.target.closest('[data-recap]'); if(rc){ ouvrirRecapJour(+rc.dataset.recap); return; } }   // (toute la carte « choses à faire » ouvre le récap, sauf les pastilles de catégories)
   if(e.target.closest('[data-recap-co]')){ ouvrirRecapCourses(); return; }
@@ -2280,6 +2306,143 @@ async function thunesZero(){
   const w = await attendreApp('thunes', w => typeof w.quotidienThunesZero === 'function');
   if(w) w.quotidienThunesZero(); else toast('Thunes pas prêt, réessaie.');
 }
+/* ---------- ✈️ Voyages : destination, dates, devise sur place, agenda, liste de bagages ---------- */
+// Rangés avec Thunes (préfixe thunes_) pour être dans les sauvegardes
+const CLE_VOY = 'thunes_voyages_v1';
+const lireVoyages = () => { try{ const l = JSON.parse(localStorage.getItem(CLE_VOY) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; } };
+const ecrireVoyages = l => { try{ localStorage.setItem(CLE_VOY, JSON.stringify(l)); }catch(e){} };
+const voyageEnCours = () => { const t = iso(new Date()); return lireVoyages().find(v => v.debut <= t && t <= v.fin) || null; };
+const voyageProche = () => { const t = iso(new Date()), dans7 = iso(new Date(Date.now() + 7 * 864e5)); return lireVoyages().some(v => v.fin >= t && v.debut <= dans7); };
+const deviseActive = () => { const v = voyageEnCours(); return v && v.devise && v.devise !== 'EUR' && v.taux > 0 ? v : null; };
+const fmtDevise = (n, v, dec = true) => { try{ return new Intl.NumberFormat('fr-FR', {style:'currency', currency:v.devise, currencyDisplay:'narrowSymbol', ...(dec ? {} : {minimumFractionDigits:0, maximumFractionDigits:0})}).format(n * v.taux); }catch(e){ return (n * v.taux).toFixed(2) + ' ' + v.devise; } };
+const DEVISES = [['EUR', 'Euro'], ['USD', 'Dollar américain'], ['GBP', 'Livre sterling'], ['CHF', 'Franc suisse'], ['CAD', 'Dollar canadien'], ['JPY', 'Yen'], ['MAD', 'Dirham marocain'], ['TND', 'Dinar tunisien'], ['XOF', 'Franc CFA'], ['THB', 'Baht'], ['MXN', 'Peso mexicain'], ['BRL', 'Real'], ['TRY', 'Livre turque'], ['AED', 'Dirham (Émirats)'], ['CNY', 'Yuan'], ['KRW', 'Won'], ['AUD', 'Dollar australien'], ['SEK', 'Couronne suédoise'], ['DKK', 'Couronne danoise'], ['NOK', 'Couronne norvégienne'], ['CZK', 'Couronne tchèque'], ['HUF', 'Forint'], ['PLN', 'Zloty'], ['ILS', 'Shekel'], ['INR', 'Roupie indienne'], ['IDR', 'Roupie indonésienne'], ['VND', 'Dong'], ['EGP', 'Livre égyptienne'], ['ZAR', 'Rand']];
+// La devise devinée d'après la destination (on peut toujours la changer)
+const DEV_MOTS = [[/usa|états|etats|new.?york|miami|los.?angeles|san.?francisco|las.?vegas|chicago|boston|hawa|floride|californie|amérique|amerique/i, 'USD'], [/londres|london|royaume|angleterre|écosse|ecosse|edimbourg|édimbourg|manchester|liverpool/i, 'GBP'], [/suisse|genève|geneve|zurich|lausanne|bâle|bale/i, 'CHF'], [/canada|montréal|montreal|québec|quebec|toronto|vancouver/i, 'CAD'], [/japon|tokyo|kyoto|osaka/i, 'JPY'], [/maroc|marrakech|casablanca|agadir|essaouira|fès|fes|tanger|rabat/i, 'MAD'], [/tunisie|tunis|djerba|hammamet/i, 'TND'], [/sénégal|senegal|dakar|côte d.?ivoire|abidjan|mali|bamako|bénin|benin|togo|burkina/i, 'XOF'], [/thaïlande|thailande|bangkok|phuket|chiang/i, 'THB'], [/mexique|mexico|cancun|tulum/i, 'MXN'], [/brésil|bresil|rio|são.?paulo|sao.?paulo/i, 'BRL'], [/turquie|istanbul|antalya/i, 'TRY'], [/dubaï|dubai|abu.?dhabi|émirats|emirats/i, 'AED'], [/chine|pékin|pekin|shanghai/i, 'CNY'], [/corée|coree|séoul|seoul/i, 'KRW'], [/australie|sydney|melbourne/i, 'AUD'], [/suède|suede|stockholm/i, 'SEK'], [/danemark|copenhague/i, 'DKK'], [/norvège|norvege|oslo/i, 'NOK'], [/prague|tchéqu|tchequ/i, 'CZK'], [/budapest|hongrie/i, 'HUF'], [/pologne|varsovie|cracovie/i, 'PLN'], [/israël|israel|tel.?aviv|jérusalem|jerusalem/i, 'ILS'], [/inde|delhi|mumbai|bombay/i, 'INR'], [/bali|indonésie|indonesie|jakarta/i, 'IDR'], [/vietnam|hanoï|hanoi|saigon|hô.?chi/i, 'VND'], [/égypte|egypte|caire|louxor/i, 'EGP'], [/afrique du sud|cape.?town|johannesburg/i, 'ZAR']];
+const devineDevise = dest => { const x = DEV_MOTS.find(([re]) => re.test(dest || '')); return x ? x[1] : 'EUR'; };
+const PRISES_DIFF = ['USD', 'GBP', 'CHF', 'CAD', 'JPY', 'THB', 'MXN', 'BRL', 'AED', 'CNY', 'AUD', 'ILS', 'INR', 'IDR', 'ZAR'];
+const TYPES_VOY = [['plage', '🏖️ Plage'], ['ville', '🏙️ Ville'], ['montagne', '🏔️ Montagne'], ['ski', '⛷️ Ski'], ['rando', '🥾 Rando'], ['taff', '💼 Taff'], ['scene', '🎤 Scène / festival']];
+const CLIMATS = [['chaud', '☀️ Chaud'], ['doux', '🌤️ Doux'], ['froid', '❄️ Froid']];
+const nbJoursVoy = v => Math.max(1, Math.round((new Date(v.fin + 'T12:00') - new Date(v.debut + 'T12:00')) / 864e5) + 1);
+// Le taux du jour (1 € = ? devise), sans clé, depuis open.er-api.com
+async function tauxDevise(dev){
+  if(dev === 'EUR') return 1;
+  const r = await fetch('https://open.er-api.com/v6/latest/EUR', {cache:'no-store'}); const j = await r.json();
+  const t = j && j.rates && j.rates[dev]; if(!t) throw new Error('taux'); return t;
+}
+// La liste de bagages : selon le nombre de jours, la destination (devise, prises), le type de voyage et le climat
+function bagagesVoyage(v){
+  const n = nbJoursVoy(v), lin = Math.min(n, 7), abroad = v.devise && v.devise !== 'EUR', l = [];
+  const add = (...x) => x.filter(Boolean).forEach(i => l.includes(i) || l.push(i));
+  add('Carte d’identité', abroad && 'Passeport', 'Billets et réservations', 'Carte bancaire', abroad && 'Assurance voyage', abroad && v.devise !== 'EUR' && `Un peu de ${v.devise} en liquide`);
+  add('Chargeur de téléphone', 'Batterie externe', 'Écouteurs', PRISES_DIFF.includes(v.devise) && 'Adaptateur de prise');
+  add('Brosse à dents', 'Dentifrice', 'Déodorant', 'Shampooing', 'Rasoir', 'Médicaments habituels', 'Mini pharmacie');
+  add(`${lin} t-shirt${lin > 1 ? 's' : ''}`, `${lin + 1} sous-vêtements`, `${lin + 1} paires de chaussettes`, `${Math.max(1, Math.ceil(lin / 3))} pantalon${lin > 3 ? 's' : ''}`, 'Pyjama', n > 7 && 'Lessive en voyage');
+  if(v.climat === 'froid') add('Manteau chaud', '2 pulls', 'Bonnet', 'Gants', 'Écharpe', 'Sous-couche thermique');
+  if(v.climat === 'doux') add('Pull léger', 'Veste', 'Petit parapluie');
+  if(v.climat === 'chaud') add('Shorts', 'Casquette', 'Lunettes de soleil', 'Crème solaire');
+  const T = {
+    plage:['Maillot de bain', 'Serviette de plage', 'Tongs', 'Crème solaire', 'Après-soleil', 'Lunettes de soleil', 'Sac de plage'],
+    ville:['Chaussures confortables', 'Petit sac à dos', 'Tenue pour sortir', 'Gourde'],
+    montagne:['Chaussures de marche', 'Veste imperméable', 'Polaire', 'Gourde', 'Lunettes de soleil', 'Crème solaire'],
+    ski:['Veste de ski', 'Pantalon de ski', 'Gants de ski', 'Masque de ski', 'Sous-couches thermiques', 'Chaussettes de ski', 'Baume à lèvres', 'Crème solaire'],
+    rando:['Chaussures de rando', 'Sac à dos', 'Gourde', 'Lampe frontale', 'K-way', 'Pansements', 'Barres de céréales'],
+    taff:['Tenue de travail', 'Ordinateur', 'Chargeur d’ordinateur', 'Disque dur', 'Câbles', 'Badge / accréditation'],
+    scene:['Carnet de textes', 'Tenue de scène', 'Bouchons d’oreilles', 'Bouteille d’eau', 'Pastilles pour la gorge']
+  };
+  (v.types || []).forEach(t => add(...(T[t] || [])));
+  return l;
+}
+function ouvrirVoyages(vue = 'liste', id = null){
+  let dlg = $('#voyages');
+  if(!dlg){ dlg = document.createElement('dialog'); dlg.id = 'voyages'; dlg.className = 'popup voy'; document.body.appendChild(dlg);
+    dlg.addEventListener('click', e => { if(e.target === dlg){ dlg.close(); return; } clicVoyages(e, dlg); });
+    dlg.addEventListener('input', e => { if(e.target.id === 'vy-dest' && !dlg.dataset.devTouchee){ const d = devineDevise(e.target.value), s = dlg.querySelector('#vy-dev'); if(s) s.value = d; } if(e.target.id === 'vy-dev') dlg.dataset.devTouchee = '1'; });
+  }
+  const l = lireVoyages().sort((a, b) => a.debut < b.debut ? -1 : 1), t = iso(new Date());
+  const fd = x => new Date(x + 'T12:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+  if(vue === 'liste'){
+    const etat = v => v.fin < t ? 'passe' : v.debut <= t ? 'encours' : 'avenir';
+    const carte = v => `<div class="vy-c ${etat(v)}"><div class="vy-c-h"><b>${esc(v.destination)}</b><span>${etat(v) === 'encours' ? 'En cours' : etat(v) === 'avenir' ? `Dans ${Math.round((new Date(v.debut + 'T12:00') - new Date(t + 'T12:00')) / 864e5)} j` : 'Passé'}</span></div>
+      <small>${fd(v.debut)} → ${fd(v.fin)} · ${plur(nbJoursVoy(v), 'jour', 'jours')}${v.devise && v.devise !== 'EUR' ? ` · ${v.devise}${v.taux ? ` (1 € = ${(+v.taux).toLocaleString('fr-FR', {maximumFractionDigits:2})})` : ''}` : ''}</small>
+      <div class="vy-c-b"><button type="button" class="vy-mini" data-vy="bagages" data-id="${esc(v.id)}">🧳 Bagages</button><button type="button" class="vy-mini" data-vy="modifier" data-id="${esc(v.id)}">Modifier</button></div></div>`;
+    const avenir = l.filter(v => v.fin >= t), passes = l.filter(v => v.fin < t).reverse();
+    dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2>✈️ Mes voyages</h2><button type="button" class="rond petit" data-vy="fermer" aria-label="Fermer">✕</button></div><div class="pop-c">
+      <button type="button" class="btn primaire" data-vy="nouveau">＋ Nouveau voyage</button>
+      ${avenir.map(carte).join('') || '<p class="hint">Aucun voyage prévu. Pendant un voyage, tes montants (Thunes, cagnotte) passent dans la devise du pays.</p>'}
+      ${passes.length ? `<h3>Passés</h3>${passes.slice(0, 6).map(carte).join('')}` : ''}</div></div>`;
+  }
+  if(vue === 'form'){
+    const v = l.find(x => x.id === id) || {types:[], climat:'doux', devise:'EUR'};
+    delete dlg.dataset.devTouchee; if(v.id) dlg.dataset.devTouchee = '1';
+    dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2>${v.id ? 'Modifier le voyage' : 'Nouveau voyage'}</h2><button type="button" class="rond petit" data-vy="liste" aria-label="Retour">‹</button></div><div class="pop-c">
+      <label class="champ">Destination<input id="vy-dest" value="${esc(v.destination || '')}" placeholder="Ex. Tokyo, Marrakech, Londres…" autocomplete="off"></label>
+      <div class="ligne2"><label class="champ">Départ<input id="vy-deb" type="date" value="${esc(v.debut || t)}"></label><label class="champ">Retour<input id="vy-fin" type="date" value="${esc(v.fin || '')}"></label></div>
+      <label class="champ">Devise sur place<select id="vy-dev">${DEVISES.map(([c, nm]) => `<option value="${c}"${(v.devise || 'EUR') === c ? ' selected' : ''}>${c} · ${nm}</option>`).join('')}</select></label>
+      <h3>Type de voyage</h3><div class="vy-chips" data-groupe="types">${TYPES_VOY.map(([k, lb]) => `<button type="button" class="vy-chip${(v.types || []).includes(k) ? ' on' : ''}" data-k="${k}">${lb}</button>`).join('')}</div>
+      <h3>Climat</h3><div class="vy-chips un" data-groupe="climat">${CLIMATS.map(([k, lb]) => `<button type="button" class="vy-chip${v.climat === k ? ' on' : ''}" data-k="${k}">${lb}</button>`).join('')}</div>
+      <p class="msg" id="vy-err"></p>
+      <div class="ligne2">${v.id ? `<button type="button" class="btn" data-vy="supprimer" data-id="${esc(v.id)}">Supprimer</button>` : ''}<button type="button" class="btn primaire" data-vy="enregistrer" data-id="${esc(v.id || '')}">${v.id ? 'Enregistrer' : 'Créer le voyage'}</button></div></div></div>`;
+  }
+  if(vue === 'bagages'){
+    const v = l.find(x => x.id === id); if(!v){ ouvrirVoyages(); return; }
+    const items = bagagesVoyage(v);
+    dlg.innerHTML = `<div class="pop"><div class="pop-h"><h2>🧳 Bagages · ${esc(v.destination)}<small>${plur(nbJoursVoy(v), 'jour', 'jours')}${(v.types || []).length ? ' · ' + v.types.map(k => (TYPES_VOY.find(x => x[0] === k) || [, k])[1]).join(', ') : ''}</small></h2><button type="button" class="rond petit" data-vy="liste" aria-label="Retour">‹</button></div><div class="pop-c">
+      <p class="hint">Décoche ce qui ne te sert pas, ajoute ce qui manque : la liste arrive dans tes Listes (accueil et Organisation), à cocher en faisant ta valise.</p>
+      <div class="vy-bag">${items.map(i => `<label class="vy-it"><input type="checkbox" checked value="${esc(i)}"><span>${esc(i)}</span></label>`).join('')}</div>
+      <div class="ligne2"><input id="vy-plus" class="vy-in" placeholder="Ajouter un élément…" autocomplete="off"><button type="button" class="btn vy-ok" data-vy="bag-plus">＋</button></div>
+      <button type="button" class="btn primaire" data-vy="bag-creer" data-id="${esc(v.id)}">${v.listeId ? 'Remplacer la liste' : 'Créer la liste'}</button></div></div>`;
+  }
+  if(!dlg.open) dlg.showModal();
+}
+async function clicVoyages(e, dlg){
+  const ch = e.target.closest('.vy-chip');
+  if(ch){ const g = ch.parentElement; if(g.classList.contains('un')) g.querySelectorAll('.vy-chip').forEach(x => x.classList.toggle('on', x === ch)); else ch.classList.toggle('on'); return; }
+  const b = e.target.closest('[data-vy]'); if(!b) return;
+  const a = b.dataset.vy, id = b.dataset.id;
+  if(a === 'fermer'){ dlg.close(); return; }
+  if(a === 'liste'){ ouvrirVoyages('liste'); return; }
+  if(a === 'nouveau'){ ouvrirVoyages('form'); return; }
+  if(a === 'modifier'){ ouvrirVoyages('form', id); return; }
+  if(a === 'bagages'){ ouvrirVoyages('bagages', id); return; }
+  if(a === 'supprimer'){
+    if(!await confirmerJoli('Supprimer ce voyage ? Il sera retiré de l’agenda.')) return;
+    ecrireVoyages(lireVoyages().filter(v => v.id !== id));
+    const w = await attendreApp('organisation', w => typeof w.quotidienVoyage === 'function' && w.quotidienPret()); if(w) w.quotidienVoyage({id, supprimer:true});
+    ouvrirVoyages('liste'); planifierAccueil(400); squeletteVoyB(); return;
+  }
+  if(a === 'enregistrer'){
+    const err = t => { dlg.querySelector('#vy-err').textContent = t; };
+    const dest = dlg.querySelector('#vy-dest').value.trim(), deb = dlg.querySelector('#vy-deb').value, fin = dlg.querySelector('#vy-fin').value || deb, dev = dlg.querySelector('#vy-dev').value;
+    if(!dest){ err('Indique la destination.'); return; }
+    if(!deb){ err('Indique la date de départ.'); return; }
+    if(fin < deb){ err('Le retour est avant le départ.'); return; }
+    const l = lireVoyages(), ancien = l.find(v => v.id === id) || {};
+    const v = {...ancien, id:id || ('v' + Date.now().toString(36)), destination:dest, debut:deb, fin, devise:dev,
+      types:[...dlg.querySelectorAll('[data-groupe="types"] .vy-chip.on')].map(x => x.dataset.k), climat:(dlg.querySelector('[data-groupe="climat"] .vy-chip.on') || {}).dataset?.k || 'doux'};
+    b.disabled = true; b.textContent = 'Un instant…';
+    if(dev !== 'EUR' && (dev !== ancien.devise || !ancien.taux)){ try{ v.taux = await tauxDevise(dev); v.tauxDate = Date.now(); }catch(x){ v.taux = ancien.devise === dev ? ancien.taux : null; } }
+    if(dev === 'EUR') v.taux = 1;
+    ecrireVoyages([...l.filter(x => x.id !== v.id), v]);
+    const w = await attendreApp('organisation', w => typeof w.quotidienVoyage === 'function' && w.quotidienPret()); if(w) w.quotidienVoyage(v);
+    toast(dev !== 'EUR' && !v.taux ? `Voyage enregistré · taux ${dev} introuvable sans Internet, réessaie plus tard` : `✈️ ${dest} : dans l’agenda`);
+    planifierAccueil(400); squeletteVoyB();
+    ouvrirVoyages('bagages', v.id); return;
+  }
+  if(a === 'bag-plus'){ const i = dlg.querySelector('#vy-plus'), n = i.value.trim(); if(!n) return; dlg.querySelector('.vy-bag').insertAdjacentHTML('beforeend', `<label class="vy-it"><input type="checkbox" checked value="${esc(n)}"><span>${esc(n)}</span></label>`); i.value = ''; i.focus(); return; }
+  if(a === 'bag-creer'){
+    const l = lireVoyages(), v = l.find(x => x.id === id); if(!v) return;
+    const items = [...dlg.querySelectorAll('.vy-bag input:checked')].map(x => x.value);
+    const w = await attendreApp('organisation', w => typeof w.quotidienCreerListe === 'function' && w.quotidienPret());
+    if(!w){ toast('L’Organisation n’est pas prête, réessaie.'); return; }
+    v.listeId = w.quotidienCreerListe(`Bagages · ${v.destination}`, '🧳', items, v.listeId || ('bag-' + v.id));
+    ecrireVoyages(l); dlg.close(); toast(`🧳 ${items.length} éléments dans ta liste « Bagages · ${v.destination} »`); setTimeout(rafraichirListes, 800); return;
+  }
+}
+// Le bouton ✈️ de l'accueil s'allume quand un voyage est en cours ou dans les 7 jours
+function squeletteVoyB(){ const b = document.querySelector('.voy-b'); if(b) b.classList.toggle('on', voyageProche()); }
+// Pendant un voyage, le taux est remis à jour une fois par jour
+(async () => { const v = voyageEnCours(); if(!v || !v.devise || v.devise === 'EUR' || (v.tauxDate && Date.now() - v.tauxDate < 864e5)) return;
+  try{ const t = await tauxDevise(v.devise), l = lireVoyages(), x = l.find(y => y.id === v.id); if(x){ x.taux = t; x.tauxDate = Date.now(); ecrireVoyages(l); } }catch(e){} })();
 // La page cachée (le Carnet) : par-dessus tout, avec un bouton pour revenir
 function ouvrirCarnet(){
   const app = APPS.find(a => a.secret); if(!app) return;

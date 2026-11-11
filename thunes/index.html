@@ -99,6 +99,8 @@ main{max-width:640px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 .mvts{cursor:pointer;gap:6px}
 /* En-tête comme les autres pages : la date, et les réglages */
 .tete{margin:-8px 2px 0}
+.voy-band{display:flex;justify-content:space-between;align-items:center;gap:8px;border:0;border-radius:12px;background:color-mix(in srgb,var(--denim) 16%,var(--sunk));color:var(--ink);font:700 13px var(--body);padding:8px 12px;text-align:left;flex:none}
+.voy-band span{color:var(--denim);white-space:nowrap}
 .tete h1{font-size:clamp(19px,5.7vw,40px);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .reg{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none;padding:0}
 /* Les 4 cartes du haut : même taille, chacune sa couleur */
@@ -420,7 +422,20 @@ const pad = n => String(n).padStart(2, '0');
 const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 const moisDe = d => iso(d).slice(0, 7);
 const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
-const eur = (n, dec = true) => (Math.abs(n) < 0.005 && (n = 0), n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:dec ? 2 : 0, maximumFractionDigits:dec ? 2 : 0}) + ' €';
+// ✈️ Pendant un voyage (bouton de l'accueil), tout s'affiche et se tape dans la devise du pays ; c'est rangé en euros
+function voyageDevise(){
+  if(sessionStorage.getItem('thunes_voir_eur') === '1') return null;
+  try{ const t = iso(new Date()), l = JSON.parse(localStorage.getItem('thunes_voyages_v1') || '[]');
+    const v = (Array.isArray(l) ? l : []).find(x => x.debut <= t && t <= x.fin);
+    return v && v.devise && v.devise !== 'EUR' && v.taux > 0 ? v : null; }catch(e){ return null; }
+}
+const eur = (n, dec = true) => {
+  const V = voyageDevise();
+  if(V){ try{ return new Intl.NumberFormat('fr-FR', {style:'currency', currency:V.devise, currencyDisplay:'narrowSymbol', ...(dec ? {} : {minimumFractionDigits:0, maximumFractionDigits:0})}).format((Math.abs(n) < 0.005 ? 0 : n) * V.taux).replace('-', '−'); }catch(e){} }
+  return (Math.abs(n) < 0.005 && (n = 0), n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR', {minimumFractionDigits:dec ? 2 : 0, maximumFractionDigits:dec ? 2 : 0}) + ' €';
+};
+const versLocal = n => { const V = voyageDevise(); return V ? n * V.taux : n; };     // € → devise (pour pré-remplir un champ)
+const versEuro = n => { const V = voyageDevise(); return V ? n / V.taux : n; };      // devise → € (ce qui est rangé)
 const nombre = v => { const n = parseFloat(String(v || '').replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : null; };
 const nomMois = m => new Date(+m.slice(0, 4), +m.slice(5) - 1, 1).toLocaleDateString('fr-FR', {month:'long'});
 
@@ -562,16 +577,19 @@ function render(){
       <div class="b4"><div><b>${eur(c.ver.v, false)}</b><span>versé</span></div><div><b>${eur(c.charges, false)}</b><span>charges</span></div><div><b>${eur(depMois, false)}</b><span>dépensé</span></div><div><b>${eur(c.rentrees, false)}</b><span>rentrées</span></div></div></div>`);
   $('#app').innerHTML = `
     <header class="tete"><h1>${esc(cap(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})))}</h1><button type="button" class="reg" data-a="reglages" aria-label="Réglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>
+    ${(() => { let V = null; try{ const t = iso(new Date()); V = (JSON.parse(localStorage.getItem('thunes_voyages_v1') || '[]') || []).find(x => x.debut <= t && t <= x.fin && x.devise && x.devise !== 'EUR' && x.taux > 0); }catch(e){}
+      if(!V) return ''; const enEur = sessionStorage.getItem('thunes_voir_eur') === '1';
+      return `<button type="button" class="voy-band" data-a="voy-eur">✈️ ${esc(V.destination)} · ${enEur ? 'montants en €' : `montants en ${V.devise} · 1 € = ${(+V.taux).toLocaleString('fr-FR', {maximumFractionDigits:2})}`}<span>${enEur ? `Voir en ${V.devise}` : 'Voir en €'}</span></button>`; })()}
     <section class="duo hautes">
       <button type="button" class="t chif ac1" data-a="reg-ep"><small>Mis de côté / mois</small><b>${eur(+D.epargne || 0, false)}</b></button>
       <button type="button" class="t chif ac2${c.ver.connu ? '' : ' manque'}" data-a="reg-ver"><small>Je me verse</small><b>${eur(c.ver.v, false)}</b>${!c.ver.connu ? '<span class="note">à confirmer</span>' : c.ver.v > 0 && c.budgetBrut < 0 ? '<span class="note">moins que tes charges</span>' : ''}</button>
     </section>
     <section class="duo pots2">
       <div class="carre"><div class="car" data-car="pots">
-        <button type="button" class="t chif pot cagc ac3" data-a="ajuster"><small>Cagnotte</small><span class="ch-r"><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><em>${c.parJour >= 0 ? '+' : ''}${Math.round(c.parJour)} €/j</em></span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote, false)} pris sur le côté</span>` : ''}</button>
+        <button type="button" class="t chif pot cagc ac3" data-a="ajuster"><small>Cagnotte</small><span class="ch-r"><b class="${c.cagnotte < 0 ? 'neg' : ''}">${eur(c.cagnotte)}</b><em>${c.parJour >= 0 ? '+' : ''}${eur(c.parJour, false).replace(/\s/g, ' ')}/j</em></span>${c.priseCote > 0 ? `<span class="pris">dont ${eur(c.priseCote, false)} pris sur le côté</span>` : ''}</button>
         <div class="t chif pot su"><small>🎤 Stand-up</small><span class="su-l"><b>${eur(c.standup, false)}</b><button type="button" class="virer" data-a="su-menu"${c.standup > 0 ? '' : ' disabled'}>Utiliser</button></span></div>
       </div>${pointsH(2)}</div>
-      <div class="carre"><button type="button" class="t chif pot ac4" data-a="cote-menu"><small>De côté</small><span class="ch-r"><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><em>+${Math.round(c.coteMois)} €/mois</em></span>${c.priseCote > 0 ? `<span class="pris">−${eur(c.priseCote, false)} ce mois</span>` : ''}</button>${pointsH(2).replace('class="pts"', 'class="pts cache"')}</div>
+      <div class="carre"><button type="button" class="t chif pot ac4" data-a="cote-menu"><small>De côté</small><span class="ch-r"><b class="${c.cote < 0 ? 'neg' : ''}">${eur(c.cote, false)}</b><em>+${eur(c.coteMois, false)}/mois</em></span>${c.priseCote > 0 ? `<span class="pris">−${eur(c.priseCote, false)} ce mois</span>` : ''}</button>${pointsH(2).replace('class="pts"', 'class="pts cache"')}</div>
     </section>
     <section class="t mvts" data-a="tous-mv" role="button">
       <div class="titre"><b>Mouvements</b>${navMois(cMv.m, c, 'mv')}<span class="mini-b"><button type="button" class="mini" data-a="moins" aria-label="Noter une dépense">−</button><button type="button" class="mini" data-a="plus" aria-label="Noter une rentrée">+</button></span></div>
@@ -618,7 +636,7 @@ function fenetreMouvement(signe, x, opts = {}){
   const recents = [...new Set(D.mouvements.filter(m => m.m > 0 && m.l).slice(-40).reverse().map(m => m.l))].slice(0, 6);
   const dessinCats = () => D.categories.map(c => `<button type="button" class="cat${c.id === cat ? ' on' : ''}" data-c="${c.id}"><span>${esc(c.emoji)}</span><small>${esc(c.nom)}</small></button>`).join('');
   ouvrir(`<h2>${su ? '🎤 Payer avec le stand-up' : x ? 'Modifier' : signe < 0 ? 'Dépense' : 'Rentrée d’argent'}</h2>${su ? `<p class="note">Disponible : ${eur(dispoSU)}</p>` : ''}
-    <label>Montant<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(Math.abs(x.m)).replace('.', ',') : ''}"></label>
+    <label>Montant${voyageDevise() ? ` (${voyageDevise().devise})` : ''}<input class="in" name="m" inputmode="decimal" placeholder="0,00" value="${x ? String(x.dev && voyageDevise() && x.dev.c === voyageDevise().devise ? x.dev.v : Math.round(versLocal(Math.abs(x.m)) * 100) / 100).replace('.', ',') : ''}"></label>
     ${signe < 0 ? `<div class="cats" id="cats">${dessinCats()}</div>
       <label>Préciser (si tu veux)<input class="in" name="l" placeholder="ex. sushi avec Lou" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>`
     : `<label>D’où ça vient ?<input class="in" name="l" placeholder="ex. cachet, remboursement…" value="${x ? esc(x.l || '') : ''}" autocomplete="off"></label>
@@ -634,11 +652,12 @@ function fenetreMouvement(signe, x, opts = {}){
     if(b.dataset.f === 'non'){ dlg.close(); return; }
     D = lire();
     if(b.dataset.f === 'sup'){ D.mouvements = D.mouvements.filter(m => m.id !== x.id); ecrire(D); dlg.close(); render(); toast('Supprimé'); return; }
-    const v = nombre(f.m.value); if(!v || v <= 0){ dlg.querySelector('#err').textContent = 'Indique un montant.'; f.m.focus(); return; }
+    const v0 = nombre(f.m.value); if(!v0 || v0 <= 0){ dlg.querySelector('#err').textContent = 'Indique un montant.'; f.m.focus(); return; }
+    const VD = voyageDevise(), v = versEuro(v0);
     if(signe < 0 && !cat){ dlg.querySelector('#err').textContent = 'Choisis une catégorie.'; return; }
     if(su && v > dispoSU + 0.005){ dlg.querySelector('#err').textContent = `Il n’y a que ${eur(dispoSU)} dans la cagnotte stand-up.`; return; }
     const l = f.l.value.trim();
-    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now(), ...(signe < 0 ? {c:cat} : {}), ...(su ? {su:true} : {})};
+    const m = {id:x ? x.id : uid(), d:f.d.value || iso(new Date()), m:signe * Math.round(v * 100) / 100, l, t:x ? x.t : Date.now(), ...(signe < 0 ? {c:cat} : {}), ...(su ? {su:true} : {}), ...(VD ? {dev:{c:VD.devise, v:Math.round(v0 * 100) / 100}} : {})};
     D.mouvements = x ? D.mouvements.map(y => y.id === x.id ? m : y) : [...D.mouvements, m];
     ecrire(D); dlg.close(); render(); toast(signe < 0 ? `− ${eur(v)} · ${libelle(D, m)}` : `+ ${eur(v)}`);
   });
@@ -729,10 +748,11 @@ function fenetreCharge(x, catPre){
   });
 }
 function fenetreNombre(titre, val, poser, negatif){
-  ouvrir(`<h2>${titre}</h2><label>Montant<input class="in" name="m" inputmode="decimal" value="${val != null ? String(val).replace('.', ',') : ''}"></label>
+  const V = voyageDevise();
+  ouvrir(`<h2>${titre}</h2><label>Montant${V ? ` (${V.devise})` : ''}<input class="in" name="m" inputmode="decimal" value="${val != null && val !== '' ? String(Math.round(versLocal(+val) * 100) / 100).replace('.', ',') : ''}"></label>
     <div class="btns"><button type="button" class="btn sec" data-f="non">Annuler</button><button type="button" class="btn" data-f="ok">Enregistrer</button></div>`,
   (e, dlg) => { const b = e.target.closest('[data-f]'); if(!b) return; if(b.dataset.f === 'non'){ dlg.close(); return; }
-    const v = nombre(String(dlg.querySelector('form').m.value).replace('−', '-')); if(v == null || (v < 0 && !negatif)) return; D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
+    const v0 = nombre(String(dlg.querySelector('form').m.value).replace('−', '-')); if(v0 == null || (v0 < 0 && !negatif)) return; const v = versEuro(v0); D = lire(); poser(D, Math.round(v * 100) / 100); ecrire(D); dlg.close(); render(); });
 }
 // Mettre la cagnotte à une valeur précise (un réajustement : la différence, qu'on corrige si le calcul bouge encore)
 function poserCagnotte(d, v){
@@ -1004,6 +1024,7 @@ $('#app').addEventListener('click', e => {
   const a = b.dataset.a, m = moisDe(new Date());
   if(a === 'tous-mv'){ fenetreTousMouvements(); return; }
   if(a === 'facture'){ voletFacture(); return; }
+  if(a === 'voy-eur'){ sessionStorage.setItem('thunes_voir_eur', sessionStorage.getItem('thunes_voir_eur') === '1' ? '0' : '1'); render(); return; }
   if(a === 'factures'){ fenetreFactures(); return; }
   if(a === 'mv-prec' || a === 'mv-suiv'){ const cur = moisMv || m; moisMv = a === 'mv-prec' ? moisPrec(cur) : moisSuivant(cur); if(moisMv >= m) moisMv = null; render(); return; }
   if(a === 'cat-prec' || a === 'cat-suiv'){ const cur = moisCat || m; moisCat = a === 'cat-prec' ? moisPrec(cur) : moisSuivant(cur); if(moisCat >= m) moisCat = null; render(); return; }
